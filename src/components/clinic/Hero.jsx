@@ -4,60 +4,26 @@
  * Goal:
  * - Use the silk canvas animation as the Hero background
  * - Keep your clinic CTA buttons + bilingual copy
- * - Keep shadcn + Tailwind + TypeScript friendly structure
- *
- * Files to create:
- * 1) /components/ui/silk-background-animation.tsx   (background-only, reusable)
- * 2) /components/hero/hero-silk.tsx (or wherever your Hero lives)
- *
- * Notes:
- * - Do NOT inject global html/body styles inside the component (it can mess up your app).
- * - Keep the canvas as a background layer.
- * - Put the clinic content ABOVE it (z-index).
+ * - Keep shadcn + Tailwind structure
  */
 
-////////////////////////////////////////////////////////////
-// 1) /components/ui/silk-background-animation.tsx
-////////////////////////////////////////////////////////////
-
-'use client';
-
 import React, { useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Cpu, UserCheck, Leaf, ArrowRight } from 'lucide-react';
 
-type SilkBackgroundProps = {
-  /** Tailwind className for positioning / sizing. Default is full-cover absolute. */
-  className?: string;
-  /** Controls overall motion intensity. */
-  speed?: number;
-  /** Controls pattern scale. */
-  scale?: number;
-  /** Controls noise intensity. */
-  noiseIntensity?: number;
-  /** Warm theme colors (optional override) */
-  theme?: {
-    // background gradient stops
-    bg0?: string;
-    bg1?: string;
-    bg2?: string;
-    // silk tint multiplier (RGB base)
-    silkR?: number;
-    silkG?: number;
-    silkB?: number;
-    // vignette overlay
-    vignetteInner?: string;
-    vignetteOuter?: string;
-  };
-};
+////////////////////////////////////////////////////////////
+// SILK BACKGROUND COMPONENT
+////////////////////////////////////////////////////////////
 
 export function SilkBackground({
   className = 'absolute inset-0 h-full w-full',
   speed = 0.02,
   scale = 2,
   noiseIntensity = 0.8,
-  theme,
-}: SilkBackgroundProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  theme = {},
+}) {
+  const canvasRef = useRef(null);
+  const animationRef = useRef();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -93,7 +59,7 @@ export function SilkBackground({
     window.addEventListener('resize', resizeCanvas);
 
     // simple noise function
-    const noise = (x: number, y: number) => {
+    const noise = (x, y) => {
       const G = 2.71828;
       const rx = G * Math.sin(G * x);
       const ry = G * Math.sin(G * y);
@@ -190,11 +156,8 @@ export function SilkBackground({
 }
 
 ////////////////////////////////////////////////////////////
-// 2) HERO (uses the silk background + keeps your CTAs)
+// HERO COMPONENT WITH SILK BACKGROUND
 ////////////////////////////////////////////////////////////
-
-import { Button } from '@/components/ui/button';
-import { Sparkles, Cpu, UserCheck, Leaf, ArrowRight } from 'lucide-react';
 
 const heroContent = {
   es: {
@@ -225,13 +188,7 @@ const heroContent = {
   },
 };
 
-type HeroSilkProps = {
-  lang: 'es' | 'en';
-  onBookClick?: () => void;
-  onServicesClick?: () => void;
-};
-
-export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) {
+export default function Hero({ lang, onBookClick, onServicesClick }) {
   const t = heroContent[lang];
 
   return (
@@ -302,7 +259,7 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
             </div>
           </div>
 
-          {/* Optional right-side visual panel (kept simple to avoid breakage) */}
+          {/* Optional right-side visual panel */}
           <div className="hidden lg:col-span-5 lg:block">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[rgba(36,24,20,0.14)] bg-[#FFFCF8]/65 shadow-[0_30px_70px_rgba(36,24,20,0.14)] backdrop-blur">
               <img
@@ -320,10 +277,3 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
     </section>
   );
 }
-
-////////////////////////////////////////////////////////////
-// 3) Usage (example)
-// import { HeroSilk } from "@/components/hero/hero-silk";
-////////////////////////////////////////////////////////////
-
-// <HeroSilk lang={lang} onBookClick={() => scrollToBooking()} onServicesClick={() => scrollToServices()} />
