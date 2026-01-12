@@ -48,7 +48,7 @@ export default function Footer({ lang }) {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-[#FFFCF8]/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-[#FFFCF8]/40">
-            © 2024 Lumière Aesthetic Clinic. {lang === 'es' ? 'Todos los derechos reservados.' : 'All rights reserved.'}
+            © 2024 AIKOPR222 Aesthetic Clinic. {lang === 'es' ? 'Todos los derechos reservados.' : 'All rights reserved.'}
           </p>
           <div className="flex gap-6 text-xs text-[#FFFCF8]/40">
             <a href="#" className="hover:text-[#FFFCF8]/60 transition-colors">
