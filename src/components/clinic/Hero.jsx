@@ -1,279 +1,195 @@
-/**
- * HERO SILK INTEGRATION (with CTAs)
- *
- * Goal:
- * - Use the silk canvas animation as the Hero background
- * - Keep your clinic CTA buttons + bilingual copy
- * - Keep shadcn + Tailwind structure
- */
-
-import React, { useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sparkles, Cpu, UserCheck, Leaf, ArrowRight } from 'lucide-react';
-
-////////////////////////////////////////////////////////////
-// SILK BACKGROUND COMPONENT
-////////////////////////////////////////////////////////////
-
-export function SilkBackground({
-  className = 'absolute inset-0 h-full w-full',
-  speed = 0.02,
-  scale = 2,
-  noiseIntensity = 0.8,
-  theme = {},
-}) {
-  const canvasRef = useRef(null);
-  const animationRef = useRef();
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let time = 0;
-
-    const t = {
-      // default: warm premium clinic palette (cream/brown/rose)
-      bg0: theme?.bg0 ?? '#2A1B16', // deep espresso
-      bg1: theme?.bg1 ?? '#3A2721', // warm brown
-      bg2: theme?.bg2 ?? '#2A1B16',
-      silkR: theme?.silkR ?? 199, // champagne tint base
-      silkG: theme?.silkG ?? 174,
-      silkB: theme?.silkB ?? 134,
-      vignetteInner: theme?.vignetteInner ?? 'rgba(36, 24, 20, 0.08)',
-      vignetteOuter: theme?.vignetteOuter ?? 'rgba(36, 24, 20, 0.45)',
-    };
-
-    const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    // simple noise function
-    const noise = (x, y) => {
-      const G = 2.71828;
-      const rx = G * Math.sin(G * x);
-      const ry = G * Math.sin(G * y);
-      return (rx * ry * (1 + x)) % 1;
-    };
-
-    const animate = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-
-      // background gradient
-      const gradient = ctx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, t.bg0);
-      gradient.addColorStop(0.5, t.bg1);
-      gradient.addColorStop(1, t.bg2);
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
-      // silk pattern
-      const imageData = ctx.createImageData(width, height);
-      const data = imageData.data;
-
-      for (let x = 0; x < width; x += 2) {
-        for (let y = 0; y < height; y += 2) {
-          const u = (x / width) * scale;
-          const v = (y / height) * scale;
-
-          const tOffset = speed * time;
-          const tex_x = u;
-          const tex_y = v + 0.03 * Math.sin(8.0 * tex_x - tOffset);
-
-          const pattern =
-            0.6 +
-            0.4 *
-              Math.sin(
-                5.0 *
-                  (tex_x +
-                    tex_y +
-                    Math.cos(3.0 * tex_x + 5.0 * tex_y) +
-                    0.02 * tOffset) +
-                  Math.sin(20.0 * (tex_x + tex_y - 0.1 * tOffset))
-              );
-
-          const rnd = noise(x, y);
-          const intensity = Math.max(0, pattern - (rnd / 15.0) * noiseIntensity);
-
-          // warm silk tint
-          const r = Math.floor(t.silkR * intensity);
-          const g = Math.floor(t.silkG * intensity);
-          const b = Math.floor(t.silkB * intensity);
-          const a = 255;
-
-          const index = (y * width + x) * 4;
-          if (index < data.length) {
-            data[index] = r;
-            data[index + 1] = g;
-            data[index + 2] = b;
-            data[index + 3] = a;
-          }
-        }
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-
-      // vignette overlay for depth
-      const overlayGradient = ctx.createRadialGradient(
-        width / 2,
-        height / 2,
-        0,
-        width / 2,
-        height / 2,
-        Math.max(width, height) / 1.7
-      );
-      overlayGradient.addColorStop(0, t.vignetteInner);
-      overlayGradient.addColorStop(1, t.vignetteOuter);
-
-      ctx.fillStyle = overlayGradient;
-      ctx.fillRect(0, 0, width, height);
-
-      time += 1;
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [speed, scale, noiseIntensity, theme]);
-
-  return <canvas ref={canvasRef} className={className} aria-hidden="true" />;
-}
-
-////////////////////////////////////////////////////////////
-// HERO COMPONENT WITH SILK BACKGROUND
-////////////////////////////////////////////////////////////
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Sparkles, Cpu, UserCheck, Leaf } from "lucide-react";
+import { SilkBackground } from "@/components/ui/silk-background-animation";
 
 const heroContent = {
   es: {
-    title: 'Estética Avanzada y Tratamientos Láser',
+    brand: "LUMIÈRE",
+    badge: "CLÍNICA ESTÉTICA PREMIUM",
+    title: "Estética Avanzada\n& Tratamientos Láser",
     subtitle:
-      'Especialistas en depilación láser, tratamientos faciales y rejuvenecimiento con tecnología avanzada.',
-    cta1: 'Agendar Cita',
-    cta2: 'Ver Servicios',
+      "Depilación láser, tratamientos faciales y rejuvenecimiento con tecnología avanzada. Resultados naturales, atención profesional.",
+    cta1: "Agendar Cita",
+    cta2: "Ver Servicios",
+    micro: "Depósito fijo: $30 • Confirmación por mensaje",
     chips: [
-      { icon: UserCheck, text: 'Evaluación personalizada' },
-      { icon: Cpu, text: 'Tecnología avanzada' },
-      { icon: Sparkles, text: 'Cuidado profesional' },
-      { icon: Leaf, text: 'Resultados naturales' },
+      { icon: UserCheck, text: "Evaluación personalizada" },
+      { icon: Cpu, text: "Tecnología avanzada" },
+      { icon: Sparkles, text: "Cuidado profesional" },
+      { icon: Leaf, text: "Resultados naturales" },
     ],
   },
   en: {
-    title: 'Advanced Aesthetics & Laser Treatments',
+    brand: "LUMIÈRE",
+    badge: "PREMIUM AESTHETICS CLINIC",
+    title: "Advanced Aesthetics\n& Laser Treatments",
     subtitle:
-      'Specialists in laser hair removal, facial treatments, and advanced rejuvenation.',
-    cta1: 'Book Appointment',
-    cta2: 'View Services',
+      "Laser hair removal, facial treatments, and advanced rejuvenation. Natural-looking results with professional care.",
+    cta1: "Book Appointment",
+    cta2: "View Services",
+    micro: "Fixed deposit: $30 • Confirmation by text",
     chips: [
-      { icon: UserCheck, text: 'Personalized evaluation' },
-      { icon: Cpu, text: 'Advanced technology' },
-      { icon: Sparkles, text: 'Professional care' },
-      { icon: Leaf, text: 'Natural results' },
+      { icon: UserCheck, text: "Personalized evaluation" },
+      { icon: Cpu, text: "Advanced technology" },
+      { icon: Sparkles, text: "Professional care" },
+      { icon: Leaf, text: "Natural results" },
     ],
   },
 };
 
-export default function Hero({ lang, onBookClick, onServicesClick }) {
+type HeroSilkProps = {
+  lang: "es" | "en";
+  onBookClick?: () => void;
+  onServicesClick?: () => void;
+};
+
+export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) {
   const t = heroContent[lang];
 
   return (
-    <section className="relative min-h-[92vh] overflow-hidden">
-      {/* Silk animated background */}
-      <SilkBackground className="absolute inset-0 h-full w-full" />
+    <section className="relative overflow-hidden">
+      {/* DARK, LUXURY BACKGROUND (this is the contrast you’re missing) */}
+      <div className="absolute inset-0 bg-[#1B1210]" />
+      <SilkBackground
+        className="absolute inset-0 h-full w-full opacity-[0.92]"
+        theme={{
+          bg0: "#140E0C",
+          bg1: "#241814",
+          bg2: "#140E0C",
+          // warmer silk tint (champagne)
+          silkR: 210,
+          silkG: 185,
+          silkB: 145,
+          vignetteInner: "rgba(0,0,0,0.05)",
+          vignetteOuter: "rgba(0,0,0,0.55)",
+        }}
+      />
 
-      {/* Warm overlay to match clinic brand + keep text readable */}
-      <div className="absolute inset-0 bg-[radial-gradient(1000px_500px_at_20%_25%,rgba(176,122,122,0.22),transparent_60%),radial-gradient(900px_520px_at_80%_20%,rgba(199,174,134,0.20),transparent_58%),linear-gradient(to_bottom,rgba(244,238,230,0.65),rgba(233,221,207,0.68),rgba(244,238,230,0.72))]" />
+      {/* CONTROLLED OVERLAY — don’t wash it out */}
+      <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_25%_20%,rgba(176,122,122,0.18),transparent_60%),radial-gradient(900px_520px_at_80%_10%,rgba(199,174,134,0.18),transparent_60%)]" />
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        <div className="grid min-h-[92vh] items-center gap-10 py-20 md:py-28 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[rgba(36,24,20,0.14)] bg-[#FFFCF8]/70 px-4 py-2 backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-[#C7AE86]" />
-              <span className="text-xs font-medium tracking-[0.18em] text-[#6E5B50] uppercase">
-                {lang === 'es' ? 'Clínica estética premium' : 'Premium aesthetics clinic'}
-              </span>
-            </div>
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+        <div className="min-h-[92vh] py-16 sm:py-20 lg:py-24 flex items-center">
+          <div className="grid w-full items-center gap-10 lg:grid-cols-12">
+            {/* LEFT: Luxury content card */}
+            <div className="lg:col-span-7">
+              <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#F4EEE6]/92 p-7 sm:p-10 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+                {/* subtle inner gradient */}
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_15%_20%,rgba(199,174,134,0.18),transparent_55%),radial-gradient(800px_420px_at_70%_10%,rgba(176,122,122,0.16),transparent_55%)]" />
 
-            <h1 className="text-balance text-4xl font-light leading-[1.05] tracking-[-0.03em] text-[#241814] sm:text-5xl md:text-6xl lg:text-7xl">
-              {t.title}
-            </h1>
+                <div className="relative">
+                  {/* Brand row */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-sm tracking-[0.22em] text-[#241814] font-medium uppercase">
+                      {t.brand}
+                    </div>
 
-            <p className="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-[#6E5B50] sm:text-lg md:text-xl">
-              {t.subtitle}
-            </p>
+                    {/* badge */}
+                    <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[rgba(36,24,20,0.14)] bg-white/60 px-4 py-2">
+                      <span className="h-2 w-2 rounded-full bg-[#C7AE86]" />
+                      <span className="text-[11px] tracking-[0.22em] text-[#6E5B50] font-semibold uppercase">
+                        {t.badge}
+                      </span>
+                    </div>
+                  </div>
 
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button
-                onClick={onBookClick}
-                className="group h-12 rounded-xl bg-[#B07A7A] px-6 text-base font-medium text-white shadow-[0_12px_30px_rgba(176,122,122,0.25)] transition hover:bg-[#9A6969] hover:shadow-[0_16px_40px_rgba(176,122,122,0.28)]"
-              >
-                {t.cta1}
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Button>
+                  {/* Headline */}
+                  <h1 className="mt-6 whitespace-pre-line text-balance font-light leading-[1.02] tracking-[-0.04em] text-[#241814] text-4xl sm:text-5xl lg:text-6xl">
+                    {t.title}
+                  </h1>
 
-              <Button
-                onClick={onServicesClick}
-                variant="outline"
-                className="h-12 rounded-xl border-[rgba(36,24,20,0.18)] bg-[#FFFCF8]/60 px-6 text-base font-medium text-[#241814] backdrop-blur transition hover:bg-[#FFFCF8]"
-              >
-                {t.cta2}
-              </Button>
+                  {/* Subtitle */}
+                  <p className="mt-5 max-w-2xl text-pretty text-[#6E5B50] leading-relaxed text-base sm:text-lg">
+                    {t.subtitle}
+                  </p>
 
-              <div className="mt-2 text-xs text-[#6E5B50] sm:mt-0 sm:ml-2">
-                <span className="font-medium text-[#241814]">
-                  {lang === 'es' ? 'Depósito fijo:' : 'Fixed deposit:'}
-                </span>{' '}
-                $30 • {lang === 'es' ? 'Confirmación por mensaje' : 'Confirmation by text'}
+                  {/* CTAs */}
+                  <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={onBookClick}
+                      className="group h-12 rounded-xl bg-[#241814] text-[#FFFCF8] px-6 text-[15px] font-medium shadow-[0_14px_40px_rgba(36,24,20,0.25)] hover:bg-[#1A110E]"
+                    >
+                      {t.cta1}
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </Button>
+
+                    <Button
+                      onClick={onServicesClick}
+                      variant="outline"
+                      className="h-12 rounded-xl border-[rgba(36,24,20,0.20)] bg-white/50 text-[#241814] px-6 text-[15px] font-medium hover:bg-white/70"
+                    >
+                      {t.cta2}
+                    </Button>
+                  </div>
+
+                  {/* Micro line */}
+                  <div className="mt-5 text-sm text-[#6E5B50]">
+                    <span className="font-semibold text-[#241814]">
+                      {lang === "es" ? "Depósito fijo:" : "Fixed deposit:"}
+                    </span>{" "}
+                    $30 <span className="mx-2 text-[#C7AE86]">•</span> {lang === "es" ? "Confirmación por mensaje" : "Confirmation by text"}
+                  </div>
+
+                  {/* Chips (make them look luxury, not “pills”) */}
+                  <div className="mt-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+                    {t.chips.map((chip, idx) => {
+                      const Icon = chip.icon;
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 rounded-xl border border-[rgba(36,24,20,0.10)] bg-white/55 px-4 py-3"
+                        >
+                          <Icon className="h-4 w-4 text-[#C7AE86]" />
+                          <span className="text-[13px] text-[#6E5B50]">{chip.text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-10 flex flex-wrap gap-3">
-              {t.chips.map((chip, idx) => {
-                const Icon = chip.icon;
-                return (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 rounded-full border border-[rgba(36,24,20,0.10)] bg-[#FFFCF8]/75 px-4 py-2 shadow-[0_12px_30px_rgba(36,24,20,0.06)] backdrop-blur"
-                  >
-                    <Icon className="h-4 w-4 text-[#C7AE86]" />
-                    <span className="text-sm text-[#6E5B50]">{chip.text}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            {/* RIGHT: Premium image panel (desktop only) */}
+            <div className="hidden lg:col-span-5 lg:block">
+              <div className="relative overflow-hidden rounded-[28px] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
+                <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.55),transparent_60%)] z-10" />
+                <img
+                  src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=1600&q=80"
+                  alt="Aesthetic clinic"
+                  className="h-[540px] w-full object-cover"
+                />
 
-          {/* Optional right-side visual panel */}
-          <div className="hidden lg:col-span-5 lg:block">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-[rgba(36,24,20,0.14)] bg-[#FFFCF8]/65 shadow-[0_30px_70px_rgba(36,24,20,0.14)] backdrop-blur">
-              <img
-                src="https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?auto=format&fit=crop&w=1400&q=80"
-                alt="Aesthetic clinic"
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-[radial-gradient(700px_420px_at_60%_20%,rgba(176,122,122,0.18),transparent_55%),linear-gradient(to_top,rgba(36,24,20,0.25),transparent_55%)]" />
+                {/* small floating label */}
+                <div className="absolute bottom-5 left-5 right-5 z-20 rounded-2xl border border-white/15 bg-black/20 p-4 backdrop-blur">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-white">
+                        {lang === "es" ? "Agenda en minutos" : "Book in minutes"}
+                      </div>
+                      <div className="mt-1 text-xs text-white/75">
+                        {lang === "es"
+                          ? "Selecciona servicio → elige horario → depósito $30"
+                          : "Choose service → pick a slot → $30 deposit"}
+                      </div>
+                    </div>
+                    <div className="rounded-full bg-[#C7AE86]/25 px-3 py-1 text-xs font-semibold text-white">
+                      {lang === "es" ? "Premium" : "Premium"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* glow accents */}
+                <div className="absolute -right-24 -top-24 h-60 w-60 rounded-full bg-[#C7AE86]/25 blur-3xl z-0" />
+                <div className="absolute -left-24 -bottom-24 h-60 w-60 rounded-full bg-[#B07A7A]/20 blur-3xl z-0" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(to_right,transparent,rgba(199,174,134,0.55),transparent)]" />
+      {/* bottom divider */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(to_right,transparent,rgba(199,174,134,0.65),transparent)]" />
     </section>
   );
 }
