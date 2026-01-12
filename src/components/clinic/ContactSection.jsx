@@ -55,7 +55,7 @@ export default function ContactSection({ lang }) {
               {lang === 'es' ? 'Correo' : 'Email'}
             </h3>
             <p className="text-sm text-[#6E5B50]">
-              info@lumiere.clinic
+              info@aikopr222.clinic
             </p>
           </div>
 
