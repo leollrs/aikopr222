@@ -24,7 +24,7 @@ export default function Header({ lang, setLang, cartCount, onCartClick, onBookCl
           {/* Logo / Clinic Name */}
           <div className="flex items-center">
             <span className="text-xl md:text-2xl font-light tracking-wide text-[#241814]">
-              LUMIÈRE
+              AIKOPR222
             </span>
             <span className="hidden sm:inline text-xs text-[#6E5B50] ml-2 tracking-widest uppercase">
               Aesthetic Clinic
