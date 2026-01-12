@@ -5,14 +5,13 @@ import { SilkBackground } from "@/components/ui/silk-background-animation";
 
 const heroContent = {
   es: {
-    brand: "LUMIÈRE",
+    brand: "AIKOPR222",
     badge: "CLÍNICA ESTÉTICA PREMIUM",
     title: "Estética Avanzada\n& Tratamientos Láser",
     subtitle:
       "Depilación láser, tratamientos faciales y rejuvenecimiento con tecnología avanzada. Resultados naturales, atención profesional.",
     cta1: "Agendar Cita",
     cta2: "Ver Servicios",
-    micro: "Depósito fijo: $30 • Confirmación por mensaje",
     chips: [
       { icon: UserCheck, text: "Evaluación personalizada" },
       { icon: Cpu, text: "Tecnología avanzada" },
@@ -21,14 +20,13 @@ const heroContent = {
     ],
   },
   en: {
-    brand: "LUMIÈRE",
+    brand: "AIKOPR222",
     badge: "PREMIUM AESTHETICS CLINIC",
     title: "Advanced Aesthetics\n& Laser Treatments",
     subtitle:
       "Laser hair removal, facial treatments, and advanced rejuvenation. Natural-looking results with professional care.",
     cta1: "Book Appointment",
     cta2: "View Services",
-    micro: "Fixed deposit: $30 • Confirmation by text",
     chips: [
       { icon: UserCheck, text: "Personalized evaluation" },
       { icon: Cpu, text: "Advanced technology" },
@@ -38,18 +36,12 @@ const heroContent = {
   },
 };
 
-type HeroSilkProps = {
-  lang: "es" | "en";
-  onBookClick?: () => void;
-  onServicesClick?: () => void;
-};
-
-export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) {
-  const t = heroContent[lang];
+export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
+  const t = heroContent[lang] || heroContent.es;
 
   return (
     <section className="relative overflow-hidden">
-      {/* DARK, LUXURY BACKGROUND (this is the contrast you’re missing) */}
+      {/* DARK, LUXURY BACKGROUND */}
       <div className="absolute inset-0 bg-[#1B1210]" />
       <SilkBackground
         className="absolute inset-0 h-full w-full opacity-[0.92]"
@@ -57,7 +49,6 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
           bg0: "#140E0C",
           bg1: "#241814",
           bg2: "#140E0C",
-          // warmer silk tint (champagne)
           silkR: 210,
           silkG: 185,
           silkB: 145,
@@ -66,26 +57,23 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
         }}
       />
 
-      {/* CONTROLLED OVERLAY — don’t wash it out */}
+      {/* CONTROLLED OVERLAY */}
       <div className="absolute inset-0 bg-[radial-gradient(900px_520px_at_25%_20%,rgba(176,122,122,0.18),transparent_60%),radial-gradient(900px_520px_at_80%_10%,rgba(199,174,134,0.18),transparent_60%)]" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         <div className="min-h-[92vh] py-16 sm:py-20 lg:py-24 flex items-center">
           <div className="grid w-full items-center gap-10 lg:grid-cols-12">
-            {/* LEFT: Luxury content card */}
+            {/* LEFT */}
             <div className="lg:col-span-7">
               <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#F4EEE6]/92 p-7 sm:p-10 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-                {/* subtle inner gradient */}
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_15%_20%,rgba(199,174,134,0.18),transparent_55%),radial-gradient(800px_420px_at_70%_10%,rgba(176,122,122,0.16),transparent_55%)]" />
 
                 <div className="relative">
-                  {/* Brand row */}
                   <div className="flex items-center justify-between gap-4">
                     <div className="text-sm tracking-[0.22em] text-[#241814] font-medium uppercase">
                       {t.brand}
                     </div>
 
-                    {/* badge */}
                     <div className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[rgba(36,24,20,0.14)] bg-white/60 px-4 py-2">
                       <span className="h-2 w-2 rounded-full bg-[#C7AE86]" />
                       <span className="text-[11px] tracking-[0.22em] text-[#6E5B50] font-semibold uppercase">
@@ -94,17 +82,14 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
                     </div>
                   </div>
 
-                  {/* Headline */}
                   <h1 className="mt-6 whitespace-pre-line text-balance font-light leading-[1.02] tracking-[-0.04em] text-[#241814] text-4xl sm:text-5xl lg:text-6xl">
                     {t.title}
                   </h1>
 
-                  {/* Subtitle */}
                   <p className="mt-5 max-w-2xl text-pretty text-[#6E5B50] leading-relaxed text-base sm:text-lg">
                     {t.subtitle}
                   </p>
 
-                  {/* CTAs */}
                   <div className="mt-8 flex flex-col sm:flex-row gap-3">
                     <Button
                       onClick={onBookClick}
@@ -123,15 +108,16 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
                     </Button>
                   </div>
 
-                  {/* Micro line */}
                   <div className="mt-5 text-sm text-[#6E5B50]">
                     <span className="font-semibold text-[#241814]">
                       {lang === "es" ? "Depósito fijo:" : "Fixed deposit:"}
                     </span>{" "}
-                    $30 <span className="mx-2 text-[#C7AE86]">•</span> {lang === "es" ? "Confirmación por mensaje" : "Confirmation by text"}
+                    $30 <span className="mx-2 text-[#C7AE86]">•</span>{" "}
+                    {lang === "es"
+                      ? "Confirmación por mensaje"
+                      : "Confirmation by text"}
                   </div>
 
-                  {/* Chips (make them look luxury, not “pills”) */}
                   <div className="mt-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
                     {t.chips.map((chip, idx) => {
                       const Icon = chip.icon;
@@ -141,7 +127,9 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
                           className="flex items-center gap-2 rounded-xl border border-[rgba(36,24,20,0.10)] bg-white/55 px-4 py-3"
                         >
                           <Icon className="h-4 w-4 text-[#C7AE86]" />
-                          <span className="text-[13px] text-[#6E5B50]">{chip.text}</span>
+                          <span className="text-[13px] text-[#6E5B50]">
+                            {chip.text}
+                          </span>
                         </div>
                       );
                     })}
@@ -150,7 +138,7 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
               </div>
             </div>
 
-            {/* RIGHT: Premium image panel (desktop only) */}
+            {/* RIGHT (desktop only) */}
             <div className="hidden lg:col-span-5 lg:block">
               <div className="relative overflow-hidden rounded-[28px] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
                 <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.55),transparent_60%)] z-10" />
@@ -159,8 +147,6 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
                   alt="Aesthetic clinic"
                   className="h-[540px] w-full object-cover"
                 />
-
-                {/* small floating label */}
                 <div className="absolute bottom-5 left-5 right-5 z-20 rounded-2xl border border-white/15 bg-black/20 p-4 backdrop-blur">
                   <div className="flex items-center justify-between">
                     <div>
@@ -174,12 +160,10 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
                       </div>
                     </div>
                     <div className="rounded-full bg-[#C7AE86]/25 px-3 py-1 text-xs font-semibold text-white">
-                      {lang === "es" ? "Premium" : "Premium"}
+                      Premium
                     </div>
                   </div>
                 </div>
-
-                {/* glow accents */}
                 <div className="absolute -right-24 -top-24 h-60 w-60 rounded-full bg-[#C7AE86]/25 blur-3xl z-0" />
                 <div className="absolute -left-24 -bottom-24 h-60 w-60 rounded-full bg-[#B07A7A]/20 blur-3xl z-0" />
               </div>
@@ -188,7 +172,6 @@ export function HeroSilk({ lang, onBookClick, onServicesClick }: HeroSilkProps) 
         </div>
       </div>
 
-      {/* bottom divider */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(to_right,transparent,rgba(199,174,134,0.65),transparent)]" />
     </section>
   );
