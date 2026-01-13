@@ -142,63 +142,124 @@ export default function ServicesSection({
   onViewDetails,
   sectionRef,
 }) {
+  // NEW PALETTE (shared)
+  const CREAM = "#FBF8F3";
+  const LINEN = "#F1E8DD";
+  const ESPRESSO = "#2A1E1A";
+  const COCOA = "#6B5A52";
+  const CHAMPAGNE = "#C9AE7E";
+  const ROSE = "#C39A8B";
+  const TAUPE = "#8B7468";
+
   return (
     <section
       ref={sectionRef}
       className="relative overflow-hidden py-20 md:py-24 lg:py-28"
+      style={{ backgroundColor: LINEN }}
     >
-      {/* Premium dark backdrop to match Hero */}
-      <div className="absolute inset-0 bg-[#0C0908]" />
-      <div className="absolute inset-0 bg-[radial-gradient(1100px_520px_at_20%_20%,rgba(199,174,134,0.16),transparent_60%),radial-gradient(900px_520px_at_80%_10%,rgba(176,122,122,0.12),transparent_60%),linear-gradient(to_bottom,rgba(0,0,0,0.35),transparent_35%,rgba(0,0,0,0.55))]" />
+      {/* Soft premium backdrop (no black) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            radial-gradient(1100px 520px at 20% 20%, rgba(201,174,126,0.28), transparent 60%),
+            radial-gradient(900px 520px at 80% 10%, rgba(195,154,139,0.18), transparent 62%),
+            linear-gradient(to bottom, rgba(251,248,243,0.65), rgba(241,232,221,0.92), rgba(251,248,243,0.78))
+          `,
+        }}
+      />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         {/* Section Header */}
-        <div className="text-center mb-12 md:mb-14">
-          <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur">
-            <span className="h-2 w-2 rounded-full bg-[#C7AE86]" />
-            <span className="text-[11px] font-semibold tracking-[0.28em] uppercase text-[#EDE3D6]/80">
+        <div className="mx-auto mb-12 max-w-3xl text-center md:mb-14">
+          <div
+            className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
+            style={{
+              backgroundColor: "rgba(255,252,248,0.70)",
+              borderColor: "rgba(42,30,26,0.12)",
+            }}
+          >
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-[0.28em]"
+              style={{ color: COCOA }}
+            >
               {lang === "es" ? "Servicios premium" : "Premium services"}
             </span>
           </div>
 
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-light tracking-[-0.03em] text-[#F4EEE6] mb-4">
+          <h2
+            className="text-3xl font-light tracking-[-0.03em] md:text-4xl lg:text-5xl"
+            style={{ color: ESPRESSO }}
+          >
             {lang === "es" ? "Nuestros Servicios" : "Our Services"}
           </h2>
 
-          <p className="text-[#EDE3D6]/70 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
+          <p
+            className="mx-auto mt-4 max-w-2xl text-base leading-relaxed md:text-lg"
+            style={{ color: COCOA }}
+          >
             {lang === "es"
               ? "Tratamientos estéticos de última generación realizados por profesionales certificados."
               : "State-of-the-art aesthetic treatments performed by certified professionals."}
           </p>
 
-          <div className="mt-8 h-px w-full bg-[linear-gradient(to_right,transparent,rgba(199,174,134,0.45),transparent)]" />
+          <div
+            className="mx-auto mt-8 h-px w-full max-w-2xl"
+            style={{
+              backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
+              opacity: 0.7,
+            }}
+          />
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-4">
           {services.map((service) => (
             <div
               key={service.id}
-              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#F4EEE6]/92 shadow-[0_26px_80px_rgba(0,0,0,0.38)] backdrop-blur-xl transition-transform duration-300 hover:-translate-y-1"
+              className="group relative overflow-hidden rounded-3xl border p-1 transition-transform duration-300 hover:-translate-y-1"
+              style={{
+                borderColor: "rgba(42,30,26,0.10)",
+                backgroundColor: "rgba(255,252,248,0.55)",
+                boxShadow: "0 26px 80px rgba(42,30,26,0.10)",
+                backdropFilter: "blur(14px)",
+              }}
             >
               {/* Card glow */}
-              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(700px_340px_at_30%_10%,rgba(199,174,134,0.18),transparent_60%),radial-gradient(600px_320px_at_80%_20%,rgba(176,122,122,0.14),transparent_62%)]" />
-              <div className="relative p-1">
-                <div className="rounded-[22px] bg-white/35">
-                  <ServiceCard
-                    service={service}
-                    lang={lang}
-                    onAddService={onAddService}
-                    onViewDetails={onViewDetails}
-                  />
-                </div>
+              <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(700px 340px at 30% 10%, rgba(201,174,126,0.22), transparent 60%),
+                    radial-gradient(600px 320px at 80% 20%, rgba(195,154,139,0.16), transparent 62%)
+                  `,
+                }}
+              />
+
+              <div
+                className="relative rounded-[22px]"
+                style={{ backgroundColor: "rgba(251,248,243,0.72)" }}
+              >
+                <ServiceCard
+                  service={service}
+                  lang={lang}
+                  onAddService={onAddService}
+                  onViewDetails={onViewDetails}
+                />
               </div>
             </div>
           ))}
         </div>
 
         {/* Bottom divider */}
-        <div className="mt-14 h-px w-full bg-[linear-gradient(to_right,transparent,rgba(199,174,134,0.45),transparent)]" />
+        <div
+          className="mx-auto mt-14 h-px w-full max-w-4xl"
+          style={{
+            backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
+            opacity: 0.65,
+          }}
+        />
       </div>
     </section>
   );
