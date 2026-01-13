@@ -17,12 +17,10 @@ const QUICK_REPLIES = {
   en: ["Recommend a service", "Pricing", "What's the deposit?", "Availability"],
 };
 
-// Basic predefined responses (keep it simple + safe)
 function getPredefinedReply({ lang, text }) {
   const t = (s) => String(s || "").toLowerCase().trim();
   const msg = t(text);
 
-  // English
   if (lang === "en") {
     if (msg.includes("recommend") || msg.includes("recom")) {
       return (
@@ -51,7 +49,6 @@ function getPredefinedReply({ lang, text }) {
     return null;
   }
 
-  // Spanish
   if (msg.includes("recom") || msg.includes("recomiéndame") || msg.includes("recomiendame")) {
     return (
       "Claro — dime qué deseas tratar (depilación, acné/textura, tatuaje, reafirmación) y en qué área. " +
@@ -77,12 +74,7 @@ function getPredefinedReply({ lang, text }) {
       "Si me dices qué servicio deseas, te confirmamos el depósito exacto por mensaje."
     );
   }
-  if (
-    msg.includes("dispon") ||
-    msg.includes("disponibilidad") ||
-    msg.includes("horario") ||
-    msg.includes("citas")
-  ) {
+  if (msg.includes("dispon") || msg.includes("disponibilidad") || msg.includes("horario") || msg.includes("citas")) {
     return (
       "Las citas están disponibles en fechas y horarios específicos. " +
       "Presiona “Reservar ahora”, elige fecha/hora y te confirmaremos por mensaje."
@@ -110,6 +102,7 @@ export default function ChatDrawer({
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -123,8 +116,19 @@ export default function ChatDrawer({
     scrollToBottom();
   }, [messages]);
 
+  // Focus input when opened
   useEffect(() => {
     if (isOpen && inputRef.current) inputRef.current.focus();
+  }, [isOpen]);
+
+  // Prevent body scroll behind the drawer (reduces weird jumps on mobile)
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [isOpen]);
 
   const advisorFallback = isEs
@@ -140,13 +144,10 @@ export default function ChatDrawer({
     setIsLoading(true);
 
     try {
-      // 1) Try predefined reply
       const predefined = getPredefinedReply({ lang, text });
       const reply = predefined || advisorFallback;
 
-      // tiny delay so it feels natural
       await new Promise((r) => setTimeout(r, 450));
-
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (error) {
       setMessages((prev) => [
@@ -205,6 +206,10 @@ export default function ChatDrawer({
           backgroundColor: "rgba(251,248,243,0.95)",
           borderColor: "rgba(42,30,26,0.10)",
           backdropFilter: "blur(20px)",
+          // Helps on iOS: avoid text autosizing + reduce “jump/zoom” feel
+          WebkitTextSizeAdjust: "100%",
+          // Helps prevent scroll chaining / rubber banding
+          overscrollBehavior: "contain",
         }}
       >
         {/* Glow */}
@@ -217,10 +222,7 @@ export default function ChatDrawer({
         >
           <div>
             <div className="flex items-center gap-2">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: PALETTE.champagne }}
-              />
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PALETTE.champagne }} />
               <h3 className="text-lg font-medium" style={{ color: PALETTE.espresso }}>
                 {isEs ? "Asistente AI" : "AI Assistant"}
               </h3>
@@ -244,8 +246,7 @@ export default function ChatDrawer({
         </div>
 
         {/* Messages */}
-        <div className="relative flex-1 overflow-y-auto px-6 py-6">
-          {/* Quick Replies (show only at start) */}
+        <div className="relative flex-1 overflow-y-auto px-6 py-6" style={{ overscrollBehavior: "contain" }}>
           {messages.length === 1 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {QUICK_REPLIES[lang].map((reply) => (
@@ -265,7 +266,6 @@ export default function ChatDrawer({
             </div>
           )}
 
-          {/* Message List */}
           <div className="space-y-4">
             {messages.map((msg, idx) => (
               <MessageBubble
@@ -286,10 +286,7 @@ export default function ChatDrawer({
                     borderColor: "rgba(42,30,26,0.10)",
                   }}
                 >
-                  <Loader2
-                    className="h-4 w-4 animate-spin"
-                    style={{ color: PALETTE.champagne }}
-                  />
+                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: PALETTE.champagne }} />
                 </div>
               </div>
             )}
@@ -310,30 +307,36 @@ export default function ChatDrawer({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              onFocus={() => {
+                // Ensures the last message stays visible when keyboard opens
+                setTimeout(() => scrollToBottom(), 120);
+              }}
               placeholder={isEs ? "Escribe tu mensaje..." : "Type your message..."}
-              className="flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-opacity-50"
+              // ✅ IMPORTANT: iOS Safari zoom fix -> font-size must be >= 16px
+              // Keep 16px on mobile, allow smaller on desktop if you want
+              className="flex-1 rounded-xl border px-4 py-3 text-[16px] md:text-sm outline-none transition focus:border-opacity-50"
               style={{
                 backgroundColor: "rgba(241,232,221,0.60)",
                 borderColor: "rgba(42,30,26,0.12)",
                 color: PALETTE.espresso,
               }}
               disabled={isLoading}
+              inputMode="text"
+              autoCorrect="on"
+              autoCapitalize="sentences"
             />
+
             <button
               onClick={() => handleSend()}
               disabled={!input.trim() || isLoading}
               className="inline-flex h-12 w-12 items-center justify-center rounded-xl transition disabled:opacity-50"
-              style={{
-                backgroundColor: PALETTE.rose,
-                color: "#FFFFFF",
-              }}
+              style={{ backgroundColor: PALETTE.rose, color: "#FFFFFF" }}
               aria-label={isEs ? "Enviar" : "Send"}
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Small hint */}
           <p className="mt-2 text-[11px]" style={{ color: "rgba(139,116,104,0.9)" }}>
             {isEs
               ? "Consejo: usa los botones de arriba para respuestas rápidas."
@@ -349,7 +352,6 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
   const isUser = message.role === "user";
   const isEs = lang === "es";
 
-  // Only show service add buttons for assistant messages (so user messages don't trigger it)
   const mentionedServices = !isUser
     ? services.filter((s) => {
         const name = isEs ? s.nameEs : s.nameEn;
@@ -372,7 +374,6 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
           <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
         </div>
 
-        {/* Action buttons for assistant messages */}
         {!isUser && mentionedServices.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {mentionedServices.slice(0, 2).map((service) => (
