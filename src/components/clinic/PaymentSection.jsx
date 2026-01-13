@@ -45,7 +45,6 @@ export default function PaymentSection({
       summary: "Resumen",
       servicesTotal: "Total servicios",
       confirm: "Confirmar cita",
-      addMore: "Agregar más servicios",
       confirmedTitle: "¡Cita Confirmada!",
       confirmedBody: "Te hemos enviado un correo con los detalles de tu cita.",
       date: "Fecha",
