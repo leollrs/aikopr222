@@ -1,66 +1,90 @@
-import React, { useEffect, useRef } from 'react';
+"use client";
+
+import React, { useEffect, useRef } from "react";
+
+type SilkBackgroundProps = {
+  className?: string;
+  speed?: number;
+  scale?: number;
+  noiseIntensity?: number;
+  theme?: {
+    bg0?: string;
+    bg1?: string;
+    bg2?: string;
+    silkR?: number;
+    silkG?: number;
+    silkB?: number;
+    vignetteInner?: string;
+    vignetteOuter?: string;
+  };
+};
 
 export function SilkBackground({
-  className = 'absolute inset-0 h-full w-full',
-  speed = 0.02,
+  className = "fixed inset-0 h-full w-full",
+  speed = 0.018,
   scale = 2,
   noiseIntensity = 0.8,
-  theme = {},
-}) {
-  const canvasRef = useRef(null);
-  const animationRef = useRef();
+  theme,
+}: SilkBackgroundProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    const t = {
+      bg0: theme?.bg0 ?? "#0C0908",
+      bg1: theme?.bg1 ?? "#1A1310",
+      bg2: theme?.bg2 ?? "#0C0908",
+      silkR: theme?.silkR ?? 214,
+      silkG: theme?.silkG ?? 185,
+      silkB: theme?.silkB ?? 140,
+      vignetteInner: theme?.vignetteInner ?? "rgba(0,0,0,0.12)",
+      vignetteOuter: theme?.vignetteOuter ?? "rgba(0,0,0,0.85)",
+    };
 
     let time = 0;
 
-    const t = {
-      // default: warm premium clinic palette (cream/brown/rose)
-      bg0: theme?.bg0 ?? '#2A1B16', // deep espresso
-      bg1: theme?.bg1 ?? '#3A2721', // warm brown
-      bg2: theme?.bg2 ?? '#2A1B16',
-      silkR: theme?.silkR ?? 199, // champagne tint base
-      silkG: theme?.silkG ?? 174,
-      silkB: theme?.silkB ?? 134,
-      vignetteInner: theme?.vignetteInner ?? 'rgba(36, 24, 20, 0.08)',
-      vignetteOuter: theme?.vignetteOuter ?? 'rgba(36, 24, 20, 0.45)',
-    };
-
-    const resizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    // simple noise function
-    const noise = (x, y) => {
+    const noise = (x: number, y: number) => {
       const G = 2.71828;
       const rx = G * Math.sin(G * x);
       const ry = G * Math.sin(G * y);
       return (rx * ry * (1 + x)) % 1;
     };
 
+    // ✅ Size to the element itself (not window) so it always covers correctly
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    resize();
+
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(canvas);
+
     const animate = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
 
       // background gradient
       const gradient = ctx.createLinearGradient(0, 0, width, height);
       gradient.addColorStop(0, t.bg0);
       gradient.addColorStop(0.5, t.bg1);
       gradient.addColorStop(1, t.bg2);
-
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 
@@ -92,48 +116,54 @@ export function SilkBackground({
           const rnd = noise(x, y);
           const intensity = Math.max(0, pattern - (rnd / 15.0) * noiseIntensity);
 
-          // warm silk tint
           const r = Math.floor(t.silkR * intensity);
           const g = Math.floor(t.silkG * intensity);
           const b = Math.floor(t.silkB * intensity);
-          const a = 255;
 
-          const index = (y * width + x) * 4;
-          if (index < data.length) {
-            data[index] = r;
-            data[index + 1] = g;
-            data[index + 2] = b;
-            data[index + 3] = a;
+          const idx = (y * width + x) * 4;
+          if (idx < data.length) {
+            data[idx] = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+
+            // fill neighbor pixel to avoid “dotted” look
+            const idx2 = idx + 4;
+            if (idx2 < data.length) {
+              data[idx2] = r;
+              data[idx2 + 1] = g;
+              data[idx2 + 2] = b;
+              data[idx2 + 3] = 255;
+            }
           }
         }
       }
 
       ctx.putImageData(imageData, 0, 0);
 
-      // vignette overlay for depth
-      const overlayGradient = ctx.createRadialGradient(
+      // vignette overlay
+      const overlay = ctx.createRadialGradient(
         width / 2,
         height / 2,
         0,
         width / 2,
         height / 2,
-        Math.max(width, height) / 1.7
+        Math.max(width, height) / 1.5
       );
-      overlayGradient.addColorStop(0, t.vignetteInner);
-      overlayGradient.addColorStop(1, t.vignetteOuter);
-
-      ctx.fillStyle = overlayGradient;
+      overlay.addColorStop(0, t.vignetteInner);
+      overlay.addColorStop(1, t.vignetteOuter);
+      ctx.fillStyle = overlay;
       ctx.fillRect(0, 0, width, height);
 
       time += 1;
-      animationRef.current = requestAnimationFrame(animate);
+      rafRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    rafRef.current = requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      ro.disconnect();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [speed, scale, noiseIntensity, theme]);
 
