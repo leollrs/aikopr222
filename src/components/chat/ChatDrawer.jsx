@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, Plus, Calendar } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { services } from "@/components/clinic/ServicesSection";
 
 const PALETTE = {
@@ -14,33 +13,107 @@ const PALETTE = {
 };
 
 const QUICK_REPLIES = {
-  es: [
-    "Recomiéndame un servicio",
-    "Precios",
-    "¿Cuál es el depósito?",
-    "Disponibilidad",
-  ],
-  en: [
-    "Recommend a service",
-    "Pricing",
-    "What's the deposit?",
-    "Availability",
-  ],
+  es: ["Recomiéndame un servicio", "Precios", "¿Cuál es el depósito?", "Disponibilidad"],
+  en: ["Recommend a service", "Pricing", "What's the deposit?", "Availability"],
 };
 
-export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollToBooking }) {
+// Basic predefined responses (keep it simple + safe)
+function getPredefinedReply({ lang, text }) {
+  const t = (s) => String(s || "").toLowerCase().trim();
+  const msg = t(text);
+
+  // English
+  if (lang === "en") {
+    if (msg.includes("recommend") || msg.includes("recom")) {
+      return (
+        "Sure — tell me what you want to treat (hair removal, acne/texture, tattoo, tightening) and the area. " +
+        "Meanwhile, popular options are Laser Hair Removal, Carbon Peel, Tattoo Removal, and HIFU."
+      );
+    }
+    if (msg.includes("pricing") || msg.includes("price") || msg.includes("cost")) {
+      return (
+        "Pricing depends on the treatment and area. If you tell me the service + area, I’ll guide you. " +
+        "You can also add a service to your appointment and see the total before confirming."
+      );
+    }
+    if (msg.includes("deposit")) {
+      return (
+        "A deposit may be required to secure your appointment. " +
+        "If you share the service you want, we’ll confirm the exact deposit amount by message."
+      );
+    }
+    if (msg.includes("availability") || msg.includes("available") || msg.includes("schedule")) {
+      return (
+        "Appointments are available on select dates and time slots. " +
+        "Tap “Book now” and choose a date/time — we’ll confirm by message."
+      );
+    }
+    return null;
+  }
+
+  // Spanish
+  if (msg.includes("recom") || msg.includes("recomiéndame") || msg.includes("recomiendame")) {
+    return (
+      "Claro — dime qué deseas tratar (depilación, acné/textura, tatuaje, reafirmación) y en qué área. " +
+      "Mientras tanto, opciones populares son Depilación Láser, Carbon Peel, Remoción de Tatuajes y HIFU."
+    );
+  }
+  if (
+    msg.includes("precio") ||
+    msg.includes("precios") ||
+    msg.includes("costo") ||
+    msg.includes("costos") ||
+    msg.includes("cuanto") ||
+    msg.includes("cuánto")
+  ) {
+    return (
+      "Los precios dependen del tratamiento y el área. Si me dices el servicio + el área, te oriento. " +
+      "También puedes agregar un servicio a tu cita y ver el total antes de confirmar."
+    );
+  }
+  if (msg.includes("depósito") || msg.includes("deposito")) {
+    return (
+      "Es posible que se requiera un depósito para asegurar tu cita. " +
+      "Si me dices qué servicio deseas, te confirmamos el depósito exacto por mensaje."
+    );
+  }
+  if (
+    msg.includes("dispon") ||
+    msg.includes("disponibilidad") ||
+    msg.includes("horario") ||
+    msg.includes("citas")
+  ) {
+    return (
+      "Las citas están disponibles en fechas y horarios específicos. " +
+      "Presiona “Reservar ahora”, elige fecha/hora y te confirmaremos por mensaje."
+    );
+  }
+
+  return null;
+}
+
+export default function ChatDrawer({
+  isOpen,
+  onClose,
+  lang,
+  onAddToCart,
+  scrollToBooking,
+}) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: lang === "es"
-        ? "¡Hola! Soy tu asistente personal de AIKOPR222. ¿En qué puedo ayudarte hoy?"
-        : "Hi! I'm your personal AIKOPR222 assistant. How can I help you today?",
+      content:
+        lang === "es"
+          ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
+          : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const isEs = lang === "es";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,10 +124,12 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
   }, [messages]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (isOpen && inputRef.current) inputRef.current.focus();
   }, [isOpen]);
+
+  const advisorFallback = isEs
+    ? "Gracias — un asesor de AIKOPR222 te responderá en breve para ayudarte. Mientras tanto, puedes tocar “Reservar ahora” para escoger fecha y hora."
+    : "Thanks — an AIKOPR222 advisor will reply shortly to help you. In the meantime, you can tap “Book now” to pick a date and time.";
 
   const handleSend = async (text = input) => {
     if (!text.trim() || isLoading) return;
@@ -65,38 +140,20 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
     setIsLoading(true);
 
     try {
-      const response = await base44.functions.invoke("chat", {
-        lang,
-        messages: [...messages, userMessage],
-        context: {
-          services: services.map((s) => ({
-            id: s.id,
-            nameEs: s.nameEs,
-            nameEn: s.nameEn,
-            descEs: s.descEs,
-            descEn: s.descEn,
-            duration: s.duration,
-            price: s.price,
-            idealEs: s.idealEs,
-            idealEn: s.idealEn,
-          })),
-        },
-      });
+      // 1) Try predefined reply
+      const predefined = getPredefinedReply({ lang, text });
+      const reply = predefined || advisorFallback;
 
-      if (response.data.reply) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: response.data.reply },
-        ]);
-      } else {
-        throw new Error("No reply");
-      }
+      // tiny delay so it feels natural
+      await new Promise((r) => setTimeout(r, 450));
+
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: lang === "es"
+          content: isEs
             ? "Lo siento, hubo un error. Por favor intenta de nuevo."
             : "Sorry, there was an error. Please try again.",
         },
@@ -106,29 +163,28 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
     }
   };
 
-  const handleQuickReply = (text) => {
-    handleSend(text);
-  };
+  const handleQuickReply = (text) => handleSend(text);
 
   const handleAddService = (serviceId) => {
     const service = services.find((s) => s.id === serviceId);
-    if (service) {
-      onAddToCart(service);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: lang === "es"
-            ? `¡Perfecto! He agregado ${service.nameEs} a tu cita. ¿Algo más en lo que pueda ayudarte?`
-            : `Perfect! I've added ${service.nameEn} to your appointment. Anything else I can help with?`,
-        },
-      ]);
-    }
+    if (!service) return;
+
+    onAddToCart?.(service);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: isEs
+          ? `¡Listo! Agregué ${service.nameEs} a tu cita. ¿Deseas agregar otro servicio o reservar?`
+          : `Done! I added ${service.nameEn} to your appointment. Want to add another service or book?`,
+      },
+    ]);
   };
 
   const handleBookNow = () => {
-    scrollToBooking();
-    onClose();
+    scrollToBooking?.();
+    onClose?.();
   };
 
   if (!isOpen) return null;
@@ -161,15 +217,16 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
         >
           <div>
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PALETTE.champagne }} />
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: PALETTE.champagne }}
+              />
               <h3 className="text-lg font-medium" style={{ color: PALETTE.espresso }}>
-                {lang === "es" ? "Asistente AI" : "AI Assistant"}
+                {isEs ? "Asistente AI" : "AI Assistant"}
               </h3>
             </div>
             <p className="mt-1 text-xs" style={{ color: PALETTE.taupe }}>
-              {lang === "es"
-                ? "Te ayudo a elegir el mejor tratamiento"
-                : "I'll help you choose the right treatment"}
+              {isEs ? "Respuestas rápidas + ayuda para reservar" : "Quick answers + help booking"}
             </p>
           </div>
 
@@ -180,6 +237,7 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
               backgroundColor: "rgba(255,252,248,0.70)",
               borderColor: "rgba(42,30,26,0.12)",
             }}
+            aria-label={isEs ? "Cerrar" : "Close"}
           >
             <X className="h-5 w-5" style={{ color: PALETTE.cocoa }} />
           </button>
@@ -228,7 +286,10 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
                     borderColor: "rgba(42,30,26,0.10)",
                   }}
                 >
-                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: PALETTE.champagne }} />
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    style={{ color: PALETTE.champagne }}
+                  />
                 </div>
               </div>
             )}
@@ -248,8 +309,8 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
-              placeholder={lang === "es" ? "Escribe tu mensaje..." : "Type your message..."}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              placeholder={isEs ? "Escribe tu mensaje..." : "Type your message..."}
               className="flex-1 rounded-xl border px-4 py-3 text-sm outline-none transition focus:border-opacity-50"
               style={{
                 backgroundColor: "rgba(241,232,221,0.60)",
@@ -266,10 +327,18 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
                 backgroundColor: PALETTE.rose,
                 color: "#FFFFFF",
               }}
+              aria-label={isEs ? "Enviar" : "Send"}
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
+
+          {/* Small hint */}
+          <p className="mt-2 text-[11px]" style={{ color: "rgba(139,116,104,0.9)" }}>
+            {isEs
+              ? "Consejo: usa los botones de arriba para respuestas rápidas."
+              : "Tip: use the buttons above for quick replies."}
+          </p>
         </div>
       </div>
     </>
@@ -278,12 +347,15 @@ export default function ChatDrawer({ isOpen, onClose, lang, onAddToCart, scrollT
 
 function MessageBubble({ message, lang, onAddService, onBookNow }) {
   const isUser = message.role === "user";
+  const isEs = lang === "es";
 
-  // Check if message mentions specific services
-  const mentionedServices = services.filter((s) => {
-    const name = lang === "es" ? s.nameEs : s.nameEn;
-    return message.content.toLowerCase().includes(name.toLowerCase());
-  });
+  // Only show service add buttons for assistant messages (so user messages don't trigger it)
+  const mentionedServices = !isUser
+    ? services.filter((s) => {
+        const name = isEs ? s.nameEs : s.nameEn;
+        return (message.content || "").toLowerCase().includes((name || "").toLowerCase());
+      })
+    : [];
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -297,7 +369,7 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
             color: isUser ? "#FFFFFF" : PALETTE.cocoa,
           }}
         >
-          <p className="text-sm leading-relaxed">{message.content}</p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
         </div>
 
         {/* Action buttons for assistant messages */}
@@ -315,9 +387,10 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
                 }}
               >
                 <Plus className="h-3 w-3" />
-                {lang === "es" ? "Agregar" : "Add"} {lang === "es" ? service.nameEs : service.nameEn}
+                {isEs ? "Agregar" : "Add"} {isEs ? service.nameEs : service.nameEn}
               </button>
             ))}
+
             <button
               onClick={onBookNow}
               className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-105"
@@ -328,7 +401,7 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
               }}
             >
               <Calendar className="h-3 w-3" />
-              {lang === "es" ? "Reservar ahora" : "Book now"}
+              {isEs ? "Reservar ahora" : "Book now"}
             </button>
           </div>
         )}
