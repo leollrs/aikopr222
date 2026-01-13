@@ -76,7 +76,9 @@ export default function BookingSection({
     >
       {/* subtle premium background texture */}
       <div className="pointer-events-none absolute inset-0 opacity-90 bg-[radial-gradient(900px_520px_at_15%_10%,rgba(201,174,126,0.18),transparent_60%),radial-gradient(900px_520px_at_85%_20%,rgba(195,154,139,0.14),transparent_60%),linear-gradient(to_bottom,rgba(251,248,243,0.55),rgba(241,232,221,0.78))]" />
-      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-10">
+
+      {/* narrower outer container for better optical centering */}
+      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
         {/* Header */}
         <div className="text-center mb-10 md:mb-12">
           <h2
@@ -103,11 +105,12 @@ export default function BookingSection({
           {/* inner glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_25%_10%,rgba(201,174,126,0.18),transparent_55%),radial-gradient(900px_420px_at_80%_20%,rgba(195,154,139,0.12),transparent_60%)]" />
 
-          <div className="relative">
+          {/* center internal content block */}
+          <div className="relative mx-auto max-w-2xl">
             {/* Selected Services */}
             <div className="mb-10">
               <h3
-                className="text-sm font-semibold mb-4 flex items-center gap-2 tracking-[0.12em] uppercase"
+                className="text-sm font-semibold mb-4 flex items-center justify-center gap-2 tracking-[0.12em] uppercase"
                 style={{ color: PALETTE.espresso }}
               >
                 <Calendar className="w-4 h-4" style={{ color: PALETTE.champagne }} />
@@ -115,13 +118,13 @@ export default function BookingSection({
               </h3>
 
               {cart.length === 0 ? (
-                <p className="text-sm italic" style={{ color: PALETTE.taupe }}>
+                <p className="text-sm italic text-center" style={{ color: PALETTE.taupe }}>
                   {lang === "es"
                     ? "No hay servicios seleccionados."
                     : "No services selected."}
                 </p>
               ) : (
-                <div className="space-y-2">
+                <div className="mx-auto max-w-xl space-y-2">
                   {cart.map((service, idx) => (
                     <div
                       key={`${service.id}-${idx}`}
@@ -163,14 +166,14 @@ export default function BookingSection({
             {/* Date Selection */}
             <div className="mb-10">
               <h3
-                className="text-sm font-semibold mb-4 flex items-center gap-2 tracking-[0.12em] uppercase"
+                className="text-sm font-semibold mb-4 flex items-center justify-center gap-2 tracking-[0.12em] uppercase"
                 style={{ color: PALETTE.espresso }}
               >
                 <Calendar className="w-4 h-4" style={{ color: PALETTE.champagne }} />
                 {lang === "es" ? "Selecciona fecha" : "Select date"}
               </h3>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="mx-auto flex max-w-xl flex-wrap justify-center gap-2">
                 {availableDates.map((date) => {
                   const dateStr = date.toISOString().split("T")[0];
                   const dayName = date.toLocaleDateString(
@@ -210,7 +213,10 @@ export default function BookingSection({
                         {dayName}
                       </div>
                       <div className="text-lg font-medium">{dayNum}</div>
-                      <div className="text-[11px]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
+                      <div
+                        className="text-[11px]"
+                        style={{ opacity: isActive ? 0.9 : 0.75 }}
+                      >
                         {month}
                       </div>
                     </button>
@@ -222,14 +228,14 @@ export default function BookingSection({
             {/* Time Selection */}
             <div className="mb-10">
               <h3
-                className="text-sm font-semibold mb-4 flex items-center gap-2 tracking-[0.12em] uppercase"
+                className="text-sm font-semibold mb-4 flex items-center justify-center gap-2 tracking-[0.12em] uppercase"
                 style={{ color: PALETTE.espresso }}
               >
                 <Clock className="w-4 h-4" style={{ color: PALETTE.champagne }} />
                 {lang === "es" ? "Selecciona hora" : "Select time"}
               </h3>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="mx-auto flex max-w-xl flex-wrap justify-center gap-2">
                 {timeSlots.map((time) => {
                   const isActive = selectedTime === time;
                   return (
@@ -260,14 +266,14 @@ export default function BookingSection({
             {/* Contact Form */}
             <div className="mb-10">
               <h3
-                className="text-sm font-semibold mb-4 flex items-center gap-2 tracking-[0.12em] uppercase"
+                className="text-sm font-semibold mb-4 flex items-center justify-center gap-2 tracking-[0.12em] uppercase"
                 style={{ color: PALETTE.espresso }}
               >
                 <User className="w-4 h-4" style={{ color: PALETTE.champagne }} />
                 {lang === "es" ? "Tus datos" : "Your details"}
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mx-auto grid max-w-xl grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Name */}
                 <div className="relative">
                   <User
@@ -330,26 +336,28 @@ export default function BookingSection({
               </div>
 
               {/* helper text */}
-              <p className="mt-4 text-xs" style={{ color: PALETTE.taupe }}>
+              <p className="mt-4 text-center text-xs" style={{ color: PALETTE.taupe }}>
                 {lang === "es"
                   ? "Confirmaremos tu cita por mensaje tan pronto recibamos tu solicitud."
                   : "We’ll confirm your appointment by message as soon as we receive your request."}
               </p>
             </div>
 
-            {/* Continue Button */}
-            <Button
-              onClick={handleContinue}
-              disabled={!isFormValid}
-              className="w-full py-4 text-base font-medium rounded-2xl transition"
-              style={{
-                backgroundColor: isFormValid ? PALETTE.rose : "rgba(195,154,139,0.25)",
-                color: isFormValid ? "#FFFFFF" : PALETTE.cocoa,
-                boxShadow: isFormValid ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
-              }}
-            >
-              {lang === "es" ? "Continuar" : "Continue"}
-            </Button>
+            {/* Continue Button (anchored + centered) */}
+            <div className="mt-12 flex justify-center">
+              <Button
+                onClick={handleContinue}
+                disabled={!isFormValid}
+                className="w-full max-w-xl py-4 text-base font-medium rounded-2xl transition"
+                style={{
+                  backgroundColor: isFormValid ? PALETTE.rose : "rgba(195,154,139,0.25)",
+                  color: isFormValid ? "#FFFFFF" : PALETTE.cocoa,
+                  boxShadow: isFormValid ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
+                }}
+              >
+                {lang === "es" ? "Continuar" : "Continue"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
