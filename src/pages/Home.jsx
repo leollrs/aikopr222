@@ -128,6 +128,7 @@ export default function Home() {
         cart={cart}
         onRemoveFromCart={handleRemoveFromCart}
         onContinueToPayment={handleContinueToPayment}
+        onOpenServicePicker={handleAddMoreServices}
         sectionRef={bookingRef}
       />
 
@@ -137,7 +138,7 @@ export default function Home() {
           lang={lang}
           bookingData={bookingData}
           onConfirm={handleConfirmPayment}
-          onAddMore={handleAddMoreServices}
+          onOpenServicePicker={handleAddMoreServices}
           sectionRef={paymentRef}
         />
       )}

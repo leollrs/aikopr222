@@ -7,7 +7,7 @@ export default function PaymentSection({
   lang,
   bookingData,
   onConfirm,
-  onAddMore,
+  onOpenServicePicker,
   sectionRef,
 }) {
   const [cardData, setCardData] = useState({
@@ -136,19 +136,13 @@ export default function PaymentSection({
                 </p>
               </div>
 
-              <Button
-                onClick={onAddMore}
-                variant="outline"
-                className="mt-6 h-11 rounded-xl px-6 font-medium"
-                style={{
-                  backgroundColor: "rgba(255,252,248,0.60)",
-                  borderColor: "rgba(42,30,26,0.16)",
-                  color: ESPRESSO,
-                }}
+              <button
+                onClick={onOpenServicePicker}
+                className="mt-6 text-xs underline transition hover:no-underline"
+                style={{ color: TAUPE }}
               >
-                <Plus className="mr-2 h-4 w-4" />
                 {t.addMore}
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -188,12 +182,27 @@ export default function PaymentSection({
           <div className="relative">
             {/* Summary */}
             <div className="mb-6 pb-6 border-b" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
-              <h3
-                className="text-sm font-medium mb-4"
-                style={{ color: ESPRESSO }}
-              >
-                {t.summary}
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3
+                  className="text-sm font-medium"
+                  style={{ color: ESPRESSO }}
+                >
+                  {t.summary}
+                </h3>
+
+                <button
+                  onClick={onOpenServicePicker}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-105"
+                  style={{
+                    backgroundColor: "rgba(195,154,139,0.15)",
+                    borderColor: "rgba(195,154,139,0.35)",
+                    color: ROSE,
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {lang === "es" ? "Agregar" : "Add"}
+                </button>
+              </div>
 
               <div className="space-y-2">
                 {bookingData?.services?.map((service, idx) => (
@@ -317,20 +326,16 @@ export default function PaymentSection({
               {t.confirm}
             </Button>
 
-            {/* Add More Services */}
-            <Button
-              onClick={onAddMore}
-              variant="outline"
-              className="w-full mt-3 h-11 rounded-xl font-medium"
-              style={{
-                backgroundColor: "rgba(255,252,248,0.60)",
-                borderColor: "rgba(42,30,26,0.16)",
-                color: ESPRESSO,
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {t.addMore}
-            </Button>
+            {/* Subtle add more link */}
+            <div className="text-center mt-3">
+              <button
+                onClick={onOpenServicePicker}
+                className="text-xs underline transition hover:no-underline"
+                style={{ color: TAUPE }}
+              >
+                {t.addMore}
+              </button>
+            </div>
           </div>
         </div>
       </div>

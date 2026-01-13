@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Clock, User, Phone, Mail, Trash2 } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -22,6 +22,7 @@ export default function BookingSection({
   cart,
   onRemoveFromCart,
   onContinueToPayment,
+  onOpenServicePicker,
   sectionRef,
 }) {
   const [selectedDate, setSelectedDate] = useState("");
@@ -109,20 +110,49 @@ export default function BookingSection({
           <div className="relative mx-auto max-w-2xl">
             {/* Selected Services */}
             <div className="mb-10">
-              <h3
-                className="text-sm font-semibold mb-4 flex items-center justify-center gap-2 tracking-[0.12em] uppercase"
-                style={{ color: PALETTE.espresso }}
-              >
-                <Calendar className="w-4 h-4" style={{ color: PALETTE.champagne }} />
-                {lang === "es" ? "Servicios seleccionados" : "Selected services"}
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3
+                  className="text-sm font-semibold flex items-center gap-2 tracking-[0.12em] uppercase"
+                  style={{ color: PALETTE.espresso }}
+                >
+                  <Calendar className="w-4 h-4" style={{ color: PALETTE.champagne }} />
+                  {lang === "es" ? "Servicios seleccionados" : "Selected services"}
+                </h3>
+
+                <button
+                  onClick={onOpenServicePicker}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-105"
+                  style={{
+                    backgroundColor: "rgba(195,154,139,0.15)",
+                    borderColor: "rgba(195,154,139,0.35)",
+                    color: PALETTE.rose,
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {lang === "es" ? "Agregar servicio" : "Add service"}
+                </button>
+              </div>
 
               {cart.length === 0 ? (
-                <p className="text-sm italic text-center" style={{ color: PALETTE.taupe }}>
-                  {lang === "es"
-                    ? "No hay servicios seleccionados."
-                    : "No services selected."}
-                </p>
+                <div className="text-center py-4">
+                  <p className="text-sm italic mb-3" style={{ color: PALETTE.taupe }}>
+                    {lang === "es"
+                      ? "No hay servicios seleccionados."
+                      : "No services selected."}
+                  </p>
+                  <button
+                    onClick={onOpenServicePicker}
+                    className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition hover:scale-105"
+                    style={{
+                      backgroundColor: "rgba(195,154,139,0.12)",
+                      borderColor: "rgba(195,154,139,0.30)",
+                      color: PALETTE.rose,
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {lang === "es" ? "Agregar tu primer servicio" : "Add your first service"}
+                  </button>
+                </div>
               ) : (
                 <div className="mx-auto max-w-xl space-y-2">
                   {cart.map((service, idx) => (
