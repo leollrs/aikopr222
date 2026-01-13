@@ -2,6 +2,11 @@ import React from "react";
 import { Instagram, MessageCircle } from "lucide-react";
 
 export default function Footer({ lang }) {
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <footer className="relative overflow-hidden bg-[#2A1E1A] py-14 md:py-20">
       {/* Soft ambient glow */}
@@ -26,28 +31,28 @@ export default function Footer({ lang }) {
         <nav className="mt-8">
           <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-[#FBF8F3]/65">
             <li>
-              <a
-                href="#ServicesSection"
+              <button
+                onClick={() => scrollToSection("ServicesSection")}
                 className="hover:text-[#FBF8F3] transition"
               >
                 {lang === "es" ? "Servicios" : "Services"}
-              </a>
+              </button>
             </li>
             <li>
-              <a
-                href="#ResultsSection"
+              <button
+                onClick={() => scrollToSection("ResultsSection")}
                 className="hover:text-[#FBF8F3] transition"
               >
                 {lang === "es" ? "Resultados" : "Results"}
-              </a>
+              </button>
             </li>
             <li>
-              <a
-                href="#ContactSection"
+              <button
+                onClick={() => scrollToSection("ContactSection")}
                 className="hover:text-[#FBF8F3] transition"
               >
                 {lang === "es" ? "Contacto" : "Contact"}
-              </a>
+              </button>
             </li>
           </ul>
         </nav>
