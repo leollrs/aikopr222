@@ -8,6 +8,7 @@ export default function PaymentSection({
   bookingData,
   cart = [], // ✅ source of truth for services
   onConfirm,
+  onClearCart,
   onOpenServicePicker,
   sectionRef,
   webhookUrl = "https://leollrs.app.n8n.cloud/webhook/254eed6d-ac1d-4db6-81a4-8da3479bfa8a",
@@ -139,6 +140,7 @@ export default function PaymentSection({
     try {
       setIsSubmitting(true);
       await sendConfirmationWebhook();
+      onClearCart?.();
       setConfirmed(true);
       onConfirm?.();
     } catch (err) {
