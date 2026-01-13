@@ -1,10 +1,34 @@
 import React from "react";
 
 const results = [
-  { id: 1, treatment: "Laser Hair Removal", area: "Full Legs" },
-  { id: 2, treatment: "Carbon Peel", area: "Face" },
-  { id: 3, treatment: "Tattoo Removal", area: "Arm" },
-  { id: 4, treatment: "HIFU", area: "Face & Neck" },
+  {
+    id: 1,
+    treatment: "Laser Hair Removal",
+    area: "Full Legs",
+    beforeImage: "/results/laser-legs-before.jpg",
+    afterImage: "/results/laser-legs-after.jpg",
+  },
+  {
+    id: 2,
+    treatment: "Carbon Peel",
+    area: "Face",
+    beforeImage: "/results/carbon-face-before.jpg",
+    afterImage: "/results/carbon-face-after.jpg",
+  },
+  {
+    id: 3,
+    treatment: "Tattoo Removal",
+    area: "Arm",
+    beforeImage: "/results/tattoo-arm-before.jpg",
+    afterImage: "/results/tattoo-arm-after.jpg",
+  },
+  {
+    id: 4,
+    treatment: "HIFU",
+    area: "Face & Neck",
+    beforeImage: "/results/hifu-face-neck-before.jpg",
+    afterImage: "/results/hifu-face-neck-after.jpg",
+  },
 ];
 
 export default function ResultsSection({ lang }) {
@@ -18,7 +42,11 @@ export default function ResultsSection({ lang }) {
   const TAUPE = "#8B7468";
 
   return (
-    <section id="ResultsSection" className="py-16 md:py-20 lg:py-28" style={{ backgroundColor: LINEN }}>
+    <section
+      id="ResultsSection"
+      className="py-16 md:py-20 lg:py-28"
+      style={{ backgroundColor: LINEN }}
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         {/* Section Header */}
         <div className="text-center mb-10 md:mb-12">
@@ -83,9 +111,20 @@ export default function ResultsSection({ lang }) {
                     className="relative aspect-square flex items-center justify-center"
                     style={{ backgroundColor: "rgba(241,232,221,0.85)" }}
                   >
+                    {result.beforeImage ? (
+                      <img
+                        src={result.beforeImage}
+                        alt={`${lang === "es" ? "Antes" : "Before"} ${result.treatment} – ${result.area}`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.35),transparent_55%)]" />
+                    )}
+
                     <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.35),transparent_55%)]" />
+
                     <span
-                      className="text-[11px] font-semibold uppercase tracking-[0.28em]"
+                      className="relative text-[11px] font-semibold uppercase tracking-[0.28em]"
                       style={{ color: TAUPE }}
                     >
                       {lang === "es" ? "Antes" : "Before"}
@@ -108,9 +147,20 @@ export default function ResultsSection({ lang }) {
                     className="relative aspect-square flex items-center justify-center"
                     style={{ backgroundColor: "rgba(201,174,126,0.18)" }}
                   >
+                    {result.afterImage ? (
+                      <img
+                        src={result.afterImage}
+                        alt={`${lang === "es" ? "Después" : "After"} ${result.treatment} – ${result.area}`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.25),transparent_55%)]" />
+                    )}
+
                     <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.25),transparent_55%)]" />
+
                     <span
-                      className="text-[11px] font-semibold uppercase tracking-[0.28em]"
+                      className="relative text-[11px] font-semibold uppercase tracking-[0.28em]"
                       style={{ color: TAUPE }}
                     >
                       {lang === "es" ? "Después" : "After"}
