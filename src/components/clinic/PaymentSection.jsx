@@ -99,35 +99,52 @@ export default function PaymentSection({
   const sendConfirmationWebhook = async () => {
     if (!webhookUrl) throw new Error(t.webhookMissing);
 
+    // Sanitize booking data before sending
+    const sanitizedBooking = {
+      fullName: String(bookingData?.fullName || '').trim().slice(0, 100),
+      email: String(bookingData?.email || '').toLowerCase().trim().slice(0, 120),
+      phone: String(bookingData?.phone || '').replace(/[^\d\s+\-()]/g, '').trim().slice(0, 20),
+      date: String(bookingData?.date || '').trim(),
+      time: String(bookingData?.time || '').trim(),
+    };
+
+    // Validate services (only allow known service IDs)
+    const validServiceIds = [1, 2, 3, 4, 5, 6, 7, 8];
+    const sanitizedServices = (cart || [])
+      .filter(s => validServiceIds.includes(Number(s?.id)))
+      .map((s) => ({
+        id: Number(s.id),
+        nameEs: String(s.nameEs || '').slice(0, 100),
+        nameEn: String(s.nameEn || '').slice(0, 100),
+        duration: String(s.duration || '').slice(0, 20),
+        price: Number(s.price) || 0,
+      }));
+
     const payload = {
       type: "appointment_confirmed",
       status: "paid",
       createdAt: new Date().toISOString(),
-      totals: { servicesTotal: totalServices, currency: "USD" },
+      totals: { 
+        servicesTotal: Number(totalServices) || 0, 
+        currency: "USD" 
+      },
       booking: {
-        ...bookingData,
-        services: (cart || []).map((s) => ({
-          id: s.id,
-          nameEs: s.nameEs,
-          nameEn: s.nameEn,
-          duration: s.duration,
-          price: s.price,
-        })),
+        ...sanitizedBooking,
+        services: sanitizedServices,
       },
     };
 
     const res = await fetch(webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      let detail = "";
-      try {
-        detail = await res.text();
-      } catch (_) {}
-      throw new Error(detail || `Webhook failed (${res.status})`);
+      throw new Error(t.errorGeneric);
     }
 
     return true;
