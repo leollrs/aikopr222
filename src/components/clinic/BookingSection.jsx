@@ -321,7 +321,7 @@ export default function BookingSection({
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"
-                    placeholder="(787) 414 - 3249"
+                    placeholder="phone"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: formatPhone(e.target.value) })
