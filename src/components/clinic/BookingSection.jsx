@@ -143,6 +143,9 @@ export default function BookingSection({
                   }}
                 >
                   <Plus className="h-3.5 w-3.5" />
+                  <span>
+                    {lang === "es" ? "Agregar servicio" : "Add service"}
+                  </span>
                 </button>
               </div>
 
