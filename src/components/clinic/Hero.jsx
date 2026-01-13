@@ -25,35 +25,60 @@ const heroContent = {
 export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
   const t = heroContent[lang] || heroContent.es;
 
+  // NEW PALETTE (shared)
+  const CREAM = "#FBF8F3";
+  const LINEN = "#F1E8DD";
+  const ESPRESSO = "#2A1E1A";
+  const COCOA = "#6B5A52";
+  const CHAMPAGNE = "#C9AE7E";
+  const ROSE = "#C39A8B";
+  const TAUPE = "#8B7468";
+
   return (
     <section className="relative min-h-screen w-full overflow-hidden">
-      {/* TRUE full-bleed background */}
-      <div className="absolute inset-0 bg-[#0C0908]" />
+      {/* Full-bleed premium light base */}
+      <div className="absolute inset-0" style={{ backgroundColor: CREAM }} />
 
+      {/* Silk background tuned to warm, airy clinic look (no black) */}
       <SilkBackground
-        className="absolute inset-0 h-full w-full"
+        className="absolute inset-0 h-full w-full opacity-[0.95]"
         theme={{
-          bg0: "#0C0908",
-          bg1: "#1A1310",
-          bg2: "#0C0908",
-          silkR: 214,
-          silkG: 185,
-          silkB: 140,
-          vignetteInner: "rgba(0,0,0,0.15)",
-          vignetteOuter: "rgba(0,0,0,0.85)",
+          // airy gradient (cream -> linen -> cream)
+          bg0: CREAM,
+          bg1: LINEN,
+          bg2: CREAM,
+          // warm champagne silk tint
+          silkR: 201,
+          silkG: 174,
+          silkB: 126,
+          // soft vignette for depth (not dark)
+          vignetteInner: "rgba(42,30,26,0.04)",
+          vignetteOuter: "rgba(42,30,26,0.14)",
         }}
       />
 
-      {/* Cinematic vignette (single, controlled) */}
-      <div className="absolute inset-0 bg-[radial-gradient(1200px_600px_at_50%_35%,rgba(214,185,140,0.08),transparent_60%)]" />
+      {/* Controlled premium overlays: warmth + subtle contrast */}
+      <div className="absolute inset-0 bg-[radial-gradient(1100px_520px_at_50%_28%,rgba(201,174,126,0.22),transparent_60%),radial-gradient(900px_520px_at_18%_48%,rgba(195,154,139,0.14),transparent_62%),linear-gradient(to_bottom,rgba(251,248,243,0.55),rgba(241,232,221,0.62),rgba(251,248,243,0.70))]" />
 
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-6xl px-6 sm:px-8">
         <div className="min-h-screen flex flex-col items-center justify-center text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-2 backdrop-blur">
-            <span className="h-2 w-2 rounded-full bg-[#D6B98C]" />
-            <span className="text-[11px] tracking-[0.28em] text-white/80 font-semibold uppercase">
+          <div
+            className="inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
+            style={{
+              backgroundColor: "rgba(255,252,248,0.72)",
+              borderColor: "rgba(42,30,26,0.12)",
+            }}
+          >
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: CHAMPAGNE }}
+            />
+            <span
+              className="text-[11px] tracking-[0.28em] font-semibold uppercase"
+              style={{ color: COCOA }}
+            >
               {t.badge}
             </span>
           </div>
@@ -63,31 +88,43 @@ export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
             className="
               mt-8 whitespace-pre-line text-balance
               font-light leading-[0.98] tracking-[-0.055em]
-              text-[#F5EFE6]
               text-5xl sm:text-6xl md:text-7xl lg:text-8xl
             "
-            style={{ textShadow: "0 12px 50px rgba(0,0,0,0.75)" }}
+            style={{
+              color: ESPRESSO,
+              textShadow: "0 18px 60px rgba(42,30,26,0.18)",
+            }}
           >
             {t.title}
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-8 whitespace-pre-line text-base sm:text-lg md:text-xl text-[#F5EFE6]/70 leading-relaxed">
+          <p
+            className="mt-7 whitespace-pre-line text-base sm:text-lg md:text-xl leading-relaxed"
+            style={{ color: COCOA }}
+          >
             {t.subtitle}
           </p>
 
           {/* Divider */}
-          <div className="mt-10 h-px w-28 bg-[#D6B98C]/35" />
+          <div
+            className="mt-10 h-px w-28"
+            style={{
+              backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
+              opacity: 0.65,
+            }}
+          />
 
           {/* CTAs */}
           <div className="mt-10 flex flex-col sm:flex-row items-center gap-3">
             <Button
               onClick={onBookClick}
-              className="
-                h-12 rounded-xl bg-[#B07A7A] text-white px-8 text-[15px] font-medium
-                shadow-[0_20px_60px_rgba(176,122,122,0.30)]
-                hover:bg-[#9A6969]
-              "
+              className="h-12 rounded-xl px-8 text-[15px] font-medium"
+              style={{
+                backgroundColor: ROSE,
+                color: "#FFFFFF",
+                boxShadow: "0 22px 70px rgba(195,154,139,0.35)",
+              }}
             >
               {t.cta1}
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -96,21 +133,29 @@ export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
             <Button
               onClick={onServicesClick}
               variant="outline"
-              className="
-                h-12 rounded-xl border-white/20 bg-white/5 text-white/90
-                px-8 text-[15px] font-medium hover:bg-white/10
-              "
+              className="h-12 rounded-xl px-8 text-[15px] font-medium"
+              style={{
+                backgroundColor: "rgba(255,252,248,0.55)",
+                borderColor: "rgba(42,30,26,0.18)",
+                color: ESPRESSO,
+              }}
             >
               {t.cta2}
             </Button>
           </div>
 
           {/* Micro */}
-          <p className="mt-8 text-xs tracking-[0.26em] uppercase text-white/45">
+          <p
+            className="mt-8 text-xs tracking-[0.26em] uppercase"
+            style={{ color: TAUPE }}
+          >
             {t.micro}
           </p>
         </div>
       </div>
+
+      {/* Bottom divider */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(to_right,transparent,rgba(201,174,126,0.70),transparent)]" />
     </section>
   );
 }
