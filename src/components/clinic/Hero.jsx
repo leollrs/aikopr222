@@ -39,26 +39,28 @@ export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
       {/* Full-bleed premium light base */}
       <div className="absolute inset-0" style={{ backgroundColor: CREAM }} />
 
-      {/* Silk background tuned to warm, airy clinic look (no black) */}
+      {/* Silk background tuned to warm, airy clinic look */}
       <SilkBackground
         className="absolute inset-0 h-full w-full opacity-[0.95]"
         theme={{
-          // airy gradient (cream -> linen -> cream)
           bg0: CREAM,
           bg1: LINEN,
           bg2: CREAM,
-          // warm champagne silk tint
           silkR: 201,
           silkG: 174,
           silkB: 126,
-          // soft vignette for depth (not dark)
           vignetteInner: "rgba(42,30,26,0.04)",
           vignetteOuter: "rgba(42,30,26,0.14)",
         }}
       />
 
-      {/* Controlled premium overlays: warmth + subtle contrast */}
-      <div className="absolute inset-0 bg-[radial-gradient(1100px_520px_at_50%_28%,rgba(201,174,126,0.22),transparent_60%),radial-gradient(900px_520px_at_18%_48%,rgba(195,154,139,0.14),transparent_62%),linear-gradient(to_bottom,rgba(251,248,243,0.55),rgba(241,232,221,0.62),rgba(251,248,243,0.70))]" />
+      {/* Overlays: make sure they cover FULL hero height (not 25%) */}
+      <div className="absolute inset-0">
+        {/* warmth blooms */}
+        <div className="absolute inset-0 bg-[radial-gradient(1100px_520px_at_50%_28%,rgba(201,174,126,0.22),transparent_60%),radial-gradient(900px_520px_at_18%_48%,rgba(195,154,139,0.14),transparent_62%)]" />
+        {/* soft top/bottom veil for readability */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(251,248,243,0.35),rgba(241,232,221,0.55),rgba(251,248,243,0.70))]" />
+      </div>
 
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-6xl px-6 sm:px-8">
