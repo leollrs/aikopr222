@@ -29,6 +29,20 @@ export default function BookingSection({
   const [selectedTime, setSelectedTime] = useState("");
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
 
+  // ✅ Phone formatter: (787) 414 - 3249
+  const formatPhone = (value) => {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+    if (digits.length === 0) return "";
+
+    const a = digits.slice(0, 3);
+    const b = digits.slice(3, 6);
+    const c = digits.slice(6, 10);
+
+    if (digits.length <= 3) return `(${a}`;
+    if (digits.length <= 6) return `(${a}) ${b}`;
+    return `(${a}) ${b} - ${c}`;
+  };
+
   const handleContinue = () => {
     if (
       cart.length > 0 &&
@@ -136,9 +150,7 @@ export default function BookingSection({
               {cart.length === 0 ? (
                 <div className="text-center py-4">
                   <p className="text-sm italic mb-3" style={{ color: PALETTE.taupe }}>
-                    {lang === "es"
-                      ? "No hay servicios seleccionados."
-                      : "No services selected."}
+                    {lang === "es" ? "No hay servicios seleccionados." : "No services selected."}
                   </p>
                   <button
                     onClick={onOpenServicePicker}
@@ -165,10 +177,7 @@ export default function BookingSection({
                       }}
                     >
                       <div className="min-w-0">
-                        <div
-                          className="text-sm font-medium truncate"
-                          style={{ color: PALETTE.espresso }}
-                        >
+                        <div className="text-sm font-medium truncate" style={{ color: PALETTE.espresso }}>
                           {lang === "es" ? service.nameEs : service.nameEn}
                         </div>
                         <div className="text-xs" style={{ color: PALETTE.cocoa }}>
@@ -206,15 +215,13 @@ export default function BookingSection({
               <div className="mx-auto flex max-w-xl flex-wrap justify-center gap-2">
                 {availableDates.map((date) => {
                   const dateStr = date.toISOString().split("T")[0];
-                  const dayName = date.toLocaleDateString(
-                    lang === "es" ? "es-ES" : "en-US",
-                    { weekday: "short" }
-                  );
+                  const dayName = date.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+                    weekday: "short",
+                  });
                   const dayNum = date.getDate();
-                  const month = date.toLocaleDateString(
-                    lang === "es" ? "es-ES" : "en-US",
-                    { month: "short" }
-                  );
+                  const month = date.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
+                    month: "short",
+                  });
 
                   const isActive = selectedDate === dateStr;
 
@@ -224,29 +231,19 @@ export default function BookingSection({
                       onClick={() => setSelectedDate(dateStr)}
                       className="rounded-2xl px-4 py-3 text-center border transition focus:outline-none focus:ring-2"
                       style={{
-                        backgroundColor: isActive
-                          ? "rgba(195,154,139,0.95)"
-                          : "rgba(251,248,243,0.72)",
-                        borderColor: isActive
-                          ? "rgba(195,154,139,0.55)"
-                          : "rgba(42,30,26,0.10)",
+                        backgroundColor: isActive ? "rgba(195,154,139,0.95)" : "rgba(251,248,243,0.72)",
+                        borderColor: isActive ? "rgba(195,154,139,0.55)" : "rgba(42,30,26,0.10)",
                         color: isActive ? "#FFFFFF" : PALETTE.espresso,
                         boxShadow: isActive
                           ? "0 18px 55px rgba(195,154,139,0.30)"
                           : "0 10px 30px rgba(42,30,26,0.08)",
                       }}
                     >
-                      <div
-                        className="text-[11px] uppercase tracking-[0.16em]"
-                        style={{ opacity: isActive ? 0.9 : 0.75 }}
-                      >
+                      <div className="text-[11px] uppercase tracking-[0.16em]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
                         {dayName}
                       </div>
                       <div className="text-lg font-medium">{dayNum}</div>
-                      <div
-                        className="text-[11px]"
-                        style={{ opacity: isActive ? 0.9 : 0.75 }}
-                      >
+                      <div className="text-[11px]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
                         {month}
                       </div>
                     </button>
@@ -274,12 +271,8 @@ export default function BookingSection({
                       onClick={() => setSelectedTime(time)}
                       className="rounded-2xl px-5 py-2.5 text-sm border transition focus:outline-none focus:ring-2"
                       style={{
-                        backgroundColor: isActive
-                          ? "rgba(42,30,26,0.92)"
-                          : "rgba(251,248,243,0.72)",
-                        borderColor: isActive
-                          ? "rgba(42,30,26,0.45)"
-                          : "rgba(42,30,26,0.10)",
+                        backgroundColor: isActive ? "rgba(42,30,26,0.92)" : "rgba(251,248,243,0.72)",
+                        borderColor: isActive ? "rgba(42,30,26,0.45)" : "rgba(42,30,26,0.10)",
                         color: isActive ? "#FFFFFF" : PALETTE.espresso,
                         boxShadow: isActive
                           ? "0 18px 55px rgba(42,30,26,0.22)"
@@ -306,10 +299,7 @@ export default function BookingSection({
               <div className="mx-auto grid max-w-xl grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Name */}
                 <div className="relative">
-                  <User
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: PALETTE.taupe }}
-                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
                     type="text"
                     placeholder={lang === "es" ? "Nombre completo" : "Full name"}
@@ -326,30 +316,30 @@ export default function BookingSection({
 
                 {/* Phone */}
                 <div className="relative">
-                  <Phone
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: PALETTE.taupe }}
-                  />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
                     type="tel"
-                    placeholder={lang === "es" ? "Teléfono" : "Phone"}
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="(787) 414 - 3249"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: formatPhone(e.target.value) })
+                    }
                     className="pl-10 rounded-2xl"
                     style={{
                       backgroundColor: "rgba(241,232,221,0.65)",
                       borderColor: "rgba(42,30,26,0.12)",
                       color: PALETTE.espresso,
+                      fontVariantNumeric: "tabular-nums",
+                      letterSpacing: "0.04em",
                     }}
                   />
                 </div>
 
                 {/* Email */}
                 <div className="relative">
-                  <Mail
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: PALETTE.taupe }}
-                  />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
                     type="email"
                     placeholder={lang === "es" ? "Correo electrónico" : "Email"}
@@ -365,7 +355,6 @@ export default function BookingSection({
                 </div>
               </div>
 
-              {/* helper text */}
               <p className="mt-4 text-center text-xs" style={{ color: PALETTE.taupe }}>
                 {lang === "es"
                   ? "Confirmaremos tu cita por mensaje tan pronto recibamos tu solicitud."
