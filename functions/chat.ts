@@ -1,106 +1,138 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { withSecurity } from './securityWithSecurity.js';
+import { validateChatPayload } from './securityValidation.js';
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+/**
+ * Chat endpoint handler
+ * Provides predefined responses for common questions
+ */
+async function chatHandler(req, payload, meta) {
+  const base44 = createClientFromRequest(req);
+  
+  // Optional: check if user is authenticated
+  // const user = await base44.auth.me();
+  
+  const { lang = 'es', message = '', messages = [] } = payload;
+  const isEs = lang === 'es';
 
-Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me().catch(() => null);
-
-    const { lang, messages, context } = await req.json();
-
-    if (!OPENAI_API_KEY) {
-      return Response.json({ error: 'OpenAI API key not configured' }, { status: 500 });
-    }
-
-    const systemPrompt = lang === 'es' 
-      ? `Eres un asistente concierge de AIKOPR222, una clínica estética premium que ofrece servicios móviles a domicilio.
-
-TU ROL:
-- Ayudar a los clientes a elegir el tratamiento ideal para sus necesidades
-- Responder preguntas sobre servicios, precios, depósitos y disponibilidad
-- Guiar hacia la reserva de citas
-
-IMPORTANTE:
-- NO eres médico. NO diagnostiques ni hagas afirmaciones médicas.
-- Si preguntan sobre diagnósticos médicos, recomienda consultar con un profesional.
-- Siempre recuerda que "los resultados pueden variar según cada paciente"
-- Solo recomienda servicios de la lista proporcionada
-- Mantén un tono cálido, profesional y premium
-
-INFORMACIÓN CLAVE:
-- Depósito: $30 reembolsable para confirmar cita
-- Horario: Lun-Sáb 9am-6pm
-- Ubicación: Av. Principal #123, Ciudad
-- Email: info@aikopr222.clinic
-- Teléfono: +1 (555) 123-4567
-- Servicios móviles a domicilio
-
-SERVICIOS DISPONIBLES:
-${context.services.map(s => `- ${s.nameEs} (${s.duration}, $${s.price}): ${s.descEs}`).join('\n')}
-
-FORMATO DE RESPUESTA:
-- Sé conciso (2-3 párrafos máximo)
-- Haz preguntas para entender mejor las necesidades
-- Al recomendar servicios, menciona: nombre, duración aproximada, y beneficio clave
-- Ofrece "agregar a cita" cuando recomiendes un servicio específico`
-      : `You are a concierge assistant for AIKOPR222, a premium aesthetic clinic offering mobile at-home services.
-
-YOUR ROLE:
-- Help clients choose the ideal treatment for their needs
-- Answer questions about services, pricing, deposits, and availability
-- Guide toward booking appointments
-
-IMPORTANT:
-- You are NOT a doctor. DO NOT diagnose or make medical claims.
-- If asked about medical diagnosis, recommend consulting a professional.
-- Always remind that "results may vary depending on each patient"
-- Only recommend services from the provided list
-- Maintain a warm, professional, and premium tone
-
-KEY INFORMATION:
-- Deposit: $30 refundable to confirm appointment
-- Hours: Mon-Sat 9am-6pm
-- Location: Av. Principal #123, City
-- Email: info@aikopr222.clinic
-- Phone: +1 (555) 123-4567
-- Mobile at-home services
-
-AVAILABLE SERVICES:
-${context.services.map(s => `- ${s.nameEn} (${s.duration}, $${s.price}): ${s.descEn}`).join('\n')}
-
-RESPONSE FORMAT:
-- Be concise (2-3 paragraphs max)
-- Ask questions to better understand needs
-- When recommending services, mention: name, approximate duration, and key benefit
-- Offer "add to appointment" when recommending specific services`;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
-        temperature: 0.7,
-        max_tokens: 400,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('OpenAI API error');
-    }
-
-    const data = await response.json();
-    const reply = data.choices[0].message.content;
-
-    return Response.json({ reply });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+  // Get the last user message if messages array is provided
+  const lastMessage = message || (messages.length > 0 ? messages[messages.length - 1]?.content : '');
+  
+  if (!lastMessage) {
+    return {
+      reply: isEs
+        ? '¿En qué puedo ayudarte hoy?'
+        : 'How can I help you today?',
+    };
   }
+
+  // Generate predefined reply based on message content
+  const reply = getPredefinedReply(lastMessage, isEs);
+
+  return { reply };
+}
+
+/**
+ * Get predefined reply based on message content
+ */
+function getPredefinedReply(text, isEs) {
+  const msg = String(text || '').toLowerCase().trim();
+
+  if (isEs) {
+    if (msg.includes('recom') || msg.includes('recomiéndame') || msg.includes('recomiendame')) {
+      return (
+        'Claro — dime qué deseas tratar (depilación, acné/textura, tatuaje, reafirmación) y en qué área. ' +
+        'Mientras tanto, opciones populares son Depilación Láser, Carbon Peel, Remoción de Tatuajes y HIFU.'
+      );
+    }
+    
+    if (
+      msg.includes('precio') ||
+      msg.includes('precios') ||
+      msg.includes('costo') ||
+      msg.includes('costos') ||
+      msg.includes('cuanto') ||
+      msg.includes('cuánto')
+    ) {
+      return (
+        'Los precios dependen del tratamiento y el área. Si me dices el servicio + el área, te oriento. ' +
+        'También puedes agregar un servicio a tu cita y ver el total antes de confirmar.'
+      );
+    }
+    
+    if (msg.includes('depósito') || msg.includes('deposito')) {
+      return (
+        'Es posible que se requiera un depósito para asegurar tu cita. ' +
+        'Si me dices qué servicio deseas, te confirmamos el depósito exacto por mensaje.'
+      );
+    }
+    
+    if (msg.includes('dispon') || msg.includes('disponibilidad') || msg.includes('horario') || msg.includes('citas')) {
+      return (
+        'Las citas están disponibles en fechas y horarios específicos. ' +
+        'Presiona "Reservar ahora", elige fecha/hora y te confirmaremos por mensaje.'
+      );
+    }
+
+    return (
+      'Gracias — un asesor de AIKOPR222 te responderá en breve para ayudarte. ' +
+      'Mientras tanto, puedes tocar "Reservar ahora" para escoger fecha y hora.'
+    );
+  }
+
+  // English
+  if (msg.includes('recommend') || msg.includes('recom')) {
+    return (
+      'Sure — tell me what you want to treat (hair removal, acne/texture, tattoo, tightening) and the area. ' +
+      'Meanwhile, popular options are Laser Hair Removal, Carbon Peel, Tattoo Removal, and HIFU.'
+    );
+  }
+  
+  if (msg.includes('pricing') || msg.includes('price') || msg.includes('cost')) {
+    return (
+      'Pricing depends on the treatment and area. If you tell me the service + area, I'll guide you. ' +
+      'You can also add a service to your appointment and see the total before confirming.'
+    );
+  }
+  
+  if (msg.includes('deposit')) {
+    return (
+      'A deposit may be required to secure your appointment. ' +
+      'If you share the service you want, we'll confirm the exact deposit amount by message.'
+    );
+  }
+  
+  if (msg.includes('availability') || msg.includes('available') || msg.includes('schedule')) {
+    return (
+      'Appointments are available on select dates and time slots. ' +
+      'Tap "Book now" and choose a date/time — we'll confirm by message.'
+    );
+  }
+
+  return (
+    'Thanks — an AIKOPR222 advisor will reply shortly to help you. ' +
+    'In the meantime, you can tap "Book now" to pick a date and time.'
+  );
+}
+
+// Export secured endpoint
+export default withSecurity(chatHandler, {
+  endpoint: 'chat',
+  rateLimits: {
+    perMinute: 10,
+    perHour: 30,
+  },
+  validatePayload: validateChatPayload,
+  sanitize: true,
 });
+
+// For Deno Deploy
+Deno.serve(withSecurity(chatHandler, {
+  endpoint: 'chat',
+  rateLimits: {
+    perMinute: 10,
+    perHour: 30,
+  },
+  validatePayload: validateChatPayload,
+  sanitize: true,
+}));
