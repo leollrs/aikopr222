@@ -142,6 +142,7 @@ export default function Home() {
           bookingData={bookingData}
           cart={cart}
           onConfirm={handleConfirmPayment}
+          onClearCart={() => setCart([])}
           onOpenServicePicker={handleAddMoreServices}
           sectionRef={paymentRef}
         />
