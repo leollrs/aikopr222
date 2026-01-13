@@ -16,6 +16,7 @@ const PALETTE = {
 export default function ContactSection({ lang }) {
   return (
     <section
+      id="ContactSection"
       className="py-16 md:py-20 lg:py-28"
       style={{ backgroundColor: PALETTE.cream }}
     >

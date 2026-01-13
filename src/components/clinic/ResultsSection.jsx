@@ -18,7 +18,7 @@ export default function ResultsSection({ lang }) {
   const TAUPE = "#8B7468";
 
   return (
-    <section className="py-16 md:py-20 lg:py-28" style={{ backgroundColor: LINEN }}>
+    <section id="ResultsSection" className="py-16 md:py-20 lg:py-28" style={{ backgroundColor: LINEN }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
         {/* Section Header */}
         <div className="text-center mb-10 md:mb-12">
