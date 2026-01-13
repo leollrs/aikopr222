@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { CreditCard, Lock, Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,9 @@ export default function PaymentSection({
   onConfirm,
   onOpenServicePicker,
   sectionRef,
+
+  // ✅ Add this (recommended) so you can swap environments easily
+  webhookUrl = "", // e.g. "https://n8n.yourdomain.com/webhook/xxx"
 }) {
   const [cardData, setCardData] = useState({
     number: "",
@@ -16,30 +19,24 @@ export default function PaymentSection({
     cvv: "",
     name: "",
   });
+
   const [confirmed, setConfirmed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // NEW PALETTE (shared)
-  const CREAM = "#FBF8F3";
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
-  const CHAMPAGNE = "#C9AE7E";
   const ROSE = "#C39A8B";
   const TAUPE = "#8B7468";
 
-  const handleConfirm = () => {
-    if (cardData.number && cardData.expiry && cardData.cvv && cardData.name) {
-      setConfirmed(true);
-      onConfirm();
-    }
-  };
-
-  const totalServices =
-    bookingData?.services?.reduce((sum, s) => sum + (s?.price || 0), 0) || 0;
+  const totalServices = useMemo(() => {
+    return bookingData?.services?.reduce((sum, s) => sum + (s?.price || 0), 0) || 0;
+  }, [bookingData]);
 
   if (!bookingData) return null;
 
-  // Text changes: no money talk in headline/subtext + button label
   const copy = {
     es: {
       title: "Confirma tu Cita",
@@ -53,6 +50,10 @@ export default function PaymentSection({
       confirmedBody: "Te hemos enviado un correo con los detalles de tu cita.",
       date: "Fecha",
       time: "Hora",
+      sending: "Confirmando...",
+      errorGeneric: "Ocurrió un error. Intenta nuevamente.",
+      webhookMissing: "Falta configurar el webhook.",
+      add: "Agregar",
     },
     en: {
       title: "Confirm Your Appointment",
@@ -66,10 +67,91 @@ export default function PaymentSection({
       confirmedBody: "We’ve emailed you your appointment details.",
       date: "Date",
       time: "Time",
+      sending: "Confirming...",
+      errorGeneric: "Something went wrong. Please try again.",
+      webhookMissing: "Webhook is not configured.",
+      add: "Add",
     },
   };
 
   const t = copy[lang] || copy.es;
+
+  const isCardValid =
+    cardData.number && cardData.expiry && cardData.cvv && cardData.name;
+
+  // ✅ IMPORTANT:
+  // - Do NOT send cardData to webhook
+  // - Only send bookingData + totals + a status
+  const sendConfirmationWebhook = async () => {
+    if (!webhookUrl) {
+      throw new Error(t.webhookMissing);
+    }
+
+    const payload = {
+      type: "appointment_confirmed",
+      status: "paid", // you can change later when real payments exist
+      createdAt: new Date().toISOString(),
+      totals: {
+        servicesTotal: totalServices,
+        currency: "USD",
+      },
+      booking: {
+        ...bookingData,
+        // normalize / ensure consistent fields
+        services: (bookingData.services || []).map((s) => ({
+          id: s.id,
+          nameEs: s.nameEs,
+          nameEn: s.nameEn,
+          duration: s.duration,
+          price: s.price,
+        })),
+      },
+    };
+
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      // try to read response for debug (safe)
+      let detail = "";
+      try {
+        detail = await res.text();
+      } catch (_) {}
+      throw new Error(detail || `Webhook failed (${res.status})`);
+    }
+
+    // Optional: if your webhook returns JSON
+    // const data = await res.json().catch(() => ({}));
+    // return data;
+
+    return true;
+  };
+
+  const handleConfirm = async () => {
+    setErrorMsg("");
+
+    if (!isCardValid) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // 1) Fire webhook (email/SMS/CRM entry)
+      await sendConfirmationWebhook();
+
+      // 2) Mark UI confirmed
+      setConfirmed(true);
+
+      // 3) Notify parent
+      onConfirm?.();
+    } catch (err) {
+      setErrorMsg(err?.message || t.errorGeneric);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (confirmed) {
     return (
@@ -87,9 +169,6 @@ export default function PaymentSection({
               backdropFilter: "blur(10px)",
             }}
           >
-            {/* Soft glow */}
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_70%_0%,rgba(201,174,126,0.22),transparent_60%),radial-gradient(900px_420px_at_15%_35%,rgba(195,154,139,0.14),transparent_62%)]" />
-
             <div className="relative">
               <div
                 className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border"
@@ -106,10 +185,7 @@ export default function PaymentSection({
                 </div>
               </div>
 
-              <h2
-                className="text-2xl font-light"
-                style={{ color: ESPRESSO }}
-              >
+              <h2 className="text-2xl font-light" style={{ color: ESPRESSO }}>
                 {t.confirmedTitle}
               </h2>
 
@@ -157,7 +233,6 @@ export default function PaymentSection({
       style={{ backgroundColor: LINEN }}
     >
       <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
-        {/* Section Header */}
         <div className="text-center mb-10 md:mb-12">
           <h2
             className="text-3xl md:text-4xl font-light mb-4"
@@ -176,17 +251,14 @@ export default function PaymentSection({
             backdropFilter: "blur(10px)",
           }}
         >
-          {/* Soft glow */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_70%_0%,rgba(201,174,126,0.20),transparent_60%),radial-gradient(900px_420px_at_15%_35%,rgba(195,154,139,0.12),transparent_62%)]" />
-
           <div className="relative">
             {/* Summary */}
-            <div className="mb-6 pb-6 border-b" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
+            <div
+              className="mb-6 pb-6 border-b"
+              style={{ borderColor: "rgba(42,30,26,0.10)" }}
+            >
               <div className="flex items-center justify-between mb-4">
-                <h3
-                  className="text-sm font-medium"
-                  style={{ color: ESPRESSO }}
-                >
+                <h3 className="text-sm font-medium" style={{ color: ESPRESSO }}>
                   {t.summary}
                 </h3>
 
@@ -198,9 +270,10 @@ export default function PaymentSection({
                     borderColor: "rgba(195,154,139,0.35)",
                     color: ROSE,
                   }}
+                  type="button"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  {lang === "es" ? "Agregar" : "Add"}
+                  {t.add}
                 </button>
               </div>
 
@@ -221,22 +294,6 @@ export default function PaymentSection({
                   <span style={{ color: COCOA }}>{t.servicesTotal}</span>
                   <span style={{ color: ESPRESSO }}>${totalServices}</span>
                 </div>
-              </div>
-
-              {/* Decorative highlight (no money copy) */}
-              <div
-                className="mt-5 rounded-2xl px-4 py-3 flex items-center justify-between"
-                style={{
-                  backgroundColor: "rgba(201,174,126,0.12)",
-                  border: "1px solid rgba(42,30,26,0.08)",
-                }}
-              >
-                <span className="text-sm font-medium" style={{ color: ESPRESSO }}>
-                  {lang === "es" ? "Confirmación segura" : "Secure confirmation"}
-                </span>
-                <span className="text-sm" style={{ color: TAUPE }}>
-                  {lang === "es" ? "Servicio móvil" : "Mobile service"}
-                </span>
               </div>
             </div>
 
@@ -307,8 +364,25 @@ export default function PaymentSection({
               />
             </div>
 
+            {/* Error message */}
+            {errorMsg ? (
+              <div
+                className="mt-4 rounded-2xl border px-4 py-3 text-sm"
+                style={{
+                  borderColor: "rgba(195,154,139,0.45)",
+                  backgroundColor: "rgba(195,154,139,0.10)",
+                  color: ESPRESSO,
+                }}
+              >
+                {errorMsg}
+              </div>
+            ) : null}
+
             {/* Secure Notice */}
-            <div className="my-6 flex items-center justify-center gap-2 text-xs" style={{ color: TAUPE }}>
+            <div
+              className="my-6 flex items-center justify-center gap-2 text-xs"
+              style={{ color: TAUPE }}
+            >
               <Lock className="h-3 w-3" />
               {t.secure}
             </div>
@@ -316,14 +390,16 @@ export default function PaymentSection({
             {/* Confirm Button */}
             <Button
               onClick={handleConfirm}
+              disabled={!isCardValid || isSubmitting}
               className="w-full h-12 rounded-xl text-base font-medium"
               style={{
                 backgroundColor: ROSE,
                 color: "#FFFFFF",
                 boxShadow: "0 22px 70px rgba(195,154,139,0.32)",
+                opacity: !isCardValid || isSubmitting ? 0.7 : 1,
               }}
             >
-              {t.confirm}
+              {isSubmitting ? t.sending : t.confirm}
             </Button>
 
             {/* Subtle add more link */}
@@ -332,6 +408,7 @@ export default function PaymentSection({
                 onClick={onOpenServicePicker}
                 className="text-xs underline transition hover:no-underline"
                 style={{ color: TAUPE }}
+                type="button"
               >
                 {t.addMore}
               </button>
