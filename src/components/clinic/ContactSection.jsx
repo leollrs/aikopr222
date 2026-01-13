@@ -55,13 +55,13 @@ export default function ContactSection({ lang }) {
           <ContactCard
             icon={Phone}
             title={lang === "es" ? "Teléfono" : "Phone"}
-            lines={["+1 (555) 123-4567"]}
+            lines={["+1 (786) 672-9528"]}
           />
 
           <ContactCard
             icon={Mail}
             title={lang === "es" ? "Correo" : "Email"}
-            lines={["info@aikopr222.clinic"]}
+            lines={["Aikopr222@gmail.com"]}
           />
 
           <ContactCard
