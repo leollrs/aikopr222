@@ -68,7 +68,9 @@ export default function Home() {
   };
 
   const handleContinueToPayment = (data) => {
-    setBookingData(data);
+    // Store only booking details (date/time/contact) - cart is the source of truth for services
+    const { services, ...bookingDetails } = data;
+    setBookingData(bookingDetails);
     setShowPayment(true);
     setTimeout(() => {
       paymentRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -138,6 +140,7 @@ export default function Home() {
         <PaymentSection 
           lang={lang}
           bookingData={bookingData}
+          cart={cart}
           onConfirm={handleConfirmPayment}
           onOpenServicePicker={handleAddMoreServices}
           sectionRef={paymentRef}
