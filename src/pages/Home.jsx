@@ -12,6 +12,7 @@ import PaymentSection from '@/components/clinic/PaymentSection';
 import ContactSection from '@/components/clinic/ContactSection';
 import Footer from '@/components/clinic/Footer';
 import ServicePickerModal from '@/components/clinic/ServicePickerModal';
+import ChatWidget from '@/components/chat/ChatWidget';
 
 export default function Home() {
   // Language
@@ -188,6 +189,13 @@ export default function Home() {
           handleAddService(service);
           setShowPickerModal(false);
         }}
+      />
+
+      {/* AI Chat Widget */}
+      <ChatWidget 
+        lang={lang}
+        onAddToCart={handleAddService}
+        scrollToBooking={scrollToBooking}
       />
     </div>
   );
