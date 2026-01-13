@@ -1,5 +1,6 @@
 import React from "react";
-import { Instagram, Facebook } from "lucide-react";
+import { Instagram } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 
 export default function Footer({ lang }) {
   return (
@@ -45,8 +46,8 @@ export default function Footer({ lang }) {
 
         {/* Social */}
         <div className="mt-8 flex justify-center gap-4">
-          <SocialIcon icon={<Instagram />} />
-          <SocialIcon icon={<Facebook />} />
+          <SocialIcon icon={<Instagram />} href="https://instagram.com/aikopr222" />
+          <SocialIcon icon={<MessageCircle />} href="https://wa.me/17871234567" target="_blank" />
         </div>
 
         {/* Bottom copy */}
@@ -59,12 +60,22 @@ export default function Footer({ lang }) {
   );
 }
 
-function SocialIcon({ icon }) {
-  return (
+function SocialIcon({ icon, href, target }) {
+  const content = (
     <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 transition hover:bg-white/10">
       {React.cloneElement(icon, {
         className: "h-5 w-5 text-[#FBF8F3]",
       })}
     </div>
   );
+
+  if (href) {
+    return (
+      <a href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
+        {content}
+      </a>
+    );
+  }
+
+  return content;
 }
