@@ -316,12 +316,15 @@ export default function BookingSection({
 
                 {/* Phone */}
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
+                  <Phone
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: PALETTE.taupe }}
+                  />
                   <Input
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"
-                    placeholder="phone"
+                    placeholder={lang === "es" ? "Teléfono" : "Phone"}
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: formatPhone(e.target.value) })
