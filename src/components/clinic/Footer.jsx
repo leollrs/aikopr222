@@ -1,6 +1,5 @@
 import React from "react";
-import { Instagram } from "lucide-react";
-import { MessageCircle } from "lucide-react";
+import { Instagram, MessageCircle } from "lucide-react";
 
 export default function Footer({ lang }) {
   return (
@@ -27,17 +26,26 @@ export default function Footer({ lang }) {
         <nav className="mt-8">
           <ul className="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-[#FBF8F3]/65">
             <li>
-              <a href="#services" className="hover:text-[#FBF8F3] transition">
+              <a
+                href="#ServicesSection"
+                className="hover:text-[#FBF8F3] transition"
+              >
                 {lang === "es" ? "Servicios" : "Services"}
               </a>
             </li>
             <li>
-              <a href="#results" className="hover:text-[#FBF8F3] transition">
+              <a
+                href="#ResultsSection"
+                className="hover:text-[#FBF8F3] transition"
+              >
                 {lang === "es" ? "Resultados" : "Results"}
               </a>
             </li>
             <li>
-              <a href="#contact" className="hover:text-[#FBF8F3] transition">
+              <a
+                href="#ContactSection"
+                className="hover:text-[#FBF8F3] transition"
+              >
                 {lang === "es" ? "Contacto" : "Contact"}
               </a>
             </li>
@@ -46,8 +54,14 @@ export default function Footer({ lang }) {
 
         {/* Social */}
         <div className="mt-8 flex justify-center gap-4">
-          <SocialIcon icon={<Instagram />} href="https://instagram.com/aikopr222" />
-          <SocialIcon icon={<MessageCircle />} href="https://wa.me/17871234567" target="_blank" />
+          <SocialIcon
+            href="https://www.instagram.com/aikopr222/"
+            icon={<Instagram />}
+          />
+          <SocialIcon
+            href="https://wa.me/7866729528"
+            icon={<MessageCircle />}
+          />
         </div>
 
         {/* Bottom copy */}
@@ -60,22 +74,18 @@ export default function Footer({ lang }) {
   );
 }
 
-function SocialIcon({ icon, href, target }) {
-  const content = (
-    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 transition hover:bg-white/10">
+function SocialIcon({ icon, href }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 transition hover:bg-white/10"
+      aria-label="Social link"
+    >
       {React.cloneElement(icon, {
         className: "h-5 w-5 text-[#FBF8F3]",
       })}
-    </div>
+    </a>
   );
-
-  if (href) {
-    return (
-      <a href={href} target={target} rel={target === "_blank" ? "noopener noreferrer" : undefined}>
-        {content}
-      </a>
-    );
-  }
-
-  return content;
 }
