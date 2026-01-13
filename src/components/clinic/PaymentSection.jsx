@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 export default function PaymentSection({
   lang,
   bookingData,
-  cart = [], // ✅ NEW: source of truth for services
+  cart = [], // ✅ source of truth for services
   onConfirm,
   onOpenServicePicker,
   sectionRef,
@@ -78,6 +78,24 @@ export default function PaymentSection({
   const isCardValid =
     cardData.number && cardData.expiry && cardData.cvv && cardData.name;
 
+  // ✅ INPUT FORMATTERS (ONLY VISUAL/INPUT BEHAVIOR)
+  const formatCardNumber = (value) => {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, 16);
+    // group into 4s: 1111 1111 1111 1111
+    return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+  };
+
+  const formatExpiry = (value) => {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, 4);
+    // format: 00/00 (MM/YY)
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  };
+
+  const formatCVV = (value) => {
+    return String(value || "").replace(/\D/g, "").slice(0, 4);
+  };
+
   // ✅ IMPORTANT: no card data sent
   const sendConfirmationWebhook = async () => {
     if (!webhookUrl) throw new Error(t.webhookMissing);
@@ -130,48 +148,6 @@ export default function PaymentSection({
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // ✅ ONLY CHANGE: input aesthetics for typed numbers/dates/text
-  const inputStyleBase = {
-    backgroundColor: "rgba(241,232,221,0.70)",
-    borderColor: "rgba(42,30,26,0.14)",
-    color: ESPRESSO,
-    borderRadius: 16,
-    height: 44,
-    lineHeight: "44px",
-    fontSize: 15,
-    fontWeight: 500,
-    letterSpacing: "0.01em",
-    outline: "none",
-    boxShadow: "0 10px 30px rgba(42,30,26,0.06)",
-    WebkitTextFillColor: ESPRESSO, // iOS/Safari input color
-  };
-
-  const numericInputStyle = {
-    ...inputStyleBase,
-    fontVariantNumeric: "tabular-nums",
-    fontFeatureSettings: '"tnum" 1, "ss01" 1',
-  };
-
-  const cardNumberStyle = {
-    ...numericInputStyle,
-    letterSpacing: "0.06em",
-  };
-
-  const placeholderStyle = `
-    ::placeholder { color: rgba(139,116,104,0.72); }
-  `;
-
-  const handleFocus = (e) => {
-    e.currentTarget.style.borderColor = "rgba(195,154,139,0.55)";
-    e.currentTarget.style.boxShadow =
-      "0 0 0 4px rgba(195,154,139,0.18), 0 16px 45px rgba(42,30,26,0.10)";
-  };
-
-  const handleBlur = (e) => {
-    e.currentTarget.style.borderColor = "rgba(42,30,26,0.14)";
-    e.currentTarget.style.boxShadow = "0 10px 30px rgba(42,30,26,0.06)";
   };
 
   if (confirmed) {
@@ -253,9 +229,6 @@ export default function PaymentSection({
       className="py-16 md:py-20 lg:py-28"
       style={{ backgroundColor: LINEN }}
     >
-      {/* ONLY for placeholders on these inputs */}
-      <style>{placeholderStyle}</style>
-
       <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
         <div className="text-center mb-10 md:mb-12">
           <h2
@@ -339,51 +312,77 @@ export default function PaymentSection({
                 />
                 <Input
                   type="text"
-                  placeholder="4242 4242 4242 4242"
+                  inputMode="numeric"
+                  autoComplete="cc-number"
+                  placeholder="1111 1111 1111 1111"
                   value={cardData.number}
-                  onChange={(e) =>
-                    setCardData({ ...cardData, number: e.target.value })
-                  }
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
+                  onChange={(e) => {
+                    const formatted = formatCardNumber(e.target.value);
+                    setCardData((prev) => ({ ...prev, number: formatted }));
+                  }}
                   className="pl-10"
-                  style={cardNumberStyle}
+                  style={{
+                    backgroundColor: "rgba(241,232,221,0.70)",
+                    borderColor: "rgba(42,30,26,0.12)",
+                    color: ESPRESSO,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "0.06em",
+                  }}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   type="text"
-                  placeholder="MM/YY"
+                  inputMode="numeric"
+                  autoComplete="cc-exp"
+                  placeholder="00/00"
                   value={cardData.expiry}
-                  onChange={(e) =>
-                    setCardData({ ...cardData, expiry: e.target.value })
-                  }
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  style={numericInputStyle}
+                  onChange={(e) => {
+                    const formatted = formatExpiry(e.target.value);
+                    setCardData((prev) => ({ ...prev, expiry: formatted }));
+                  }}
+                  style={{
+                    backgroundColor: "rgba(241,232,221,0.70)",
+                    borderColor: "rgba(42,30,26,0.12)",
+                    color: ESPRESSO,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "0.06em",
+                  }}
                 />
                 <Input
                   type="text"
-                  placeholder="CVV"
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                  placeholder="000"
                   value={cardData.cvv}
-                  onChange={(e) =>
-                    setCardData({ ...cardData, cvv: e.target.value })
-                  }
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  style={numericInputStyle}
+                  onChange={(e) => {
+                    const formatted = formatCVV(e.target.value);
+                    setCardData((prev) => ({ ...prev, cvv: formatted }));
+                  }}
+                  style={{
+                    backgroundColor: "rgba(241,232,221,0.70)",
+                    borderColor: "rgba(42,30,26,0.12)",
+                    color: ESPRESSO,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "0.06em",
+                  }}
                 />
               </div>
 
               <Input
                 type="text"
+                autoComplete="cc-name"
                 placeholder={lang === "es" ? "Nombre en la tarjeta" : "Name on card"}
                 value={cardData.name}
-                onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                style={inputStyleBase}
+                onChange={(e) =>
+                  setCardData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                style={{
+                  backgroundColor: "rgba(241,232,221,0.70)",
+                  borderColor: "rgba(42,30,26,0.12)",
+                  color: ESPRESSO,
+                }}
               />
             </div>
 
