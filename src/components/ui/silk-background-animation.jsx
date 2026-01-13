@@ -1,46 +1,74 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 export function SilkBackground({
-  className = 'absolute inset-0 h-full w-full',
+  className = "absolute inset-0 h-full w-full",
   speed = 0.02,
   scale = 2,
   noiseIntensity = 0.8,
   theme = {},
 }) {
   const canvasRef = useRef(null);
-  const animationRef = useRef();
+  const animationRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     let time = 0;
 
     const t = {
-      bg0: theme?.bg0 ?? '#2A1B16',
-      bg1: theme?.bg1 ?? '#3A2721',
-      bg2: theme?.bg2 ?? '#2A1B16',
+      bg0: theme?.bg0 ?? "#2A1B16",
+      bg1: theme?.bg1 ?? "#3A2721",
+      bg2: theme?.bg2 ?? "#2A1B16",
       silkR: theme?.silkR ?? 199,
       silkG: theme?.silkG ?? 174,
       silkB: theme?.silkB ?? 134,
-      vignetteInner: theme?.vignetteInner ?? 'rgba(36, 24, 20, 0.08)',
-      vignetteOuter: theme?.vignetteOuter ?? 'rgba(36, 24, 20, 0.45)',
+      vignetteInner: theme?.vignetteInner ?? "rgba(36, 24, 20, 0.08)",
+      vignetteOuter: theme?.vignetteOuter ?? "rgba(36, 24, 20, 0.45)",
     };
 
-    const resizeCanvas = () => {
+    // Render at reduced resolution for performance, then upscale smoothly.
+    const QUALITY = 0.6; // 0.5–0.75 is usually a good range
+
+    // We'll size to the canvas' parent (i.e., the Hero section), not the window.
+    let cssW = 0;
+    let cssH = 0;
+    let bufW = 0;
+    let bufH = 0;
+
+    const resizeToParent = () => {
+      const parent = canvas.parentElement;
+      if (!parent) return;
+
+      const rect = parent.getBoundingClientRect();
+      cssW = Math.max(1, Math.floor(rect.width));
+      cssH = Math.max(1, Math.floor(rect.height));
+
+      // Set CSS size (so it visually fills the hero)
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssH}px`;
+
+      // Set backing buffer size (smaller than CSS for perf)
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = `${window.innerWidth}px`;
-      canvas.style.height = `${window.innerHeight}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      bufW = Math.max(1, Math.floor(cssW * dpr * QUALITY));
+      bufH = Math.max(1, Math.floor(cssH * dpr * QUALITY));
+
+      canvas.width = bufW;
+      canvas.height = bufH;
+
+      // Draw in buffer pixel space; scale to CSS via canvas itself.
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
     };
 
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    // ResizeObserver tracks Hero size changes (mobile address bar, layout, etc.)
+    const ro = new ResizeObserver(resizeToParent);
+    if (canvas.parentElement) ro.observe(canvas.parentElement);
+    resizeToParent();
 
     const noise = (x, y) => {
       const G = 2.71828;
@@ -50,9 +78,10 @@ export function SilkBackground({
     };
 
     const animate = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const width = bufW;
+      const height = bufH;
 
+      // Background gradient (buffer space)
       const gradient = ctx.createLinearGradient(0, 0, width, height);
       gradient.addColorStop(0, t.bg0);
       gradient.addColorStop(0.5, t.bg1);
@@ -91,20 +120,20 @@ export function SilkBackground({
           const r = Math.floor(t.silkR * intensity);
           const g = Math.floor(t.silkG * intensity);
           const b = Math.floor(t.silkB * intensity);
-          const a = 255;
 
           const index = (y * width + x) * 4;
           if (index < data.length) {
             data[index] = r;
             data[index + 1] = g;
             data[index + 2] = b;
-            data[index + 3] = a;
+            data[index + 3] = 255;
           }
         }
       }
 
       ctx.putImageData(imageData, 0, 0);
 
+      // Vignette overlay (buffer space)
       const overlayGradient = ctx.createRadialGradient(
         width / 2,
         height / 2,
@@ -123,10 +152,10 @@ export function SilkBackground({
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      ro.disconnect();
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [speed, scale, noiseIntensity, theme]);
