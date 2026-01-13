@@ -10,7 +10,7 @@ export default function Footer({ lang }) {
       <div className="relative mx-auto max-w-3xl px-6 text-center">
         {/* Brand */}
         <h3 className="text-2xl font-light tracking-[-0.02em] text-[#FBF8F3]">
-          LUMIÈRE
+          AIKOPR222
         </h3>
 
         <p className="mt-4 text-sm leading-relaxed text-[#FBF8F3]/65">
