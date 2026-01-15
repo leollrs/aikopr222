@@ -64,12 +64,6 @@ export default function ChatDrawer({
     };
   }, [isOpen]);
 
-  // ---- Debug logging (so you can see exactly what's happening) ----
-  useEffect(() => {
-    if (!isOpen) return;
-    console.log("[ChatDrawer] OPENED. webhookUrl =", webhookUrl);
-  }, [isOpen, webhookUrl]);
-
   async function callWebhook(nextMessages) {
     // 🔎 PROVE what webhookUrl is at runtime
     console.log("[ChatDrawer] webhookUrl =", webhookUrl);
