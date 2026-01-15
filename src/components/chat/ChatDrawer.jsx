@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, Plus, Calendar } from "lucide-react";
 import { services } from "@/components/clinic/ServicesSection";
+import { base44 } from "@/api/base44Client";
 
 const PALETTE = {
   cream: "#FBF8F3",
