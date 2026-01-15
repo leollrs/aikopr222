@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import ChatDrawer from "./ChatDrawer";
 
@@ -12,19 +12,16 @@ const PALETTE = {
   taupe: "#8B7468",
 };
 
-// Load webhook URL from Base44 secret
-const WEBHOOK_URL = import.meta.env.VITE_Webhooks_chatwidget || null;
-
-// Log error if secret is missing
-if (!WEBHOOK_URL) {
-  console.error(
-    "[ChatWidget] ERROR: Webhook URL secret 'Webhooks_chatwidget' is not configured. " +
-    "Please set this secret in the Base44 dashboard to enable the chat feature."
-  );
-}
+// ✅ Load webhook URL from Base44 secret
+const WEBHOOK_URL = import.meta.env.VITE_Webhooks_chatwidget ?? null;
 
 export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Debug: verify the secret is actually present at runtime
+  useEffect(() => {
+    console.log("[ChatWidget] webhook secret present?", Boolean(WEBHOOK_URL));
+  }, []);
 
   return (
     <>
@@ -51,17 +48,15 @@ export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
         )}
       </button>
 
-      {/* Chat Drawer */}
-      {WEBHOOK_URL && (
-        <ChatDrawer
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          lang={lang}
-          onAddToCart={onAddToCart}
-          scrollToBooking={scrollToBooking}
-          webhookUrl={WEBHOOK_URL}
-        />
-      )}
+      {/* ✅ Always render ChatDrawer so UI shows even if webhook missing */}
+      <ChatDrawer
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        lang={lang}
+        onAddToCart={onAddToCart}
+        scrollToBooking={scrollToBooking}
+        webhookUrl={WEBHOOK_URL}
+      />
     </>
   );
 }
