@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { X, Send, Loader2, Plus, Calendar } from "lucide-react";
 import { services } from "@/components/clinic/ServicesSection";
 
@@ -25,63 +25,115 @@ export default function ChatDrawer({
   scrollToBooking,
   webhookUrl,
 }) {
-  const [messages, setMessages] = useState([
-    {
+  const isEs = lang === "es";
+
+  // Keep initial assistant message synced with lang changes (when widget toggles language)
+  const initialAssistantMessage = useMemo(
+    () => ({
       role: "assistant",
-      content:
-        lang === "es"
-          ? "¡Hola! Soy el asistente de AIKOPR222. ¿En qué puedo ayudarte?"
-          : "Hi! I’m the AIKOPR222 assistant. How can I help you?",
-    },
-  ]);
+      content: isEs
+        ? "¡Hola! Soy el asistente de AIKOPR222. ¿En qué puedo ayudarte?"
+        : "Hi! I’m the AIKOPR222 assistant. How can I help you?",
+    }),
+    [isEs]
+  );
+
+  const [messages, setMessages] = useState([initialAssistantMessage]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // If lang changes while open, reset the first system message (optional but avoids mismatch)
+  useEffect(() => {
+    setMessages((prev) => {
+      if (!prev?.length) return [initialAssistantMessage];
+      // Replace only the very first assistant bubble if it was the default greeting
+      const next = [...prev];
+      if (next[0]?.role === "assistant") next[0] = initialAssistantMessage;
+      return next;
+    });
+  }, [initialAssistantMessage]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   useEffect(() => {
     if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
 
-  async function sendToWebhook(text) {
+  // ✅ Send full conversation history to n8n (so your model has context)
+  async function sendToWebhook(nextMessages) {
+    if (!webhookUrl) throw new Error("Missing webhookUrl");
+
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: text,
-        language: lang,
+        lang,
+        messages: nextMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       }),
     });
 
-    const data = await res.json();
-    return data.answer;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Webhook error ${res.status}: ${text}`);
+    }
+
+    const data = await res.json().catch(() => ({}));
+
+    // Accept a few common response shapes so you don’t get "undefined"
+    return (
+      data.reply ??
+      data.answer ??
+      data.response ??
+      data?.data?.reply ??
+      data?.data?.answer ??
+      ""
+    );
   }
 
   const handleSend = async (text = input) => {
-    const clean = text.trim();
+    const clean = String(text || "").trim();
     if (!clean || isLoading) return;
 
-    setMessages((prev) => [...prev, { role: "user", content: clean }]);
+    const userMsg = { role: "user", content: clean };
+
+    // Build the next message list FIRST, then send that list
+    const nextMessages = [...messages, userMsg];
+
+    setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const answer = await sendToWebhook(clean);
-      setMessages((prev) => [...prev, { role: "assistant", content: answer }]);
-    } catch {
+      const replyText = await sendToWebhook(nextMessages);
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            lang === "es"
-              ? "Ocurrió un error. Intenta nuevamente."
-              : "Something went wrong. Please try again.",
+            replyText && String(replyText).trim()
+              ? String(replyText)
+              : isEs
+              ? "No pude generar una respuesta. Intenta de nuevo."
+              : "I couldn’t generate a reply. Please try again.",
+        },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: isEs
+            ? "Ocurrió un error. Intenta nuevamente."
+            : "Something went wrong. Please try again.",
         },
       ]);
     } finally {
@@ -99,10 +151,9 @@ export default function ChatDrawer({
       ...prev,
       {
         role: "assistant",
-        content:
-          lang === "es"
-            ? `Agregué ${service.nameEs}. ¿Deseas reservar ahora?`
-            : `I added ${service.nameEn}. Would you like to book now?`,
+        content: isEs
+          ? `Agregué ${service.nameEs}. ¿Deseas reservar ahora?`
+          : `I added ${service.nameEn}. Would you like to book now?`,
       },
     ]);
   };
@@ -126,9 +177,9 @@ export default function ChatDrawer({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h3 className="text-lg font-medium">
-            {lang === "es" ? "Asistente AI" : "AI Assistant"}
+            {isEs ? "Asistente AI" : "AI Assistant"}
           </h3>
-          <button onClick={onClose}>
+          <button onClick={onClose} aria-label={isEs ? "Cerrar" : "Close"}>
             <X />
           </button>
         </div>
@@ -137,7 +188,7 @@ export default function ChatDrawer({
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {messages.length === 1 && (
             <div className="mb-6 flex gap-2 flex-wrap">
-              {QUICK_REPLIES[lang].map((r) => (
+              {QUICK_REPLIES[lang]?.map((r) => (
                 <button
                   key={r}
                   onClick={() => handleSend(r)}
@@ -159,7 +210,12 @@ export default function ChatDrawer({
             />
           ))}
 
-          {isLoading && <Loader2 className="animate-spin mt-4" />}
+          {isLoading && (
+            <div className="mt-4 flex items-center gap-2 text-sm opacity-70">
+              <Loader2 className="animate-spin" />
+              {isEs ? "Pensando…" : "Thinking…"}
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -170,7 +226,7 @@ export default function ChatDrawer({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={lang === "es" ? "Escribe tu mensaje…" : "Type your message…"}
+            placeholder={isEs ? "Escribe tu mensaje…" : "Type your message…"}
             className="flex-1 rounded-xl border px-4 py-3 text-[16px]"
             disabled={isLoading}
           />
@@ -179,6 +235,7 @@ export default function ChatDrawer({
             disabled={!input.trim() || isLoading}
             className="h-12 w-12 rounded-xl flex items-center justify-center"
             style={{ backgroundColor: PALETTE.rose, color: "#fff" }}
+            aria-label={isEs ? "Enviar" : "Send"}
           >
             <Send />
           </button>
@@ -191,19 +248,21 @@ export default function ChatDrawer({
 function MessageBubble({ message, lang, onAddService, onBookNow }) {
   const isUser = message.role === "user";
 
+  const safeContent = String(message.content || "");
+  const haystack = safeContent.toLowerCase();
+
   const mentionedServices = !isUser
-    ? services.filter((s) =>
-        message.content
-          .toLowerCase()
-          .includes((lang === "es" ? s.nameEs : s.nameEn).toLowerCase())
-      )
+    ? services.filter((s) => {
+        const name = (lang === "es" ? s.nameEs : s.nameEn) || "";
+        return haystack.includes(String(name).toLowerCase());
+      })
     : [];
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}>
       <div className="max-w-[85%]">
         <div className="rounded-2xl px-4 py-3 border">
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+          <p className="text-sm whitespace-pre-wrap">{safeContent}</p>
         </div>
 
         {!isUser && mentionedServices.length > 0 && (
