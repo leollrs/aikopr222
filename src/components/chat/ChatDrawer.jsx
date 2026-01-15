@@ -23,7 +23,6 @@ export default function ChatDrawer({
   lang,
   onAddToCart,
   scrollToBooking,
-  webhookUrl,
 }) {
   const isEs = lang === "es";
 

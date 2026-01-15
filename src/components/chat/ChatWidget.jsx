@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { MessageCircle, X } from "lucide-react";
 import ChatDrawer from "./ChatDrawer";
 
@@ -12,23 +12,8 @@ const PALETTE = {
   taupe: "#8B7468",
 };
 
-// ✅ Robust env lookup (covers naming differences)
-const WEBHOOK_URL =
-  import.meta.env.VITE_Webhooks_chatwidget ??
-  import.meta.env.VITE_WEBHOOKS_CHATWIDGET ??
-  import.meta.env.VITE_WEBHOOK_URL ??
-  null;
-
 export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    console.log("VITE_Webhooks_chatwidget =", import.meta.env.VITE_Webhooks_chatwidget);
-    console.log("VITE_WEBHOOKS_CHATWIDGET =", import.meta.env.VITE_WEBHOOKS_CHATWIDGET);
-    console.log("VITE_WEBHOOK_URL =", import.meta.env.VITE_WEBHOOK_URL);
-    console.log("[ChatWidget] webhook secret present?", Boolean(WEBHOOK_URL));
-    console.log("[ChatWidget] env keys:", Object.keys(import.meta.env || {}));
-  }, []);
 
   return (
     <>
@@ -55,14 +40,12 @@ export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
         )}
       </button>
 
-      {/* ✅ Always render the drawer so the UI works even if webhook is missing */}
       <ChatDrawer
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         lang={lang}
         onAddToCart={onAddToCart}
         scrollToBooking={scrollToBooking}
-        webhookUrl={WEBHOOK_URL}
       />
     </>
   );
