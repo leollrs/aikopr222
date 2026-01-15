@@ -25,13 +25,14 @@ export default function ChatDrawer({
   scrollToBooking,
   webhookUrl,
 }) {
+  const isEs = lang === "es";
+
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content:
-        lang === "es"
-          ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
-          : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
+      content: isEs
+        ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
+        : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -39,8 +40,6 @@ export default function ChatDrawer({
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-
-  const isEs = lang === "es";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,39 +64,81 @@ export default function ChatDrawer({
     };
   }, [isOpen]);
 
+  // ---- Debug logging (so you can see exactly what's happening) ----
+  useEffect(() => {
+    if (!isOpen) return;
+    console.log("[ChatDrawer] OPENED. webhookUrl =", webhookUrl);
+  }, [isOpen, webhookUrl]);
+
   async function callWebhook(nextMessages) {
-    if (!webhookUrl) throw new Error("Missing webhookUrl");
+    // 🔎 PROVE what webhookUrl is at runtime
+    console.log("[ChatDrawer] webhookUrl =", webhookUrl);
 
-    const res = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lang,
-        // send full conversation so your model has context
-        messages: nextMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`Webhook error ${res.status}: ${text}`);
+    if (!webhookUrl) {
+      return isEs
+        ? "⚠️ No tengo conexión porque el webhookUrl está vacío (el secret no cargó). Revisa Base44 Secrets."
+        : "⚠️ I can’t connect because webhookUrl is empty (secret didn’t load). Check Base44 Secrets.";
     }
 
-    const data = await res.json().catch(() => ({}));
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lang,
+          messages: nextMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+      });
 
-    // Accept multiple possible keys so you don't get undefined
-    const reply =
-      data.reply ??
-      data.answer ??
-      data.response ??
-      data?.data?.reply ??
-      data?.data?.answer ??
-      "";
+      console.log("[ChatDrawer] webhook status:", res.status);
 
-    return String(reply || "");
+      // ✅ Always read as text first (n8n sometimes returns non-JSON)
+      const raw = await res.text();
+      console.log("[ChatDrawer] webhook raw response:", raw);
+
+      if (!res.ok) {
+        return isEs
+          ? `⚠️ Webhook respondió ${res.status}. Revisa n8n / logs.`
+          : `⚠️ Webhook returned ${res.status}. Check n8n / logs.`;
+      }
+
+      // Try JSON; if not JSON, treat raw text as the reply.
+      let data = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        const txt = String(raw || "").trim();
+        return txt.length > 0
+          ? txt
+          : isEs
+          ? "⚠️ Respuesta vacía del webhook."
+          : "⚠️ Empty webhook response.";
+      }
+
+      const reply =
+        data.reply ??
+        data.answer ??
+        data.response ??
+        data?.data?.reply ??
+        data?.data?.answer ??
+        "";
+
+      const replyText = String(reply || "").trim();
+
+      return replyText.length > 0
+        ? replyText
+        : isEs
+        ? "⚠️ Respuesta vacía del webhook."
+        : "⚠️ Empty webhook reply.";
+    } catch (e) {
+      console.error("[ChatDrawer] fetch error:", e);
+      return isEs
+        ? "⚠️ Error de red (fetch). Puede ser CORS o bloqueo del navegador. Revisa la consola."
+        : "⚠️ Network fetch error. Could be CORS or browser blocking. Check console.";
+    }
   }
 
   const handleSend = async (text = input) => {
@@ -105,8 +146,6 @@ export default function ChatDrawer({
     if (!clean || isLoading) return;
 
     const userMessage = { role: "user", content: clean };
-
-    // build the conversation we will send to webhook
     const nextMessages = [...messages, userMessage];
 
     setMessages(nextMessages);
@@ -121,7 +160,7 @@ export default function ChatDrawer({
         {
           role: "assistant",
           content:
-            replyText.trim().length > 0
+            String(replyText || "").trim().length > 0
               ? replyText
               : isEs
               ? "No pude generar una respuesta. Intenta de nuevo."
@@ -229,7 +268,7 @@ export default function ChatDrawer({
         <div className="relative flex-1 overflow-y-auto px-6 py-6" style={{ overscrollBehavior: "contain" }}>
           {messages.length === 1 && (
             <div className="mb-6 flex flex-wrap gap-2">
-              {QUICK_REPLIES[lang].map((reply) => (
+              {(QUICK_REPLIES[lang] || QUICK_REPLIES.en).map((reply) => (
                 <button
                   key={reply}
                   onClick={() => handleQuickReply(reply)}
@@ -312,7 +351,9 @@ export default function ChatDrawer({
           </div>
 
           <p className="mt-2 text-[11px]" style={{ color: "rgba(139,116,104,0.9)" }}>
-            {isEs ? "Consejo: usa los botones de arriba para respuestas rápidas." : "Tip: use the buttons above for quick replies."}
+            {isEs
+              ? "Consejo: usa los botones de arriba para respuestas rápidas."
+              : "Tip: use the buttons above for quick replies."}
           </p>
         </div>
       </div>
@@ -325,6 +366,7 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
   const isEs = lang === "es";
 
   const content = String(message.content || "");
+
   const mentionedServices = !isUser
     ? services.filter((s) => {
         const name = isEs ? s.nameEs : s.nameEn;
