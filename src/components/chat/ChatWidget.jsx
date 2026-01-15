@@ -12,8 +12,9 @@ const PALETTE = {
   taupe: "#8B7468",
 };
 
-// ✅ YOUR N8N WEBHOOK
-const N8N_WEBHOOK_URL = "https://leollrs.app.n8n.cloud/webhook/aikopr222/chat";
+// ✅ Secure webhook from Base44 Secret: Webhooks_chatwidget
+// Base44 exposes secrets to the frontend as VITE_<SecretName>
+const N8N_WEBHOOK_URL = import.meta.env.VITE_Webhooks_chatwidget;
 
 export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
   const [isOpen, setIsOpen] = useState(false);
