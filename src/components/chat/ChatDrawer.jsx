@@ -65,51 +65,21 @@ export default function ChatDrawer({
   }, [isOpen]);
 
   async function callWebhook(nextMessages) {
-    // 🔎 PROVE what webhookUrl is at runtime
-    console.log("[ChatDrawer] webhookUrl =", webhookUrl);
-
-    if (!webhookUrl) {
-      return isEs
-        ? "⚠️ No tengo conexión porque el webhookUrl está vacío (el secret no cargó). Revisa Base44 Secrets."
-        : "⚠️ I can’t connect because webhookUrl is empty (secret didn’t load). Check Base44 Secrets.";
-    }
-
     try {
-      const res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          lang,
-          messages: nextMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
+      const response = await base44.functions.invoke('chatWebhook', {
+        lang,
+        messages: nextMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
       });
 
-      console.log("[ChatDrawer] webhook status:", res.status);
+      const data = response.data;
 
-      // ✅ Always read as text first (n8n sometimes returns non-JSON)
-      const raw = await res.text();
-      console.log("[ChatDrawer] webhook raw response:", raw);
-
-      if (!res.ok) {
+      if (data.error) {
         return isEs
-          ? `⚠️ Webhook respondió ${res.status}. Revisa n8n / logs.`
-          : `⚠️ Webhook returned ${res.status}. Check n8n / logs.`;
-      }
-
-      // Try JSON; if not JSON, treat raw text as the reply.
-      let data = {};
-      try {
-        data = raw ? JSON.parse(raw) : {};
-      } catch {
-        const txt = String(raw || "").trim();
-        return txt.length > 0
-          ? txt
-          : isEs
-          ? "⚠️ Respuesta vacía del webhook."
-          : "⚠️ Empty webhook response.";
+          ? `⚠️ Error: ${data.error}`
+          : `⚠️ Error: ${data.error}`;
       }
 
       const reply =
@@ -128,10 +98,10 @@ export default function ChatDrawer({
         ? "⚠️ Respuesta vacía del webhook."
         : "⚠️ Empty webhook reply.";
     } catch (e) {
-      console.error("[ChatDrawer] fetch error:", e);
+      console.error("[ChatDrawer] error:", e);
       return isEs
-        ? "⚠️ Error de red (fetch). Puede ser CORS o bloqueo del navegador. Revisa la consola."
-        : "⚠️ Network fetch error. Could be CORS or browser blocking. Check console.";
+        ? "⚠️ Error al conectar con el asistente. Intenta de nuevo."
+        : "⚠️ Error connecting to assistant. Please try again.";
     }
   }
 
