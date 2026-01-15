@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, Plus, Calendar } from "lucide-react";
 import { services } from "@/components/clinic/ServicesSection";
 
@@ -25,47 +25,47 @@ export default function ChatDrawer({
   scrollToBooking,
   webhookUrl,
 }) {
-  const isEs = lang === "es";
-
-  // Keep initial assistant message synced with lang changes (when widget toggles language)
-  const initialAssistantMessage = useMemo(
-    () => ({
+  const [messages, setMessages] = useState([
+    {
       role: "assistant",
-      content: isEs
-        ? "¡Hola! Soy el asistente de AIKOPR222. ¿En qué puedo ayudarte?"
-        : "Hi! I’m the AIKOPR222 assistant. How can I help you?",
-    }),
-    [isEs]
-  );
-
-  const [messages, setMessages] = useState([initialAssistantMessage]);
+      content:
+        lang === "es"
+          ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
+          : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
+    },
+  ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // If lang changes while open, reset the first system message (optional but avoids mismatch)
-  useEffect(() => {
-    setMessages((prev) => {
-      if (!prev?.length) return [initialAssistantMessage];
-      // Replace only the very first assistant bubble if it was the default greeting
-      const next = [...prev];
-      if (next[0]?.role === "assistant") next[0] = initialAssistantMessage;
-      return next;
-    });
-  }, [initialAssistantMessage]);
+  const isEs = lang === "es";
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom();
   }, [messages, isLoading]);
 
+  // Focus input when opened
   useEffect(() => {
-    if (isOpen) inputRef.current?.focus();
+    if (isOpen && inputRef.current) inputRef.current.focus();
   }, [isOpen]);
 
-  // ✅ Send full conversation history to n8n (so your model has context)
-  async function sendToWebhook(nextMessages) {
+  // Prevent body scroll behind the drawer
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
+
+  async function callWebhook(nextMessages) {
     if (!webhookUrl) throw new Error("Missing webhookUrl");
 
     const res = await fetch(webhookUrl, {
@@ -73,6 +73,7 @@ export default function ChatDrawer({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lang,
+        // send full conversation so your model has context
         messages: nextMessages.map((m) => ({
           role: m.role,
           content: m.content,
@@ -87,59 +88,62 @@ export default function ChatDrawer({
 
     const data = await res.json().catch(() => ({}));
 
-    // Accept a few common response shapes so you don’t get "undefined"
-    return (
+    // Accept multiple possible keys so you don't get undefined
+    const reply =
       data.reply ??
       data.answer ??
       data.response ??
       data?.data?.reply ??
       data?.data?.answer ??
-      ""
-    );
+      "";
+
+    return String(reply || "");
   }
 
   const handleSend = async (text = input) => {
     const clean = String(text || "").trim();
     if (!clean || isLoading) return;
 
-    const userMsg = { role: "user", content: clean };
+    const userMessage = { role: "user", content: clean };
 
-    // Build the next message list FIRST, then send that list
-    const nextMessages = [...messages, userMsg];
+    // build the conversation we will send to webhook
+    const nextMessages = [...messages, userMessage];
 
     setMessages(nextMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const replyText = await sendToWebhook(nextMessages);
+      const replyText = await callWebhook(nextMessages);
 
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content:
-            replyText && String(replyText).trim()
-              ? String(replyText)
+            replyText.trim().length > 0
+              ? replyText
               : isEs
               ? "No pude generar una respuesta. Intenta de nuevo."
-              : "I couldn’t generate a reply. Please try again.",
+              : "I couldn't generate a reply. Please try again.",
         },
       ]);
-    } catch (err) {
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: isEs
-            ? "Ocurrió un error. Intenta nuevamente."
-            : "Something went wrong. Please try again.",
+            ? "Lo siento — ocurrió un error. Por favor intenta de nuevo."
+            : "Sorry — something went wrong. Please try again.",
         },
       ]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleQuickReply = (text) => handleSend(text);
 
   const handleAddService = (serviceId) => {
     const service = services.find((s) => s.id === serviceId);
@@ -152,8 +156,8 @@ export default function ChatDrawer({
       {
         role: "assistant",
         content: isEs
-          ? `Agregué ${service.nameEs}. ¿Deseas reservar ahora?`
-          : `I added ${service.nameEn}. Would you like to book now?`,
+          ? `¡Listo! Agregué ${service.nameEs} a tu cita. ¿Deseas reservar ahora?`
+          : `Done! I added ${service.nameEn} to your appointment. Would you like to book now?`,
       },
     ]);
   };
@@ -167,78 +171,149 @@ export default function ChatDrawer({
 
   return (
     <>
+      {/* Backdrop */}
       <div
         className="fixed inset-0 z-50 backdrop-blur-sm"
         style={{ backgroundColor: "rgba(42,30,26,0.25)" }}
         onClick={onClose}
       />
 
-      <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-[#FBF8F3] shadow-xl flex flex-col">
+      {/* Drawer */}
+      <div
+        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col overflow-hidden border-l shadow-[0_50px_140px_rgba(42,30,26,0.35)] md:max-w-[420px]"
+        style={{
+          backgroundColor: "rgba(251,248,243,0.95)",
+          borderColor: "rgba(42,30,26,0.10)",
+          backdropFilter: "blur(20px)",
+          WebkitTextSizeAdjust: "100%",
+          overscrollBehavior: "contain",
+        }}
+      >
+        {/* Glow */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_50%_0%,rgba(201,174,126,0.18),transparent_55%)]" />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h3 className="text-lg font-medium">
-            {isEs ? "Asistente AI" : "AI Assistant"}
-          </h3>
-          <button onClick={onClose} aria-label={isEs ? "Cerrar" : "Close"}>
-            <X />
+        <div
+          className="relative flex items-center justify-between border-b px-6 py-4"
+          style={{ borderColor: "rgba(42,30,26,0.10)" }}
+        >
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: PALETTE.champagne }}
+              />
+              <h3 className="text-lg font-medium" style={{ color: PALETTE.espresso }}>
+                {isEs ? "Asistente AI" : "AI Assistant"}
+              </h3>
+            </div>
+            <p className="mt-1 text-xs" style={{ color: PALETTE.taupe }}>
+              {isEs ? "Respuestas rápidas + ayuda para reservar" : "Quick answers + help booking"}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition"
+            style={{
+              backgroundColor: "rgba(255,252,248,0.70)",
+              borderColor: "rgba(42,30,26,0.12)",
+            }}
+            aria-label={isEs ? "Cerrar" : "Close"}
+          >
+            <X className="h-5 w-5" style={{ color: PALETTE.cocoa }} />
           </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="relative flex-1 overflow-y-auto px-6 py-6" style={{ overscrollBehavior: "contain" }}>
           {messages.length === 1 && (
-            <div className="mb-6 flex gap-2 flex-wrap">
-              {QUICK_REPLIES[lang]?.map((r) => (
+            <div className="mb-6 flex flex-wrap gap-2">
+              {QUICK_REPLIES[lang].map((reply) => (
                 <button
-                  key={r}
-                  onClick={() => handleSend(r)}
-                  className="rounded-full border px-4 py-2 text-xs"
+                  key={reply}
+                  onClick={() => handleQuickReply(reply)}
+                  className="rounded-full border px-4 py-2 text-xs font-medium transition hover:scale-105"
+                  style={{
+                    backgroundColor: "rgba(195,154,139,0.12)",
+                    borderColor: "rgba(195,154,139,0.25)",
+                    color: PALETTE.rose,
+                  }}
                 >
-                  {r}
+                  {reply}
                 </button>
               ))}
             </div>
           )}
 
-          {messages.map((msg, i) => (
-            <MessageBubble
-              key={i}
-              message={msg}
-              lang={lang}
-              onAddService={handleAddService}
-              onBookNow={handleBookNow}
-            />
-          ))}
+          <div className="space-y-4">
+            {messages.map((msg, idx) => (
+              <MessageBubble
+                key={idx}
+                message={msg}
+                lang={lang}
+                onAddService={handleAddService}
+                onBookNow={handleBookNow}
+              />
+            ))}
 
-          {isLoading && (
-            <div className="mt-4 flex items-center gap-2 text-sm opacity-70">
-              <Loader2 className="animate-spin" />
-              {isEs ? "Pensando…" : "Thinking…"}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            {isLoading && (
+              <div className="flex items-start gap-3">
+                <div
+                  className="rounded-2xl border px-4 py-3"
+                  style={{
+                    backgroundColor: "rgba(255,252,248,0.80)",
+                    borderColor: "rgba(42,30,26,0.10)",
+                  }}
+                >
+                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: PALETTE.champagne }} />
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {/* Input */}
-        <div className="border-t px-6 py-4 flex gap-3">
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={isEs ? "Escribe tu mensaje…" : "Type your message…"}
-            className="flex-1 rounded-xl border px-4 py-3 text-[16px]"
-            disabled={isLoading}
-          />
-          <button
-            onClick={() => handleSend()}
-            disabled={!input.trim() || isLoading}
-            className="h-12 w-12 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: PALETTE.rose, color: "#fff" }}
-            aria-label={isEs ? "Enviar" : "Send"}
-          >
-            <Send />
-          </button>
+        <div className="relative border-t px-6 py-4" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
+          <div className="flex gap-3">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              onFocus={() => {
+                setTimeout(() => scrollToBottom(), 120);
+              }}
+              placeholder={isEs ? "Escribe tu mensaje..." : "Type your message..."}
+              className="flex-1 rounded-xl border px-4 py-3 text-[16px] md:text-sm outline-none transition focus:border-opacity-50"
+              style={{
+                backgroundColor: "rgba(241,232,221,0.60)",
+                borderColor: "rgba(42,30,26,0.12)",
+                color: PALETTE.espresso,
+              }}
+              disabled={isLoading}
+              inputMode="text"
+              autoCorrect="on"
+              autoCapitalize="sentences"
+            />
+
+            <button
+              onClick={() => handleSend()}
+              disabled={!input.trim() || isLoading}
+              className="inline-flex h-12 w-12 items-center justify-center rounded-xl transition disabled:opacity-50"
+              style={{ backgroundColor: PALETTE.rose, color: "#FFFFFF" }}
+              aria-label={isEs ? "Enviar" : "Send"}
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </div>
+
+          <p className="mt-2 text-[11px]" style={{ color: "rgba(139,116,104,0.9)" }}>
+            {isEs ? "Consejo: usa los botones de arriba para respuestas rápidas." : "Tip: use the buttons above for quick replies."}
+          </p>
         </div>
       </div>
     </>
@@ -247,44 +322,60 @@ export default function ChatDrawer({
 
 function MessageBubble({ message, lang, onAddService, onBookNow }) {
   const isUser = message.role === "user";
+  const isEs = lang === "es";
 
-  const safeContent = String(message.content || "");
-  const haystack = safeContent.toLowerCase();
-
+  const content = String(message.content || "");
   const mentionedServices = !isUser
     ? services.filter((s) => {
-        const name = (lang === "es" ? s.nameEs : s.nameEn) || "";
-        return haystack.includes(String(name).toLowerCase());
+        const name = isEs ? s.nameEs : s.nameEn;
+        return content.toLowerCase().includes(String(name || "").toLowerCase());
       })
     : [];
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}>
-      <div className="max-w-[85%]">
-        <div className="rounded-2xl px-4 py-3 border">
-          <p className="text-sm whitespace-pre-wrap">{safeContent}</p>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[85%] ${isUser ? "flex flex-col items-end" : ""}`}>
+        <div
+          className="rounded-2xl px-4 py-3"
+          style={{
+            backgroundColor: isUser ? PALETTE.rose : "rgba(255,252,248,0.80)",
+            borderColor: isUser ? "transparent" : "rgba(42,30,26,0.10)",
+            border: isUser ? "none" : "1px solid",
+            color: isUser ? "#FFFFFF" : PALETTE.cocoa,
+          }}
+        >
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
         </div>
 
         {!isUser && mentionedServices.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {mentionedServices.slice(0, 2).map((s) => (
+            {mentionedServices.slice(0, 2).map((service) => (
               <button
-                key={s.id}
-                onClick={() => onAddService(s.id)}
-                className="text-xs border rounded-full px-3 py-1"
+                key={service.id}
+                onClick={() => onAddService(service.id)}
+                className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-105"
+                style={{
+                  backgroundColor: "rgba(195,154,139,0.12)",
+                  borderColor: "rgba(195,154,139,0.25)",
+                  color: PALETTE.rose,
+                }}
               >
-                <Plus className="inline h-3 w-3" />{" "}
-                {lang === "es" ? "Agregar" : "Add"}{" "}
-                {lang === "es" ? s.nameEs : s.nameEn}
+                <Plus className="h-3 w-3" />
+                {isEs ? "Agregar" : "Add"} {isEs ? service.nameEs : service.nameEn}
               </button>
             ))}
 
             <button
               onClick={onBookNow}
-              className="text-xs border rounded-full px-3 py-1"
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-105"
+              style={{
+                backgroundColor: "rgba(42,30,26,0.08)",
+                borderColor: "rgba(42,30,26,0.15)",
+                color: PALETTE.espresso,
+              }}
             >
-              <Calendar className="inline h-3 w-3" />{" "}
-              {lang === "es" ? "Reservar" : "Book"}
+              <Calendar className="h-3 w-3" />
+              {isEs ? "Reservar ahora" : "Book now"}
             </button>
           </div>
         )}
