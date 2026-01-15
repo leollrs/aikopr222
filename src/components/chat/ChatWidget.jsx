@@ -12,9 +12,16 @@ const PALETTE = {
   taupe: "#8B7468",
 };
 
-// ✅ Secure webhook from Base44 Secret: Webhooks_chatwidget
-// Base44 exposes secrets to the frontend as VITE_<SecretName>
-const N8N_WEBHOOK_URL = import.meta.env.VITE_Webhooks_chatwidget;
+// Load webhook URL from Base44 secret
+const WEBHOOK_URL = import.meta.env.VITE_Webhooks_chatwidget || null;
+
+// Log error if secret is missing
+if (!WEBHOOK_URL) {
+  console.error(
+    "[ChatWidget] ERROR: Webhook URL secret 'Webhooks_chatwidget' is not configured. " +
+    "Please set this secret in the Base44 dashboard to enable the chat feature."
+  );
+}
 
 export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,14 +52,16 @@ export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
       </button>
 
       {/* Chat Drawer */}
-      <ChatDrawer
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        lang={lang}
-        onAddToCart={onAddToCart}
-        scrollToBooking={scrollToBooking}
-        webhookUrl={N8N_WEBHOOK_URL}
-      />
+      {WEBHOOK_URL && (
+        <ChatDrawer
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          lang={lang}
+          onAddToCart={onAddToCart}
+          scrollToBooking={scrollToBooking}
+          webhookUrl={WEBHOOK_URL}
+        />
+      )}
     </>
   );
 }
