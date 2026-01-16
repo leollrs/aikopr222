@@ -3,7 +3,6 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 const TZ = "America/New_York";
 const ADMIN_ONLY = false;
 
-// -------- helpers --------
 function requireString(val, name) {
   if (typeof val !== "string" || !val.trim()) {
     throw new Error(`Missing or invalid "${name}"`);
@@ -11,10 +10,7 @@ function requireString(val, name) {
   return val.trim();
 }
 
-// Get timezone offset minutes for a given Date in a named IANA timezone
-// Returns e.g. -300 for GMT-5, -240 for GMT-4.
 function getTimeZoneOffsetMinutes(date, timeZone) {
-  // "GMT-5" / "GMT-04:00" etc
   const dtf = new Intl.DateTimeFormat("en-US", {
     timeZone,
     timeZoneName: "shortOffset",
@@ -30,7 +26,6 @@ function getTimeZoneOffsetMinutes(date, timeZone) {
   const parts = dtf.formatToParts(date);
   const tzName = parts.find((p) => p.type === "timeZoneName")?.value || "GMT";
 
-  // tzName examples: "GMT-5", "GMT-05:00", "GMT+4"
   const m = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
   if (!m) return 0;
 
@@ -40,27 +35,17 @@ function getTimeZoneOffsetMinutes(date, timeZone) {
   return sign * (hours * 60 + mins);
 }
 
-// Convert local wall time in a timezone to UTC ISO (RFC3339 with Z)
 function localTimeInTZToUtcIso(dateStr, timeStr, timeZone) {
-  // dateStr: "YYYY-MM-DD", timeStr: "HH:MM" or "HH:MM:SS"
   const [y, mo, d] = dateStr.split("-").map(Number);
-  const [hh, mm, ss] = (timeStr.includes(":") ? timeStr : `${timeStr}:00`)
-    .split(":")
-    .map((n) => Number(n));
+  const [hh, mm, ss] = timeStr.split(":").map((n) => Number(n));
 
-  // Start with a naive UTC date using the same components
   const naiveUtc = new Date(Date.UTC(y, (mo || 1) - 1, d || 1, hh || 0, mm || 0, ss || 0));
-
-  // Figure out what the offset is in the target TZ at that instant
   const offsetMin = getTimeZoneOffsetMinutes(naiveUtc, timeZone);
-
-  // Convert wall time -> UTC by subtracting the offset (note offset is negative for GMT-5)
   const trueUtc = new Date(naiveUtc.getTime() - offsetMin * 60 * 1000);
 
-  return trueUtc.toISOString(); // RFC3339 with Z
+  return trueUtc.toISOString();
 }
 
-// -------- handler --------
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -77,13 +62,9 @@ Deno.serve(async (req) => {
 
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
 
-    // -------------------------
-    // ACTION: checkAvailability
-    // -------------------------
     if (action === "checkAvailability") {
       const date = requireString(body.date, "date");
 
-      // ✅ Must be RFC3339 (ISO with Z or offset)
       const timeMin = localTimeInTZToUtcIso(date, "00:00:00", TZ);
       const timeMax = localTimeInTZToUtcIso(date, "23:59:59", TZ);
 
@@ -110,19 +91,11 @@ Deno.serve(async (req) => {
       }
 
       const freeBusyData = await freeBusyResponse.json();
-      const busySlots =
-        (freeBusyData &&
-          freeBusyData.calendars &&
-          freeBusyData.calendars.primary &&
-          freeBusyData.calendars.primary.busy) ||
-        [];
+      const busySlots = freeBusyData?.calendars?.primary?.busy || [];
 
       return Response.json({ ok: true, busySlots, timeZone: TZ });
     }
 
-    // -------------------------
-    // ACTION: createEvent
-    // -------------------------
     if (action === "createEvent") {
       const date = requireString(body.date, "date");
       const startTime = requireString(body.startTime, "startTime"); // "HH:MM"
@@ -133,11 +106,10 @@ Deno.serve(async (req) => {
       const clientEmail = requireString(body.clientEmail, "clientEmail");
       const clientPhone = requireString(body.clientPhone, "clientPhone");
 
-      // ✅ RFC3339 for freeBusy
       const timeMin = localTimeInTZToUtcIso(date, `${startTime}:00`, TZ);
       const timeMax = localTimeInTZToUtcIso(date, `${endTime}:00`, TZ);
 
-      // 1) Conflict check (return 200 even if conflict)
+      // conflict check
       const freeBusyResponse = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
         method: "POST",
         headers: {
@@ -161,12 +133,7 @@ Deno.serve(async (req) => {
       }
 
       const freeBusyData = await freeBusyResponse.json();
-      const conflicts =
-        (freeBusyData &&
-          freeBusyData.calendars &&
-          freeBusyData.calendars.primary &&
-          freeBusyData.calendars.primary.busy) ||
-        [];
+      const conflicts = freeBusyData?.calendars?.primary?.busy || [];
 
       if (conflicts.length > 0) {
         return Response.json({
@@ -176,7 +143,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 2) Create event (Google accepts RFC3339; include TZ as well)
       const servicesList = services
         .map((s) => {
           const name = String((s && (s.nameEn || s.nameEs)) || "Service");
@@ -192,24 +158,21 @@ Deno.serve(async (req) => {
           `Phone: ${clientPhone}\n` +
           `Email: ${clientEmail}\n\n` +
           (servicesList ? `Services:\n${servicesList}` : ""),
-        start: {
-          dateTime: timeMin,  // RFC3339
-          timeZone: TZ,
-        },
-        end: {
-          dateTime: timeMax,  // RFC3339
-          timeZone: TZ,
-        },
+        start: { dateTime: timeMin, timeZone: TZ },
+        end: { dateTime: timeMax, timeZone: TZ },
       };
 
-      const createResponse = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(event),
-      });
+      const createResponse = await fetch(
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(event),
+        }
+      );
 
       if (!createResponse.ok) {
         const txt = await createResponse.text().catch(() => "");
@@ -220,14 +183,16 @@ Deno.serve(async (req) => {
       }
 
       const createdEvent = await createResponse.json();
-      return Response.json({ ok: true, success: true, eventId: createdEvent && createdEvent.id });
+      return Response.json({ ok: true, success: true, eventId: createdEvent?.id });
     }
 
+    // ✅ never return 400
     return Response.json({ ok: false, error: "Invalid action" });
   } catch (error) {
+    // ✅ never return 500
     return Response.json({
       ok: false,
-      error: error && error.message ? error.message : String(error),
+      error: error?.message ? error.message : String(error),
     });
   }
 });
