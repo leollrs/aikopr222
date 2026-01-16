@@ -1,7 +1,32 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, Send, Loader2, Plus, Calendar } from "lucide-react";
+import { X, Send, Loader2, Plus, Calendar, RotateCcw } from "lucide-react";
 import { services } from "@/components/clinic/ServicesSection";
-import { base44 } from "@/api/base44Client";
+
+// ===== PERSISTENT CHAT IDENTITY =====
+function getOrCreateId(key, prefix) {
+  let v = localStorage.getItem(key);
+  if (!v) {
+    v =
+      prefix +
+      (crypto.randomUUID
+        ? crypto.randomUUID()
+        : Date.now() + "_" + Math.random().toString(16).slice(2));
+    localStorage.setItem(key, v);
+  }
+  return v;
+}
+
+function getClientId() {
+  return getOrCreateId("aikopr222_clientId", "cid_");
+}
+
+function getSessionId() {
+  return getOrCreateId("aikopr222_sessionId", "sess_");
+}
+
+function resetChatSession() {
+  localStorage.removeItem("aikopr222_sessionId");
+}
 
 const PALETTE = {
   cream: "#FBF8F3",
@@ -64,22 +89,37 @@ export default function ChatDrawer({
     };
   }, [isOpen]);
 
-  async function callWebhook(nextMessages) {
+  async function callWebhook(nextMessages, selectedService = "") {
     try {
-      const response = await base44.functions.invoke('chatWebhook', {
-        lang,
-        messages: nextMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
+      const response = await fetch("https://leollrs.app.n8n.cloud/webhook/aikopr222/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: getClientId(),
+          sessionId: getSessionId(),
+          lang,
+          messages: nextMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          selected_service: selectedService || "",
+        }),
       });
 
-      const data = response.data;
-
-      if (data.error) {
+      if (!response.ok) {
         return isEs
-          ? `⚠️ Error: ${data.error}`
-          : `⚠️ Error: ${data.error}`;
+          ? `⚠️ Error ${response.status} del servidor.`
+          : `⚠️ Server error ${response.status}.`;
+      }
+
+      const raw = await response.text();
+      let data = {};
+      
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        const txt = String(raw || "").trim();
+        return txt.length > 0 ? txt : (isEs ? "⚠️ Respuesta vacía." : "⚠️ Empty response.");
       }
 
       const reply =
@@ -170,6 +210,18 @@ export default function ChatDrawer({
     onClose?.();
   };
 
+  const handleNewChat = () => {
+    resetChatSession();
+    setMessages([
+      {
+        role: "assistant",
+        content: isEs
+          ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
+          : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
+      },
+    ]);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -215,17 +267,34 @@ export default function ChatDrawer({
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition"
-            style={{
-              backgroundColor: "rgba(255,252,248,0.70)",
-              borderColor: "rgba(42,30,26,0.12)",
-            }}
-            aria-label={isEs ? "Cerrar" : "Close"}
-          >
-            <X className="h-5 w-5" style={{ color: PALETTE.cocoa }} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleNewChat}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border px-3 transition hover:scale-105"
+              style={{
+                backgroundColor: "rgba(255,252,248,0.70)",
+                borderColor: "rgba(42,30,26,0.12)",
+              }}
+              aria-label={isEs ? "Nuevo chat" : "New chat"}
+            >
+              <RotateCcw className="h-4 w-4" style={{ color: PALETTE.cocoa }} />
+              <span className="text-xs font-medium" style={{ color: PALETTE.cocoa }}>
+                {isEs ? "Nuevo" : "New"}
+              </span>
+            </button>
+            
+            <button
+              onClick={onClose}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition"
+              style={{
+                backgroundColor: "rgba(255,252,248,0.70)",
+                borderColor: "rgba(42,30,26,0.12)",
+              }}
+              aria-label={isEs ? "Cerrar" : "Close"}
+            >
+              <X className="h-5 w-5" style={{ color: PALETTE.cocoa }} />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
