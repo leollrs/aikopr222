@@ -23,7 +23,10 @@ Deno.serve(async (req) => {
     }
 
     if (!body) {
-      return Response.json({ error: "Missing or invalid JSON body." }, { status: 400 });
+      return Response.json(
+        { error: "Missing or invalid JSON body." },
+        { status: 400 }
+      );
     }
 
     const { amountCents, currency = "usd", metadata = {} } = body;
@@ -44,11 +47,12 @@ Deno.serve(async (req) => {
     const form = new URLSearchParams();
     form.set("amount", String(amountCents));
     form.set("currency", String(currency).toLowerCase());
-    form.set("automatic_payment_methods[enabled]", "true");
+
+    // ✅ FIX: Explicitly allow card payments
+    form.append("payment_method_types[]", "card");
 
     // Metadata must be strings
     form.set("metadata[created_at]", new Date().toISOString());
-
     for (const [k, v] of Object.entries(metadata || {})) {
       const key = String(k).slice(0, 40);
       const val = String(v).slice(0, 500);
@@ -61,7 +65,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${stripeSecretKey}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: form,
+      body: form.toString(),
     });
 
     const data = await stripeRes.json();
