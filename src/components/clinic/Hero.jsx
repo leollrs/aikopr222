@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Sparkles,
   Calendar,
@@ -17,20 +17,17 @@ const content = {
       "Tratamientos estéticos avanzados con protocolos profesionales y tecnología láser para realzar tu belleza natural—desde la comodidad de tu hogar.",
     cta1: "Agendar cita",
     cta2: "Ver servicios",
-    microproof: ["Servicio a domicilio", "Protocolos profesionales", "Resultados naturales"],
     trust: ["Tratamientos certificados", "Atención 1:1", "Equipo profesional"],
-
-    // ✅ bilingual label + premium pill
     signatureLabel: "Tratamiento Signature",
     premium: "Premium",
-
     cardName: "Láser Rejuvenation",
     cardDesc:
       "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
     cardMeta1: "60–75 min",
-    cardMeta2: "Desde $99",
+    cardMeta2: "Desde $___",
     cardNote: "Consulta inicial incluida",
     checkAvailability: "Consultar disponibilidad",
+    rec: "Recomendación personalizada",
   },
   en: {
     badge: "Premium aesthetics • Mobile service in Puerto Rico",
@@ -39,13 +36,9 @@ const content = {
       "Advanced aesthetic treatments with professional protocols and laser technology—designed to enhance your natural beauty from the comfort of your home.",
     cta1: "Book appointment",
     cta2: "View services",
-    microproof: ["At-home service", "Professional protocols", "Natural results"],
     trust: ["Certified treatments", "1:1 care", "Pro equipment"],
-
-    // ✅ bilingual label + premium pill
     signatureLabel: "Signature Treatment",
     premium: "Premium",
-
     cardName: "Laser Rejuvenation",
     cardDesc:
       "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin.",
@@ -53,6 +46,7 @@ const content = {
     cardMeta2: "From $___",
     cardNote: "Initial consult included",
     checkAvailability: "Check availability",
+    rec: "Personalized recommendation",
   },
 };
 
@@ -60,12 +54,11 @@ export default function Hero({
   lang = "es",
   onBookClick,
   onViewServices,
-
-  // cart hook-in
   onAddService,
   signatureService,
 }) {
   const t = content[lang] || content.es;
+  const reduceMotion = useReducedMotion();
 
   // Palette
   const CREAM = "#FBF8F3";
@@ -76,87 +69,183 @@ export default function Hero({
   const ROSE = "#C39A8B";
   const TAUPE = "#8B7468";
 
+  // Dynamic background “orbs”
+  const [orbs, setOrbs] = useState([
+    { x: 18, y: 20, s: 1.0 },
+    { x: 78, y: 28, s: 0.9 },
+    { x: 48, y: 78, s: 1.1 },
+  ]);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const id = setInterval(() => {
+      setOrbs((prev) =>
+        prev.map((o) => ({
+          x: clamp(o.x + rand(-6, 6), 8, 92),
+          y: clamp(o.y + rand(-6, 6), 10, 90),
+          s: clamp(o.s + rand(-0.08, 0.08), 0.85, 1.2),
+        }))
+      );
+    }, 2600);
+    return () => clearInterval(id);
+  }, [reduceMotion]);
+
   const handleCheckAvailability = () => {
-    // add signature service to cart automatically
     if (onAddService && signatureService) onAddService(signatureService);
-    // then proceed to booking flow
     if (onBookClick) onBookClick();
   };
 
+  const heroVariants = useMemo(
+    () => ({
+      container: {
+        hidden: { opacity: 0 },
+        show: {
+          opacity: 1,
+          transition: { staggerChildren: 0.08, delayChildren: 0.08 },
+        },
+      },
+      item: {
+        hidden: { opacity: 0, y: 18, filter: "blur(6px)" },
+        show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.7, ease: "easeOut" } },
+      },
+      card: {
+        hidden: { opacity: 0, y: 20, scale: 0.98, filter: "blur(8px)" },
+        show: {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          transition: { duration: 0.8, ease: "easeOut", delay: 0.05 },
+        },
+      },
+    }),
+    []
+  );
+
   return (
     <section className="relative overflow-hidden">
-      {/* Background */}
+      {/* Background base */}
       <div
         className="absolute inset-0"
         style={{
           background: `
-            radial-gradient(1100px 620px at 20% 15%, rgba(201,174,126,0.16), transparent 65%),
-            radial-gradient(900px 520px at 85% 35%, rgba(195,154,139,0.10), transparent 60%),
-            radial-gradient(900px 520px at 50% 90%, rgba(42,30,26,0.06), transparent 70%),
+            radial-gradient(1000px 560px at 50% 15%, rgba(201,174,126,0.18), transparent 60%),
             linear-gradient(to bottom, ${CREAM}, ${LINEN} 55%, ${CREAM})
           `,
         }}
       />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(1200px 700px at 50% 30%, transparent 55%, rgba(42,30,26,0.08) 100%)",
-          mixBlendMode: "multiply",
-        }}
-      />
+
+      {/* Animated orbs */}
+      <div className="pointer-events-none absolute inset-0">
+        {orbs.map((o, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            style={{
+              left: `${o.x}%`,
+              top: `${o.y}%`,
+              width: 420,
+              height: 420,
+              borderRadius: 999,
+              transform: "translate(-50%, -50%)",
+              background:
+                i === 0
+                  ? "radial-gradient(circle at 30% 30%, rgba(201,174,126,0.30), transparent 62%)"
+                  : i === 1
+                  ? "radial-gradient(circle at 30% 30%, rgba(195,154,139,0.22), transparent 62%)"
+                  : "radial-gradient(circle at 30% 30%, rgba(42,30,26,0.09), transparent 64%)",
+              filter: "blur(10px)",
+              opacity: 0.9,
+            }}
+            animate={
+              reduceMotion
+                ? {}
+                : {
+                    scale: o.s,
+                  }
+            }
+            transition={{ duration: 2.4, ease: "easeInOut" }}
+          />
+        ))}
+
+        {/* Fine grain + vignette */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(1200px 700px at 50% 30%, transparent 55%, rgba(42,30,26,0.10) 100%)",
+            mixBlendMode: "multiply",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"120\" height=\"120\"><filter id=\"n\"><feTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"3\" stitchTiles=\"stitch\"/></filter><rect width=\"120\" height=\"120\" filter=\"url(%23n)\" opacity=\"0.35\"/></svg>')",
+            backgroundSize: "180px 180px",
+            mixBlendMode: "soft-light",
+          }}
+        />
+      </div>
 
       <div className="relative mx-auto max-w-6xl px-6 sm:px-8 lg:px-12">
         <div className="min-h-screen flex items-center py-20 md:py-28">
-          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <motion.div
+            className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center"
+            variants={heroVariants.container}
+            initial={reduceMotion ? false : "hidden"}
+            animate={reduceMotion ? false : "show"}
+          >
             {/* Left */}
-            <motion.div
-              className="lg:col-span-7 text-center lg:text-left"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-            >
-              <div
-                className="inline-flex items-center gap-2.5 rounded-full border px-6 py-2.5 backdrop-blur-sm"
-                style={{
-                  backgroundColor: "rgba(255,252,248,0.78)",
-                  borderColor: "rgba(42,30,26,0.10)",
-                  boxShadow: "0 6px 24px rgba(42,30,26,0.05)",
-                }}
-              >
-                <Sparkles className="h-4 w-4" style={{ color: CHAMPAGNE }} />
-                <span
-                  className="text-xs font-medium uppercase tracking-[0.22em]"
-                  style={{ color: COCOA }}
+            <div className="lg:col-span-7 text-center lg:text-left">
+              <motion.div variants={heroVariants.item}>
+                <div
+                  className="inline-flex items-center gap-2.5 rounded-full border px-6 py-2.5 backdrop-blur-sm"
+                  style={{
+                    backgroundColor: "rgba(255,252,248,0.80)",
+                    borderColor: "rgba(42,30,26,0.12)",
+                    boxShadow: "0 10px 30px rgba(42,30,26,0.06)",
+                  }}
                 >
-                  {t.badge}
-                </span>
-              </div>
+                  <Sparkles className="h-4 w-4" style={{ color: CHAMPAGNE }} />
+                  <span
+                    className="text-xs font-medium uppercase tracking-[0.22em]"
+                    style={{ color: COCOA }}
+                  >
+                    {t.badge}
+                  </span>
+                </div>
+              </motion.div>
 
-              <h1
-                className="mt-7 font-display text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.035em] leading-[1.06] text-balance"
+              <motion.h1
+                variants={heroVariants.item}
+                className="mt-7 font-display text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.04em] leading-[1.05] text-balance"
                 style={{ color: ESPRESSO }}
               >
                 {t.title}
-              </h1>
+              </motion.h1>
 
-              <p
+              <motion.p
+                variants={heroVariants.item}
                 className="mt-6 max-w-xl mx-auto lg:mx-0 font-body text-lg md:text-xl leading-relaxed"
                 style={{ color: COCOA, opacity: 0.92 }}
               >
                 {t.subtitle}
-              </p>
+              </motion.p>
 
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
+              <motion.div
+                variants={heroVariants.item}
+                className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center"
+              >
                 <motion.button
                   onClick={onBookClick}
-                  whileHover={{ y: -2, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={reduceMotion ? {} : { y: -2, scale: 1.02 }}
+                  whileTap={reduceMotion ? {} : { scale: 0.98 }}
                   className="group h-16 px-10 rounded-2xl text-base font-medium transition-all duration-300 flex items-center gap-3"
                   style={{
                     backgroundColor: ROSE,
                     color: "#FFFFFF",
-                    boxShadow: "0 24px 70px rgba(195,154,139,0.30)",
+                    boxShadow: "0 26px 80px rgba(195,154,139,0.34)",
                   }}
                 >
                   <Calendar className="h-5 w-5" />
@@ -166,22 +255,25 @@ export default function Hero({
 
                 <motion.button
                   onClick={onViewServices}
-                  whileHover={{ y: -2, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={reduceMotion ? {} : { y: -2, scale: 1.02 }}
+                  whileTap={reduceMotion ? {} : { scale: 0.98 }}
                   className="h-16 px-10 rounded-2xl text-base font-medium border transition-all duration-300"
                   style={{
-                    backgroundColor: "rgba(251,248,243,0.72)",
-                    borderColor: "rgba(42,30,26,0.14)",
+                    backgroundColor: "rgba(255,252,248,0.70)",
+                    borderColor: "rgba(42,30,26,0.16)",
                     color: ESPRESSO,
-                    backdropFilter: "blur(14px)",
-                    boxShadow: "0 10px 30px rgba(42,30,26,0.06)",
+                    backdropFilter: "blur(16px)",
+                    boxShadow: "0 12px 34px rgba(42,30,26,0.07)",
                   }}
                 >
                   {t.cta2}
                 </motion.button>
-              </div>
+              </motion.div>
 
-              <div className="mt-10 flex flex-wrap gap-3 justify-center lg:justify-start">
+              <motion.div
+                variants={heroVariants.item}
+                className="mt-10 flex flex-wrap gap-3 justify-center lg:justify-start"
+              >
                 {t.trust.map((label, idx) => (
                   <div
                     key={idx}
@@ -190,6 +282,7 @@ export default function Hero({
                       backgroundColor: "rgba(255,252,248,0.62)",
                       borderColor: "rgba(42,30,26,0.10)",
                       color: TAUPE,
+                      boxShadow: "0 10px 30px rgba(42,30,26,0.05)",
                     }}
                   >
                     {idx === 0 && <Award className="h-4 w-4" style={{ color: CHAMPAGNE }} />}
@@ -198,24 +291,19 @@ export default function Hero({
                     <span className="font-medium">{label}</span>
                   </div>
                 ))}
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
 
             {/* Right: Signature card */}
-            <motion.div
-              className="lg:col-span-5"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.75, ease: "easeOut", delay: 0.05 }}
-            >
+            <motion.div className="lg:col-span-5" variants={heroVariants.card}>
               <div className="relative mx-auto max-w-md">
                 <div
                   className="pointer-events-none absolute -inset-6 rounded-[2rem]"
                   style={{
                     background:
-                      "radial-gradient(480px 280px at 50% 20%, rgba(201,174,126,0.22), transparent 70%)",
-                    filter: "blur(10px)",
-                    opacity: 0.9,
+                      "radial-gradient(520px 300px at 50% 20%, rgba(201,174,126,0.24), transparent 70%)",
+                    filter: "blur(12px)",
+                    opacity: 0.95,
                   }}
                 />
 
@@ -224,13 +312,24 @@ export default function Hero({
                   style={{
                     backgroundColor: "rgba(255,252,248,0.78)",
                     borderColor: "rgba(42,30,26,0.12)",
-                    boxShadow: "0 26px 80px rgba(42,30,26,0.10)",
+                    boxShadow: "0 28px 90px rgba(42,30,26,0.12)",
                     backdropFilter: "blur(18px)",
                   }}
                 >
+                  {/* animated shimmer */}
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 opacity-40"
+                    style={{
+                      background:
+                        "linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.55) 45%, transparent 65%)",
+                      transform: "translateX(-60%)",
+                    }}
+                    animate={reduceMotion ? {} : { transform: ["translateX(-60%)", "translateX(60%)"] }}
+                    transition={reduceMotion ? {} : { duration: 2.8, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+                  />
+
                   <div className="relative z-10">
                     <div className="flex items-center justify-between">
-                      {/* ✅ NOW bilingual */}
                       <span
                         className="text-xs font-medium uppercase tracking-[0.22em]"
                         style={{ color: COCOA }}
@@ -257,10 +356,7 @@ export default function Hero({
                       {t.cardName}
                     </h3>
 
-                    <p
-                      className="mt-3 text-base leading-relaxed"
-                      style={{ color: COCOA, opacity: 0.92 }}
-                    >
+                    <p className="mt-3 text-base leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
                       {t.cardDesc}
                     </p>
 
@@ -283,31 +379,37 @@ export default function Hero({
                       <span className="font-medium" style={{ color: ESPRESSO }}>
                         {t.cardNote}
                       </span>
-                      <span style={{ color: COCOA, opacity: 0.9 }}>
-                        {" "}
-                        • {lang === "es" ? "Recomendación personalizada" : "Personalized recommendation"}
-                      </span>
+                      <span style={{ color: COCOA, opacity: 0.9 }}> • {t.rec}</span>
                     </div>
 
                     <motion.button
                       onClick={handleCheckAvailability}
-                      whileHover={{ y: -2, scale: 1.01 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={reduceMotion ? {} : { y: -2, scale: 1.01 }}
+                      whileTap={reduceMotion ? {} : { scale: 0.98 }}
                       className="mt-7 w-full h-14 rounded-2xl text-sm font-medium transition-all flex items-center justify-center gap-2"
                       style={{
                         backgroundColor: ESPRESSO,
                         color: CREAM,
-                        boxShadow: "0 18px 50px rgba(42,30,26,0.22)",
+                        boxShadow: "0 18px 55px rgba(42,30,26,0.24)",
                       }}
                     >
                       {t.checkAvailability}
                       <ArrowRight className="h-4 w-4" />
                     </motion.button>
                   </div>
+
+                  {/* subtle bottom gradient edge */}
+                  <div
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+                    style={{
+                      background:
+                        "linear-gradient(to top, rgba(201,174,126,0.10), transparent)",
+                    }}
+                  />
                 </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         </div>
 
         <div
@@ -320,4 +422,11 @@ export default function Hero({
       </div>
     </section>
   );
+}
+
+function rand(a, b) {
+  return Math.random() * (b - a) + a;
+}
+function clamp(n, a, b) {
+  return Math.max(a, Math.min(b, n));
 }
