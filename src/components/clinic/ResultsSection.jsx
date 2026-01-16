@@ -76,6 +76,7 @@ export default function ResultsSection({ lang = "es", sectionRef }) {
 
   return (
     <section
+      id="ResultsSection"
       ref={sectionRef}
       className="relative py-28"
       style={{ backgroundColor: CREAM }}
