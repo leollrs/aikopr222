@@ -1,5 +1,5 @@
 import React from "react";
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
@@ -52,7 +52,7 @@ const testimonials = [
   },
 ];
 
-export default function TestimonialsSection({ lang }) {
+export default function TestimonialsSection({ lang = "es", sectionRef }) {
   // NEW PALETTE (shared)
   const CREAM = "#FBF8F3";
   const LINEN = "#F1E8DD";
@@ -63,136 +63,139 @@ export default function TestimonialsSection({ lang }) {
   const TAUPE = "#8B7468";
 
   return (
-    <section className="relative overflow-hidden py-16 md:py-20 lg:py-28" style={{ backgroundColor: CREAM }}>
-      {/* Soft premium backdrop (no black) */}
+    <section
+      id="TestimonialsSection"
+      ref={sectionRef}
+      className="relative overflow-hidden py-28 md:py-36 lg:py-44"
+      style={{ backgroundColor: LINEN }}
+    >
+      {/* Same premium backdrop language as other sections */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `
-            radial-gradient(1100px 520px at 20% 18%, rgba(201,174,126,0.22), transparent 60%),
-            radial-gradient(900px 520px at 78% 12%, rgba(195,154,139,0.16), transparent 62%),
-            linear-gradient(to bottom, rgba(251,248,243,0.55), rgba(241,232,221,0.75), rgba(251,248,243,0.70))
+          background: `
+            radial-gradient(1200px 600px at 50% 20%, rgba(201,174,126,0.07), transparent 70%),
+            radial-gradient(1000px 520px at 15% 5%, rgba(195,154,139,0.10), transparent 62%),
+            linear-gradient(to bottom, rgba(251,248,243,0.42), rgba(241,232,221,0.82))
           `,
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        {/* Section Header */}
-        <div className="mx-auto mb-10 max-w-3xl text-center md:mb-12">
-          {/* Centered badge for aesthetic hierarchy */}
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+        {/* Header — matches hierarchy style */}
+        <div className="mx-auto mb-20 max-w-2xl text-center">
           <div
             className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
             style={{
               backgroundColor: "rgba(255,252,248,0.70)",
               borderColor: "rgba(42,30,26,0.12)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)",
             }}
           >
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: ROSE }} />
             <span
               className="text-[11px] font-semibold uppercase tracking-[0.28em]"
-              style={{ color: COCOA }}
+              style={{ color: TAUPE }}
             >
               {lang === "es" ? "Testimonios" : "Testimonials"}
             </span>
           </div>
 
           <h2
-            className="text-3xl font-light tracking-[-0.02em] md:text-4xl"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
             style={{ color: ESPRESSO }}
           >
-            {lang === "es"
-              ? "Lo Que Dicen Nuestros Pacientes"
-              : "What Our Patients Say"}
+            {lang === "es" ? "Lo Que Dicen Nuestros Pacientes" : "What Our Patients Say"}
           </h2>
 
-          <p
-            className="mx-auto mt-4 max-w-2xl text-base leading-relaxed"
-            style={{ color: COCOA }}
-          >
+          <p className="font-body text-lg md:text-xl leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
             {lang === "es"
-              ? "Testimonios reales de quienes han confiado en nosotros."
-              : "Real testimonials from those who have trusted us."}
+              ? "Opiniones reales de personas que han confiado en nuestros tratamientos."
+              : "Real feedback from people who trusted our treatments."}
           </p>
-
-          <div
-            className="mx-auto mt-8 h-px w-full max-w-2xl"
-            style={{
-              backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
-              opacity: 0.7,
-            }}
-          />
         </div>
 
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          {testimonials.map((testimonial) => (
+        {/* Grid — 1/2/4 like others; cards match your glass + border language */}
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {testimonials.map((t) => (
             <div
-              key={testimonial.id}
-              className="group relative overflow-hidden rounded-3xl border p-6 transition-all duration-300 hover:-translate-y-1"
+              key={t.id}
+              className="group relative overflow-hidden rounded-3xl border p-7 transition-all duration-500 hover:-translate-y-2"
               style={{
-                borderColor: "rgba(42,30,26,0.10)",
-                backgroundColor: "rgba(255,252,248,0.72)",
-                boxShadow: "0 22px 70px rgba(42,30,26,0.10)",
-                backdropFilter: "blur(14px)",
+                backgroundColor: "rgba(255,252,248,0.92)",
+                borderColor: "rgba(42,30,26,0.08)",
+                boxShadow: "0 12px 40px rgba(42,30,26,0.06)",
               }}
             >
-              {/* Soft glow on hover */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  backgroundImage: `
-                    radial-gradient(700px 340px at 25% 0%, rgba(201,174,126,0.20), transparent 60%),
-                    radial-gradient(700px 340px at 85% 10%, rgba(195,154,139,0.14), transparent 62%)
-                  `,
-                }}
-              />
+              {/* Hover glow — same as services cards */}
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(600px_300px_at_50%_0%,rgba(201,174,126,0.12),transparent_70%)]" />
 
-              <div className="relative">
-                {/* Stars */}
-                <div className="flex items-center justify-center gap-1">
-                  {[...Array(testimonial.stars)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4"
-                      style={{ fill: CHAMPAGNE, color: CHAMPAGNE }}
-                    />
-                  ))}
+              <div className="relative z-10 flex h-full flex-col">
+                {/* Top row: stars + quote badge */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: t.stars }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className="h-4 w-4"
+                        style={{ fill: CHAMPAGNE, color: CHAMPAGNE, opacity: 0.95 }}
+                      />
+                    ))}
+                  </div>
+
+                  <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full border"
+                    style={{
+                      borderColor: "rgba(42,30,26,0.10)",
+                      backgroundColor: "rgba(241,232,221,0.55)",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)",
+                    }}
+                    aria-hidden="true"
+                  >
+                    <Quote className="h-4 w-4" style={{ color: ROSE, opacity: 0.9 }} />
+                  </div>
                 </div>
 
                 {/* Review */}
                 <p
-                  className="mt-4 text-center text-sm leading-relaxed"
-                  style={{ color: COCOA }}
+                  className="mt-5 font-body text-sm leading-relaxed"
+                  style={{ color: COCOA, opacity: 0.9 }}
                 >
-                  “{lang === "es" ? testimonial.reviewEs : testimonial.reviewEn}”
+                  “{lang === "es" ? t.reviewEs : t.reviewEn}”
                 </p>
 
-                {/* Divider */}
-                <div
-                  className="mx-auto mt-5 h-px w-16"
-                  style={{
-                    backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
-                    opacity: 0.8,
-                  }}
-                />
+                {/* Spacer */}
+                <div className="flex-grow" />
 
-                {/* Author */}
-                <div className="mt-5 text-center">
+                {/* Bottom: author + service pill */}
+                <div className="mt-6 pt-6" style={{ borderTop: "1px solid rgba(42,30,26,0.08)" }}>
                   <p className="text-sm font-medium" style={{ color: ESPRESSO }}>
-                    {lang === "es" ? testimonial.nameEs : testimonial.nameEn}
+                    {lang === "es" ? t.nameEs : t.nameEn}
                   </p>
-                  <p className="mt-1 text-xs" style={{ color: TAUPE }}>
-                    {lang === "es" ? testimonial.serviceEs : testimonial.serviceEn}
-                  </p>
+
+                  <div className="mt-2 inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium">
+                    <span style={{ color: CHAMPAGNE }}>•</span>
+                    <span className="ml-2" style={{ color: TAUPE }}>
+                      {lang === "es" ? t.serviceEs : t.serviceEn}
+                    </span>
+
+                    <style jsx>{`
+                      .inline-flex.items-center.rounded-full.border.px-3.py-1.text-xs.font-medium {
+                        border-color: rgba(42, 30, 26, 0.10);
+                        background: rgba(255, 252, 248, 0.70);
+                        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+                      }
+                    `}</style>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Bottom divider */}
+        {/* Bottom divider — same gradient line language */}
         <div
-          className="mx-auto mt-14 h-px w-full max-w-4xl"
+          className="mx-auto mt-16 h-px w-full max-w-5xl"
           style={{
             backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
             opacity: 0.65,
