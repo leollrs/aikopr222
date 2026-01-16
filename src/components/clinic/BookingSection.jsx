@@ -43,7 +43,6 @@ export default function BookingSection({
     const hrMatch = s.match(/(\d+)\s*(h|hr|hrs|hour|hours)\b/);
     const minMatch = s.match(/(\d+)\s*(m|min|mins|minute|minutes)\b/);
 
-    // If explicit units exist
     if (hrMatch || minMatch) {
       const h = hrMatch ? parseInt(hrMatch[1], 10) : 0;
       const m = minMatch ? parseInt(minMatch[1], 10) : 0;
@@ -51,7 +50,6 @@ export default function BookingSection({
       return Number.isFinite(total) ? total : 0;
     }
 
-    // Fallback numbers (e.g. "30", "1 30")
     const nums = s.match(/\d+/g) || [];
     if (nums.length === 1) {
       const m = parseInt(nums[0], 10);
@@ -77,7 +75,7 @@ export default function BookingSection({
     const fetchAvailability = async () => {
       setIsLoadingAvailability(true);
       setBlockedTimes([]);
-      setSelectedTime(""); // reset time when date changes (prevents stale selection)
+      setSelectedTime("");
       setBookingError("");
 
       try {
@@ -88,6 +86,7 @@ export default function BookingSection({
 
         const busySlots = response?.data?.busySlots || [];
 
+        // Build blocked times by checking which timeSlots fall inside any busy interval
         const blockedSet = new Set();
 
         busySlots.forEach((slot) => {
@@ -95,7 +94,7 @@ export default function BookingSection({
           const end = new Date(slot.end);
 
           timeSlots.forEach((time) => {
-            // ✅ construct slot datetime consistently (avoid YYYY-MM-DD UTC parsing issues)
+            // ✅ Avoid "new Date(selectedDate)" which can parse as UTC and shift day
             const slotTime = new Date(`${selectedDate}T${time}:00`);
 
             if (slotTime >= start && slotTime < end) {
@@ -107,7 +106,6 @@ export default function BookingSection({
         setBlockedTimes(Array.from(blockedSet));
       } catch (error) {
         console.error("Failed to fetch availability:", error);
-        // Keep it minimal; don't change UI structure
       } finally {
         setIsLoadingAvailability(false);
       }
@@ -145,10 +143,8 @@ export default function BookingSection({
     setIsCreatingEvent(true);
 
     try {
-      // ✅ Total service duration in minutes
-      const totalMinutes = cart.reduce((sum, service) => {
-        return sum + durationToMinutes(service?.duration);
-      }, 0);
+      // ✅ Total duration (minutes)
+      const totalMinutes = cart.reduce((sum, service) => sum + durationToMinutes(service?.duration), 0);
 
       if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
         setBookingError(
@@ -159,14 +155,10 @@ export default function BookingSection({
         return;
       }
 
-      // Start & End times
+      // ✅ Calculate end time
       const start = new Date(`${selectedDate}T${selectedTime}:00`);
       if (Number.isNaN(start.getTime())) {
-        setBookingError(
-          lang === "es"
-            ? "Fecha u hora inválida. Intenta nuevamente."
-            : "Invalid date or time. Please try again."
-        );
+        setBookingError(lang === "es" ? "Fecha u hora inválida." : "Invalid date or time.");
         return;
       }
 
@@ -178,7 +170,7 @@ export default function BookingSection({
         action: "createEvent",
         date: selectedDate,
         startTime: selectedTime,
-        endTime: endTime,
+        endTime,
         services: cart,
         clientName: formData.name,
         clientEmail: formData.email,
@@ -204,17 +196,15 @@ export default function BookingSection({
         return;
       }
 
-      // ✅ Refresh availability for the same date so UI updates right away
-      // (This avoids the "it stays blocked / weird state" feeling after booking)
+      // ✅ Refresh availability for same date so UI updates immediately after booking
       try {
         const refresh = await base44.functions.invoke("calendarSync", {
           action: "checkAvailability",
           date: selectedDate,
         });
-
         const busySlots = refresh?.data?.busySlots || [];
-        const blockedSet = new Set();
 
+        const blockedSet = new Set();
         busySlots.forEach((slot) => {
           const start = new Date(slot.start);
           const end = new Date(slot.end);
@@ -226,8 +216,8 @@ export default function BookingSection({
         });
 
         setBlockedTimes(Array.from(blockedSet));
-      } catch (e) {
-        // ignore refresh failure
+      } catch {
+        // ignore refresh errors
       }
 
       // Continue to payment only after successful calendar creation
@@ -269,12 +259,9 @@ export default function BookingSection({
       className="relative overflow-hidden py-16 md:py-20 lg:py-28"
       style={{ backgroundColor: PALETTE.linen }}
     >
-      {/* subtle premium background texture */}
       <div className="pointer-events-none absolute inset-0 opacity-90 bg-[radial-gradient(900px_520px_at_15%_10%,rgba(201,174,126,0.18),transparent_60%),radial-gradient(900px_520px_at_85%_20%,rgba(195,154,139,0.14),transparent_60%),linear-gradient(to_bottom,rgba(251,248,243,0.55),rgba(241,232,221,0.78))]" />
 
-      {/* narrower outer container for better optical centering */}
       <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-        {/* Header */}
         <div className="text-center mb-10 md:mb-12">
           <h2
             className="text-3xl md:text-4xl font-light mb-4 tracking-[-0.02em]"
@@ -289,7 +276,6 @@ export default function BookingSection({
           </p>
         </div>
 
-        {/* Main Card */}
         <div
           className="relative overflow-hidden rounded-3xl border p-6 md:p-8 shadow-[0_36px_110px_rgba(42,30,26,0.22)] backdrop-blur"
           style={{
@@ -297,10 +283,8 @@ export default function BookingSection({
             borderColor: "rgba(42,30,26,0.10)",
           }}
         >
-          {/* inner glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_25%_10%,rgba(201,174,126,0.18),transparent_55%),radial-gradient(900px_420px_at_80%_20%,rgba(195,154,139,0.12),transparent_60%)]" />
 
-          {/* center internal content block */}
           <div className="relative mx-auto max-w-2xl">
             {/* Selected Services */}
             <div className="mb-10">
@@ -419,10 +403,7 @@ export default function BookingSection({
                           : "0 10px 30px rgba(42,30,26,0.08)",
                       }}
                     >
-                      <div
-                        className="text-[11px] uppercase tracking-[0.16em]"
-                        style={{ opacity: isActive ? 0.9 : 0.75 }}
-                      >
+                      <div className="text-[11px] uppercase tracking-[0.16em]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
                         {dayName}
                       </div>
                       <div className="text-lg font-medium">{dayNum}</div>
@@ -467,7 +448,6 @@ export default function BookingSection({
                         opacity: isDisabled ? 0.4 : 1,
                         cursor: isDisabled ? "not-allowed" : "pointer",
                       }}
-                      title={isBlocked ? (lang === "es" ? "No disponible" : "Unavailable") : ""}
                     >
                       {time}
                     </button>
@@ -487,12 +467,8 @@ export default function BookingSection({
               </h3>
 
               <div className="mx-auto grid max-w-xl grid-cols-1 gap-4 md:grid-cols-3">
-                {/* Name */}
                 <div className="relative">
-                  <User
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: PALETTE.taupe }}
-                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
                     type="text"
                     placeholder={lang === "es" ? "Nombre completo" : "Full name"}
@@ -507,7 +483,6 @@ export default function BookingSection({
                   />
                 </div>
 
-                {/* Phone */}
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
@@ -528,12 +503,8 @@ export default function BookingSection({
                   />
                 </div>
 
-                {/* Email */}
                 <div className="relative">
-                  <Mail
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: PALETTE.taupe }}
-                  />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
                     type="email"
                     placeholder={lang === "es" ? "Correo electrónico" : "Email"}
@@ -562,7 +533,6 @@ export default function BookingSection({
               </div>
             )}
 
-            {/* Continue Button (anchored + centered) */}
             <div className="mt-12 flex justify-center">
               <Button
                 onClick={handleContinue}
