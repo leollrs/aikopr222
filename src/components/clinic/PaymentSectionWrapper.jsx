@@ -20,6 +20,9 @@ export default function PaymentSectionWrapper({
 
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
+  // ✅ DEBUG: Confirm env var injection at build time
+  console.log("Stripe key present?", Boolean(stripeKey), stripeKey ? stripeKey.slice(0, 8) + "…" : "MISSING");
+
   if (!bookingData) return null;
 
   // ✅ Frontend publishable key guard
@@ -46,6 +49,9 @@ export default function PaymentSectionWrapper({
               {lang === "es"
                 ? "Falta VITE_STRIPE_PUBLISHABLE_KEY en el frontend. Configúrala y redeploy."
                 : "Missing VITE_STRIPE_PUBLISHABLE_KEY in the frontend. Set it and redeploy."}
+            </p>
+            <p className="mt-2 text-xs" style={{ color: COCOA, opacity: 0.7 }}>
+              Detected: {Boolean(stripeKey) ? "YES" : "NO"}
             </p>
           </div>
         </div>
