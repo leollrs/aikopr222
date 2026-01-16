@@ -73,7 +73,6 @@ export default function BookingSection({
     const blockedSet = new Set();
 
     busySlots.forEach((slot) => {
-      // Expecting slot.start/slot.end in ISO or parseable date strings
       const start = new Date(slot.start);
       const end = new Date(slot.end);
 
@@ -252,10 +251,28 @@ export default function BookingSection({
     } catch (error) {
       console.error("createEvent invoke error:", error);
 
+      const status =
+        error?.response?.status ||
+        error?.status ||
+        (typeof error?.message === "string" && error.message.match(/\b(\d{3})\b/)
+          ? Number(error.message.match(/\b(\d{3})\b/)[1])
+          : null);
+
+      // ✅ If Base44 throws on 409, treat it as a conflict
+      if (status === 409) {
+        setBookingError(
+          lang === "es"
+            ? "Este horario ya no está disponible. Por favor selecciona otro."
+            : "This time slot is no longer available. Please select another."
+        );
+        setSelectedTime("");
+        return;
+      }
+
       const msg =
-        error?.message ||
         error?.response?.data?.error ||
         error?.data?.error ||
+        error?.message ||
         "Unknown error";
 
       setBookingError(
@@ -370,10 +387,7 @@ export default function BookingSection({
                       }}
                     >
                       <div className="min-w-0">
-                        <div
-                          className="text-sm font-medium truncate"
-                          style={{ color: PALETTE.espresso }}
-                        >
+                        <div className="text-sm font-medium truncate" style={{ color: PALETTE.espresso }}>
                           {lang === "es" ? service.nameEs : service.nameEn}
                         </div>
                         <div className="text-xs" style={{ color: PALETTE.cocoa }}>
@@ -435,10 +449,7 @@ export default function BookingSection({
                           : "0 10px 30px rgba(42,30,26,0.08)",
                       }}
                     >
-                      <div
-                        className="text-[11px] uppercase tracking-[0.16em]"
-                        style={{ opacity: isActive ? 0.9 : 0.75 }}
-                      >
+                      <div className="text-[11px] uppercase tracking-[0.16em]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
                         {dayName}
                       </div>
                       <div className="text-lg font-medium">{dayNum}</div>
