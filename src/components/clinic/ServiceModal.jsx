@@ -1,8 +1,4 @@
-// ServiceModal.jsx (FULL — with temporary placeholder images per service)
-// ✅ no top image
-// ✅ no bottom "Cerrar"
-// ✅ slider works
-// ✅ uses service.caseStudy.beforeImage / afterImage
+// ServiceModal.jsx (FULL — fixed image fallback + slider + no top image + no bottom "Cerrar")
 import React, { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,10 +18,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   const benefits = lang === "es" ? service.benefitsEs : service.benefitsEn;
   const desc = lang === "es" ? service.descEs : service.descEn;
 
-  // ✅ TEMP PLACEHOLDERS (mapped by service.id)
+  // ✅ TEMP PLACEHOLDERS (mapped by service.id) — change later
   const PLACEHOLDER_BY_ID = {
     1: {
-      before: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=800&fit=crop",
+      before: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=1200&fit=crop",
       after: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&fit=crop",
     },
     2: {
@@ -58,18 +54,24 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
     },
   };
 
-  // Optional — uses real photos if present, otherwise placeholders
+  // ✅ Treat local paths as "not ready yet" so we use placeholders until you upload real photos
+  const isBadPath = (s) => {
+    const v = String(s || "").trim();
+    if (!v) return true;
+    // local/relative paths like "/results/..." or "/services/..."
+    if (v.startsWith("/")) return true;
+    return false;
+  };
+
   const fallback = PLACEHOLDER_BY_ID?.[service.id] || null;
 
-  const beforeImage =
-    service?.caseStudy?.beforeImage && service.caseStudy.beforeImage.trim() !== ""
-      ? service.caseStudy.beforeImage
-      : fallback?.before || "";
+  const beforeImage = !isBadPath(service?.caseStudy?.beforeImage)
+    ? service.caseStudy.beforeImage
+    : fallback?.before || "";
 
-  const afterImage =
-    service?.caseStudy?.afterImage && service.caseStudy.afterImage.trim() !== ""
-      ? service.caseStudy.afterImage
-      : fallback?.after || "";
+  const afterImage = !isBadPath(service?.caseStudy?.afterImage)
+    ? service.caseStudy.afterImage
+    : fallback?.after || "";
 
   const hasBeforeAfter = Boolean(beforeImage) && Boolean(afterImage);
 
@@ -324,7 +326,7 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   );
 }
 
-/** Placeholder until you have real photos */
+/** Placeholder (only used if somehow we have zero URLs) */
 function BeforeAfterPlaceholder({ lang }) {
   const isEs = lang === "es";
   return (
@@ -336,37 +338,14 @@ function BeforeAfterPlaceholder({ lang }) {
           "radial-gradient(900px 520px at 20% 0%, rgba(201,174,126,0.18), transparent 60%), radial-gradient(900px 520px at 90% 10%, rgba(195,154,139,0.14), transparent 60%), linear-gradient(to bottom, rgba(255,252,248,0.75), rgba(241,232,221,0.65))",
       }}
     >
-      <div className="absolute inset-0 p-4">
-        <div
-          className="h-full w-full rounded-lg border"
-          style={{
-            borderColor: "rgba(42,30,26,0.10)",
-            backgroundColor: "rgba(255,252,248,0.55)",
-          }}
-        />
-      </div>
-
-      <div
-        className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium"
-        style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}
-      >
+      <div className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium" style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}>
         {isEs ? "Antes" : "Before"}
       </div>
-      <div
-        className="absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium"
-        style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}
-      >
+      <div className="absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium" style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}>
         {isEs ? "Después" : "After"}
       </div>
 
-      <div
-        className="absolute inset-y-0 left-1/2"
-        style={{
-          width: "2px",
-          backgroundColor: "rgba(255,255,255,0.85)",
-          transform: "translateX(-1px)",
-        }}
-      />
+      <div className="absolute inset-y-0 left-1/2" style={{ width: "2px", backgroundColor: "rgba(255,255,255,0.85)", transform: "translateX(-1px)" }} />
 
       <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border px-4 py-2 text-[11px] font-medium backdrop-blur"
@@ -378,17 +357,6 @@ function BeforeAfterPlaceholder({ lang }) {
       >
         {isEs ? "Fotos de resultados pronto" : "Result photos coming soon"}
       </div>
-
-      <div
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] backdrop-blur"
-        style={{
-          backgroundColor: "rgba(255,252,248,0.72)",
-          border: "1px solid rgba(42,30,26,0.12)",
-          color: "rgba(107,90,82,0.92)",
-        }}
-      >
-        {isEs ? "Arrastra para comparar" : "Drag to compare"}
-      </div>
     </div>
   );
 }
@@ -396,7 +364,8 @@ function BeforeAfterPlaceholder({ lang }) {
 /**
  * Before/After slider:
  * - Drag anywhere (mouse/touch)
- * - Invisible range input for accessibility
+ * - Pointer events so it works on mobile too
+ * - onError fallback so images never disappear
  */
 function BeforeAfterSlider({
   lang,
@@ -442,11 +411,7 @@ function BeforeAfterSlider({
     <div
       ref={wrapRef}
       className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border select-none"
-      style={{
-        ...containerStyle,
-        position: "relative",
-        touchAction: "none",
-      }}
+      style={{ ...containerStyle, position: "relative", touchAction: "none" }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -461,6 +426,10 @@ function BeforeAfterSlider({
         alt={isEs ? "Después" : "After"}
         className="absolute inset-0 h-full w-full object-cover"
         draggable={false}
+        onError={(e) => {
+          e.currentTarget.src =
+            "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1200&fit=crop";
+        }}
       />
 
       {/* BEFORE (clipped) */}
@@ -470,6 +439,10 @@ function BeforeAfterSlider({
           alt={isEs ? "Antes" : "Before"}
           className="absolute inset-0 h-full w-full object-cover"
           draggable={false}
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&fit=crop";
+          }}
         />
       </div>
 
@@ -477,46 +450,19 @@ function BeforeAfterSlider({
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.16),transparent_60%)]" />
 
       {/* Labels */}
-      <div
-        className="pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
-        style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
-      >
+      <div className="pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur" style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}>
         {isEs ? "Antes" : "Before"}
       </div>
-      <div
-        className="pointer-events-none absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
-        style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
-      >
+      <div className="pointer-events-none absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur" style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}>
         {isEs ? "Después" : "After"}
       </div>
 
       {/* Divider line */}
-      <div
-        className="pointer-events-none absolute inset-y-0"
-        style={{
-          left: `${pct}%`,
-          width: "2px",
-          backgroundColor: "rgba(255,255,255,0.85)",
-          transform: "translateX(-1px)",
-        }}
-      />
+      <div className="pointer-events-none absolute inset-y-0" style={{ left: `${pct}%`, width: "2px", backgroundColor: "rgba(255,255,255,0.85)", transform: "translateX(-1px)" }} />
 
       {/* Handle */}
-      <div
-        className="absolute top-1/2 -translate-y-1/2"
-        style={{
-          left: `${pct}%`,
-          transform: "translate(-50%, -50%)",
-        }}
-      >
-        <div
-          className="flex h-11 w-11 items-center justify-center rounded-full border shadow-[0_20px_60px_rgba(42,30,26,0.22)]"
-          style={{
-            backgroundColor: "rgba(255,252,248,0.88)",
-            borderColor: "rgba(42,30,26,0.14)",
-            backdropFilter: "blur(10px)",
-          }}
-        >
+      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}>
+        <div className="flex h-11 w-11 items-center justify-center rounded-full border shadow-[0_20px_60px_rgba(42,30,26,0.22)]" style={{ backgroundColor: "rgba(255,252,248,0.88)", borderColor: "rgba(42,30,26,0.14)", backdropFilter: "blur(10px)" }}>
           <div className="flex items-center gap-1">
             <span className="h-3 w-[2px] rounded" style={{ backgroundColor: accent, opacity: 0.9 }} />
             <span className="h-5 w-[2px] rounded" style={{ backgroundColor: accent, opacity: 0.9 }} />
@@ -537,15 +483,7 @@ function BeforeAfterSlider({
       />
 
       {/* Hint */}
-      <div
-        className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] backdrop-blur"
-        style={{
-          backgroundColor: "rgba(255,252,248,0.72)",
-          border: "1px solid rgba(42,30,26,0.12)",
-          color: textColor,
-          opacity: 0.78,
-        }}
-      >
+      <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] backdrop-blur" style={{ backgroundColor: "rgba(255,252,248,0.72)", border: "1px solid rgba(42,30,26,0.12)", color: textColor, opacity: 0.78 }}>
         {isEs ? "Arrastra para comparar" : "Drag to compare"}
       </div>
     </div>
