@@ -2,16 +2,47 @@ import React, { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, Plus, Calendar, RotateCcw } from "lucide-react";
 import { services } from "@/components/clinic/ServicesSection";
 
-// ===== PERSISTENT CHAT IDENTITY =====
+// ===== PERSISTENT CHAT IDENTITY (ROBUST) =====
+// - SSR-safe (won't crash if window undefined)
+// - Falls back to sessionStorage if localStorage is blocked (Safari/iframes/private mode)
+// - IDs are created on drawer open, not only on send
+
+function safeStorage() {
+  if (typeof window === "undefined") return null;
+
+  // Try localStorage
+  try {
+    localStorage.setItem("__ls_test__", "1");
+    localStorage.removeItem("__ls_test__");
+    return localStorage;
+  } catch {
+    // Fallback: sessionStorage
+    try {
+      sessionStorage.setItem("__ss_test__", "1");
+      sessionStorage.removeItem("__ss_test__");
+      return sessionStorage;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function makeId(prefix) {
+  const uuid =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now() + "_" + Math.random().toString(16).slice(2);
+  return prefix + uuid;
+}
+
 function getOrCreateId(key, prefix) {
-  let v = localStorage.getItem(key);
+  const store = safeStorage();
+  if (!store) return null;
+
+  let v = store.getItem(key);
   if (!v) {
-    v =
-      prefix +
-      (crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now() + "_" + Math.random().toString(16).slice(2));
-    localStorage.setItem(key, v);
+    v = makeId(prefix);
+    store.setItem(key, v);
   }
   return v;
 }
@@ -25,7 +56,8 @@ function getSessionId() {
 }
 
 function resetChatSession() {
-  localStorage.removeItem("aikopr222_sessionId");
+  const store = safeStorage();
+  store?.removeItem("aikopr222_sessionId");
 }
 
 const PALETTE = {
@@ -79,6 +111,13 @@ export default function ChatDrawer({
     if (isOpen && inputRef.current) inputRef.current.focus();
   }, [isOpen]);
 
+  // Create IDs as soon as the drawer opens (so they're never null)
+  useEffect(() => {
+    if (!isOpen) return;
+    getClientId();
+    getSessionId();
+  }, [isOpen]);
+
   // Prevent body scroll behind the drawer
   useEffect(() => {
     if (!isOpen) return;
@@ -91,20 +130,26 @@ export default function ChatDrawer({
 
   async function callWebhook(nextMessages, selectedService = "") {
     try {
-      const response = await fetch("https://leollrs.app.n8n.cloud/webhook/aikopr222/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientId: getClientId(),
-          sessionId: getSessionId(),
-          lang,
-          messages: nextMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          selected_service: selectedService || "",
-        }),
-      });
+      const clientId = getClientId() || "cid_fallback";
+      const sessionId = getSessionId() || "sess_fallback";
+
+      const response = await fetch(
+        "https://leollrs.app.n8n.cloud/webhook/aikopr222/chat",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientId,
+            sessionId,
+            lang,
+            messages: nextMessages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            selected_service: selectedService || "",
+          }),
+        }
+      );
 
       if (!response.ok) {
         return isEs
@@ -114,12 +159,16 @@ export default function ChatDrawer({
 
       const raw = await response.text();
       let data = {};
-      
+
       try {
         data = raw ? JSON.parse(raw) : {};
       } catch {
         const txt = String(raw || "").trim();
-        return txt.length > 0 ? txt : (isEs ? "⚠️ Respuesta vacía." : "⚠️ Empty response.");
+        return txt.length > 0
+          ? txt
+          : isEs
+          ? "⚠️ Respuesta vacía."
+          : "⚠️ Empty response.";
       }
 
       const reply =
@@ -171,7 +220,7 @@ export default function ChatDrawer({
               : "I couldn't generate a reply. Please try again.",
         },
       ]);
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -212,6 +261,9 @@ export default function ChatDrawer({
 
   const handleNewChat = () => {
     resetChatSession();
+    // Force-create a fresh sessionId so next send uses it
+    getSessionId();
+
     setMessages([
       {
         role: "assistant",
@@ -258,12 +310,17 @@ export default function ChatDrawer({
                 className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: PALETTE.champagne }}
               />
-              <h3 className="text-lg font-medium" style={{ color: PALETTE.espresso }}>
+              <h3
+                className="text-lg font-medium"
+                style={{ color: PALETTE.espresso }}
+              >
                 {isEs ? "Asistente AI" : "AI Assistant"}
               </h3>
             </div>
             <p className="mt-1 text-xs" style={{ color: PALETTE.taupe }}>
-              {isEs ? "Respuestas rápidas + ayuda para reservar" : "Quick answers + help booking"}
+              {isEs
+                ? "Respuestas rápidas + ayuda para reservar"
+                : "Quick answers + help booking"}
             </p>
           </div>
 
@@ -277,12 +334,15 @@ export default function ChatDrawer({
               }}
               aria-label={isEs ? "Nuevo chat" : "New chat"}
             >
-              <RotateCcw className="h-4 w-4" style={{ color: PALETTE.cocoa }} />
+              <RotateCcw
+                className="h-4 w-4"
+                style={{ color: PALETTE.cocoa }}
+              />
               <span className="text-xs font-medium" style={{ color: PALETTE.cocoa }}>
                 {isEs ? "Nuevo" : "New"}
               </span>
             </button>
-            
+
             <button
               onClick={onClose}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition"
@@ -298,7 +358,10 @@ export default function ChatDrawer({
         </div>
 
         {/* Messages */}
-        <div className="relative flex-1 overflow-y-auto px-6 py-6" style={{ overscrollBehavior: "contain" }}>
+        <div
+          className="relative flex-1 overflow-y-auto px-6 py-6"
+          style={{ overscrollBehavior: "contain" }}
+        >
           {messages.length === 1 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {(QUICK_REPLIES[lang] || QUICK_REPLIES.en).map((reply) => (
@@ -338,7 +401,10 @@ export default function ChatDrawer({
                     borderColor: "rgba(42,30,26,0.10)",
                   }}
                 >
-                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: PALETTE.champagne }} />
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    style={{ color: PALETTE.champagne }}
+                  />
                 </div>
               </div>
             )}
@@ -348,7 +414,10 @@ export default function ChatDrawer({
         </div>
 
         {/* Input */}
-        <div className="relative border-t px-6 py-4" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
+        <div
+          className="relative border-t px-6 py-4"
+          style={{ borderColor: "rgba(42,30,26,0.10)" }}
+        >
           <div className="flex gap-3">
             <input
               ref={inputRef}
