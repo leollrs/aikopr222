@@ -473,19 +473,27 @@ export default function BookingSection({
               </p>
             </div>
 
+            {bookingError && (
+              <div className="mb-6 text-center text-sm" style={{ color: PALETTE.rose }}>
+                {bookingError}
+              </div>
+            )}
+
             {/* Continue Button (anchored + centered) */}
             <div className="mt-12 flex justify-center">
               <Button
                 onClick={handleContinue}
-                disabled={!isFormValid}
+                disabled={!isFormValid || isCreatingEvent}
                 className="w-full max-w-xl py-4 text-base font-medium rounded-2xl transition"
                 style={{
-                  backgroundColor: isFormValid ? PALETTE.rose : "rgba(195,154,139,0.25)",
-                  color: isFormValid ? "#FFFFFF" : PALETTE.cocoa,
-                  boxShadow: isFormValid ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
+                  backgroundColor: isFormValid && !isCreatingEvent ? PALETTE.rose : "rgba(195,154,139,0.25)",
+                  color: isFormValid && !isCreatingEvent ? "#FFFFFF" : PALETTE.cocoa,
+                  boxShadow: isFormValid && !isCreatingEvent ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
                 }}
               >
-                {lang === "es" ? "Continuar" : "Continue"}
+                {isCreatingEvent 
+                  ? (lang === "es" ? "Creando cita..." : "Creating appointment...") 
+                  : (lang === "es" ? "Continuar" : "Continue")}
               </Button>
             </div>
           </div>
