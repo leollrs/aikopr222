@@ -6,7 +6,6 @@ import { base44 } from "@/api/base44Client";
 
 const timeSlots = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
 
-// NEW PALETTE (warm premium, no harsh black)
 const PALETTE = {
   cream: "#FBF8F3",
   linen: "#F1E8DD",
@@ -36,7 +35,6 @@ export default function BookingSection({
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   // ✅ Robust duration parser -> minutes
-  // Handles: "30 min", "45m", "1h", "1 h", "1h 30m", "1 hr 15 min", "60"
   const durationToMinutes = (duration) => {
     const s = String(duration || "").toLowerCase().trim();
 
@@ -51,18 +49,27 @@ export default function BookingSection({
     }
 
     const nums = s.match(/\d+/g) || [];
-    if (nums.length === 1) {
-      const m = parseInt(nums[0], 10);
-      return Number.isFinite(m) ? m : 0;
-    }
-    if (nums.length >= 2) {
-      const h = parseInt(nums[0], 10);
-      const m = parseInt(nums[1], 10);
-      const total = (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
-      return Number.isFinite(total) ? total : 0;
-    }
+    if (nums.length === 1) return Number(nums[0]) || 0;
+    if (nums.length >= 2) return (Number(nums[0]) || 0) * 60 + (Number(nums[1]) || 0);
 
     return 0;
+  };
+
+  const computeBlockedTimes = (busySlots, dateStr) => {
+    const blockedSet = new Set();
+
+    busySlots.forEach((slot) => {
+      const start = new Date(slot.start);
+      const end = new Date(slot.end);
+
+      timeSlots.forEach((time) => {
+        // ✅ consistent parsing (avoid new Date(dateStr) which can be UTC)
+        const slotTime = new Date(`${dateStr}T${time}:00`);
+        if (slotTime >= start && slotTime < end) blockedSet.add(time);
+      });
+    });
+
+    return Array.from(blockedSet);
   };
 
   // Fetch availability when date changes
@@ -74,38 +81,26 @@ export default function BookingSection({
 
     const fetchAvailability = async () => {
       setIsLoadingAvailability(true);
+      setBookingError("");
       setBlockedTimes([]);
       setSelectedTime("");
-      setBookingError("");
 
       try {
-        const response = await base44.functions.invoke("calendarSync", {
+        const res = await base44.functions.invoke("calendarSync", {
           action: "checkAvailability",
           date: selectedDate,
         });
 
-        const busySlots = response?.data?.busySlots || [];
+        const data = res?.data || {};
+        if (!data.ok) {
+          console.error("checkAvailability error:", data.error);
+          return;
+        }
 
-        // Build blocked times by checking which timeSlots fall inside any busy interval
-        const blockedSet = new Set();
-
-        busySlots.forEach((slot) => {
-          const start = new Date(slot.start);
-          const end = new Date(slot.end);
-
-          timeSlots.forEach((time) => {
-            // ✅ Avoid "new Date(selectedDate)" which can parse as UTC and shift day
-            const slotTime = new Date(`${selectedDate}T${time}:00`);
-
-            if (slotTime >= start && slotTime < end) {
-              blockedSet.add(time);
-            }
-          });
-        });
-
-        setBlockedTimes(Array.from(blockedSet));
+        const busySlots = data.busySlots || [];
+        setBlockedTimes(computeBlockedTimes(busySlots, selectedDate));
       } catch (error) {
-        console.error("Failed to fetch availability:", error);
+        console.error("checkAvailability invoke error:", error);
       } finally {
         setIsLoadingAvailability(false);
       }
@@ -114,7 +109,7 @@ export default function BookingSection({
     fetchAvailability();
   }, [selectedDate]);
 
-  // ✅ Phone formatter: (787) 414 - 3249
+  // Phone formatter
   const formatPhone = (value) => {
     const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
     if (digits.length === 0) return "";
@@ -143,8 +138,7 @@ export default function BookingSection({
     setIsCreatingEvent(true);
 
     try {
-      // ✅ Total duration (minutes)
-      const totalMinutes = cart.reduce((sum, service) => sum + durationToMinutes(service?.duration), 0);
+      const totalMinutes = cart.reduce((sum, s) => sum + durationToMinutes(s?.duration), 0);
 
       if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
         setBookingError(
@@ -155,7 +149,6 @@ export default function BookingSection({
         return;
       }
 
-      // ✅ Calculate end time
       const start = new Date(`${selectedDate}T${selectedTime}:00`);
       if (Number.isNaN(start.getTime())) {
         setBookingError(lang === "es" ? "Fecha u hora inválida." : "Invalid date or time.");
@@ -165,8 +158,7 @@ export default function BookingSection({
       const end = new Date(start.getTime() + totalMinutes * 60 * 1000);
       const endTime = end.toTimeString().slice(0, 5);
 
-      // Create calendar event
-      const response = await base44.functions.invoke("calendarSync", {
+      const res = await base44.functions.invoke("calendarSync", {
         action: "createEvent",
         date: selectedDate,
         startTime: selectedTime,
@@ -177,7 +169,17 @@ export default function BookingSection({
         clientPhone: formData.phone,
       });
 
-      if (response?.data?.conflict) {
+      const data = res?.data || {};
+      if (!data.ok) {
+        setBookingError(
+          lang === "es"
+            ? `Error al procesar tu solicitud: ${data.error || "Unknown error"}`
+            : `Error processing your request: ${data.error || "Unknown error"}`
+        );
+        return;
+      }
+
+      if (data.conflict) {
         setBookingError(
           lang === "es"
             ? "Este horario ya no está disponible. Por favor selecciona otro."
@@ -187,40 +189,20 @@ export default function BookingSection({
         return;
       }
 
-      if (response?.data?.error) {
-        setBookingError(
-          lang === "es"
-            ? "Error al crear la cita. Intenta nuevamente."
-            : "Error creating appointment. Please try again."
-        );
-        return;
-      }
-
-      // ✅ Refresh availability for same date so UI updates immediately after booking
+      // Refresh availability so UI blocks the time immediately
       try {
         const refresh = await base44.functions.invoke("calendarSync", {
           action: "checkAvailability",
           date: selectedDate,
         });
-        const busySlots = refresh?.data?.busySlots || [];
-
-        const blockedSet = new Set();
-        busySlots.forEach((slot) => {
-          const start = new Date(slot.start);
-          const end = new Date(slot.end);
-
-          timeSlots.forEach((time) => {
-            const slotTime = new Date(`${selectedDate}T${time}:00`);
-            if (slotTime >= start && slotTime < end) blockedSet.add(time);
-          });
-        });
-
-        setBlockedTimes(Array.from(blockedSet));
+        const refreshData = refresh?.data || {};
+        if (refreshData.ok) {
+          setBlockedTimes(computeBlockedTimes(refreshData.busySlots || [], selectedDate));
+        }
       } catch {
-        // ignore refresh errors
+        // ignore refresh issues
       }
 
-      // Continue to payment only after successful calendar creation
       onContinueToPayment({
         services: cart,
         date: selectedDate,
@@ -228,11 +210,18 @@ export default function BookingSection({
         ...formData,
       });
     } catch (error) {
-      console.error(error);
+      console.error("createEvent invoke error:", error);
+
+      const msg =
+        error?.message ||
+        error?.response?.data?.error ||
+        error?.data?.error ||
+        "Unknown error";
+
       setBookingError(
         lang === "es"
-          ? "Error al procesar tu solicitud. Intenta nuevamente."
-          : "Error processing your request. Please try again."
+          ? `Error al procesar tu solicitud: ${msg}`
+          : `Error processing your request: ${msg}`
       );
     } finally {
       setIsCreatingEvent(false);
