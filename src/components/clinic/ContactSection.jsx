@@ -13,56 +13,84 @@ const PALETTE = {
   rose: "#C39A8B",
 };
 
-export default function ContactSection({ lang }) {
+export default function ContactSection({ lang = "es", sectionRef }) {
   return (
     <section
       id="ContactSection"
-      className="py-16 md:py-20 lg:py-28"
+      ref={sectionRef}
+      className="relative overflow-hidden py-28 md:py-36 lg:py-44"
       style={{ backgroundColor: PALETTE.cream }}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        {/* Section Header */}
-        <div className="mb-10 text-center md:mb-12">
+      {/* Match other sections: subtle luxury backdrop */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(1200px 600px at 50% 20%, rgba(201,174,126,0.06), transparent 70%),
+            radial-gradient(1000px 520px at 15% 5%, rgba(195,154,139,0.08), transparent 62%),
+            linear-gradient(to bottom, rgba(251,248,243,0.45), rgba(241,232,221,0.82))
+          `,
+        }}
+      />
+
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+        {/* Section Header (same hierarchy language) */}
+        <div className="mx-auto mb-20 max-w-2xl text-center">
+          {/* Badge */}
+          <div
+            className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
+            style={{
+              backgroundColor: "rgba(255,252,248,0.72)",
+              borderColor: "rgba(42,30,26,0.12)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)",
+            }}
+          >
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PALETTE.rose }} />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-[0.28em]"
+              style={{ color: PALETTE.taupe }}
+            >
+              {lang === "es" ? "Contacto" : "Contact"}
+            </span>
+          </div>
+
           <h2
-            className="mb-4 text-3xl font-light md:text-4xl"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
             style={{ color: PALETTE.espresso }}
           >
             {lang === "es" ? "Contáctanos" : "Contact Us"}
           </h2>
-          <p className="mx-auto max-w-2xl" style={{ color: PALETTE.cocoa }}>
-            {lang === "es"
-              ? "Estamos aquí para responder tus preguntas."
-              : "We are here to answer your questions."}
-          </p>
 
-          {/* subtle divider */}
-          <div
-            className="mx-auto mt-6 h-px w-32"
-            style={{
-              background:
-                "linear-gradient(to right, transparent, rgba(201,174,126,0.55), transparent)",
-            }}
-          />
+          <p
+            className="font-body text-lg md:text-xl leading-relaxed"
+            style={{ color: PALETTE.cocoa, opacity: 0.88 }}
+          >
+            {lang === "es"
+              ? "Estamos aquí para responder tus preguntas y coordinar tu cita."
+              : "We’re here to answer your questions and help you book your appointment."}
+          </p>
         </div>
 
         {/* Contact Grid */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <ContactCard
             icon={MapPin}
             title={lang === "es" ? "Ubicación" : "Location"}
-            lines={["Av. Principal #123", "Ciudad, CP 12345"]}
+            lines={[lang === "es" ? "Servicio a domicilio en Puerto Rico" : "Mobile service across Puerto Rico"]}
           />
 
           <ContactCard
             icon={Phone}
             title={lang === "es" ? "Teléfono" : "Phone"}
             lines={["+1 (786) 672-9528"]}
+            href="tel:+17866729528"
           />
 
           <ContactCard
             icon={Mail}
             title={lang === "es" ? "Correo" : "Email"}
             lines={["Aikopr222@gmail.com"]}
+            href="mailto:Aikopr222@gmail.com"
           />
 
           <ContactCard
@@ -71,61 +99,85 @@ export default function ContactSection({ lang }) {
             lines={[lang === "es" ? "Lun - Sáb: 9am - 6pm" : "Mon - Sat: 9am - 6pm"]}
           />
         </div>
+
+        {/* Bottom divider like other sections */}
+        <div
+          className="mx-auto mt-16 h-px w-full max-w-5xl"
+          style={{
+            backgroundImage: `linear-gradient(to right, transparent, ${PALETTE.champagne}, transparent)`,
+            opacity: 0.6,
+          }}
+        />
       </div>
     </section>
   );
 }
 
-function ContactCard({ icon: Icon, title, lines }) {
-  return (
+function ContactCard({ icon: Icon, title, lines, href }) {
+  const cardInner = (
     <div
-      className="group relative overflow-hidden rounded-3xl border p-6 text-center shadow-[0_22px_70px_rgba(42,30,26,0.10)] transition hover:-translate-y-0.5"
+      className="group relative h-full overflow-hidden rounded-3xl border p-8 text-center transition-all duration-500 hover:-translate-y-2"
       style={{
-        backgroundColor: "rgba(255,252,248,0.88)",
-        borderColor: "rgba(42,30,26,0.10)",
+        backgroundColor: "rgba(255,252,248,0.92)",
+        borderColor: "rgba(42,30,26,0.08)",
+        boxShadow: "0 12px 40px rgba(42,30,26,0.06)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
       }}
     >
-      {/* soft premium glow */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(700px_320px_at_20%_10%,rgba(201,174,126,0.18),transparent_55%),radial-gradient(700px_320px_at_80%_30%,rgba(195,154,139,0.12),transparent_60%)]" />
+      {/* Hover glow (same as cards elsewhere) */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(600px_300px_at_50%_0%,rgba(201,174,126,0.12),transparent_70%)]" />
 
-      {/* Icon */}
-      <div
-        className="relative mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border"
-        style={{
-          backgroundColor: "rgba(241,232,221,0.65)",
-          borderColor: "rgba(42,30,26,0.10)",
-        }}
-      >
-        <Icon className="h-5 w-5" style={{ color: PALETTE.rose }} />
+      <div className="relative z-10">
+        {/* Icon */}
+        <div
+          className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border"
+          style={{
+            backgroundColor: "rgba(241,232,221,0.60)",
+            borderColor: "rgba(42,30,26,0.10)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.55)",
+          }}
+        >
+          <Icon className="h-5 w-5" style={{ color: PALETTE.rose }} />
+        </div>
+
+        {/* Title */}
+        <h3
+          className="mb-2 text-[12px] font-semibold tracking-[0.26em] uppercase"
+          style={{ color: PALETTE.espresso }}
+        >
+          {title}
+        </h3>
+
+        {/* Lines */}
+        <div className="space-y-1">
+          {lines.map((line, i) => (
+            <p key={i} className="font-body text-sm leading-relaxed" style={{ color: PALETTE.cocoa, opacity: 0.9 }}>
+              {line}
+            </p>
+          ))}
+        </div>
+
+        {/* Bottom accent line */}
+        <div
+          className="mt-6 h-px w-full"
+          style={{
+            backgroundImage: `linear-gradient(to right, transparent, rgba(201,174,126,0.55), transparent)`,
+            opacity: 0.65,
+          }}
+        />
       </div>
-
-      {/* Title */}
-      <h3
-        className="relative mb-2 text-sm font-semibold tracking-[0.08em] uppercase"
-        style={{ color: PALETTE.espresso }}
-      >
-        {title}
-      </h3>
-
-      {/* Lines */}
-      <div className="relative space-y-1">
-        {lines.map((line, i) => (
-          <p key={i} className="text-sm" style={{ color: PALETTE.cocoa }}>
-            {line}
-          </p>
-        ))}
-      </div>
-
-      {/* bottom accent line */}
-      <div
-        className="pointer-events-none absolute inset-x-10 bottom-0 h-px opacity-80"
-        style={{
-          background:
-            "linear-gradient(to right, transparent, rgba(201,174,126,0.55), transparent)",
-        }}
-      />
     </div>
   );
+
+  // Optional: make phone/email clickable without changing styling
+  if (href) {
+    return (
+      <a href={href} className="block focus:outline-none" aria-label={title}>
+        {cardInner}
+      </a>
+    );
+  }
+
+  return cardInner;
 }
