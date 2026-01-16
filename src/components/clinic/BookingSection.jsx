@@ -299,27 +299,66 @@ export default function BookingSection({
 
   const availableDates = getAvailableDates();
 
+  const steps = [
+    { id: 1, label: lang === "es" ? "Servicios" : "Services" },
+    { id: 2, label: lang === "es" ? "Fecha y hora" : "Date & time" },
+    { id: 3, label: lang === "es" ? "Detalles" : "Details" },
+  ];
+
+  const currentStep = !cart.length ? 1 : !selectedDate || !selectedTime ? 2 : 3;
+
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden py-16 md:py-20 lg:py-28"
+      className="relative overflow-hidden py-28 md:py-36 lg:py-44"
       style={{ backgroundColor: PALETTE.linen }}
     >
-      <div className="pointer-events-none absolute inset-0 opacity-90 bg-[radial-gradient(900px_520px_at_15%_10%,rgba(201,174,126,0.18),transparent_60%),radial-gradient(900px_520px_at_85%_20%,rgba(195,154,139,0.14),transparent_60%),linear-gradient(to_bottom,rgba(251,248,243,0.55),rgba(241,232,221,0.78))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_600px_at_50%_20%,rgba(201,174,126,0.06),transparent_70%),linear-gradient(to_bottom,rgba(251,248,243,0.4),rgba(241,232,221,0.8))]" />
 
-      <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
-        <div className="text-center mb-10 md:mb-12">
+      <div className="relative mx-auto max-w-3xl px-6 sm:px-8">
+        <div className="text-center mb-16">
           <h2
-            className="text-3xl md:text-4xl font-light mb-4 tracking-[-0.02em]"
+            className="font-display text-4xl md:text-5xl font-medium tracking-tight mb-6"
             style={{ color: PALETTE.espresso }}
           >
             {lang === "es" ? "Reserva tu Cita" : "Book Your Appointment"}
           </h2>
-          <p className="max-w-2xl mx-auto" style={{ color: PALETTE.cocoa }}>
+          <p className="font-body text-lg max-w-xl mx-auto" style={{ color: PALETTE.cocoa, opacity: 0.88 }}>
             {lang === "es"
-              ? "Selecciona fecha y hora, y completa tus datos para confirmar."
-              : "Select a date and time, then enter your details to confirm."}
+              ? "Selecciona servicios, fecha y hora, y completa tus datos."
+              : "Select services, date and time, then enter your details."}
           </p>
+
+          {/* Progress indicator */}
+          <div className="mt-12 flex items-center justify-center gap-3">
+            {steps.map((step, idx) => (
+              <React.Fragment key={step.id}>
+                <div className="flex flex-col items-center gap-2">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-medium transition-all"
+                    style={{
+                      backgroundColor: currentStep >= step.id ? PALETTE.champagne : "transparent",
+                      borderColor: currentStep >= step.id ? PALETTE.champagne : "rgba(42,30,26,0.15)",
+                      color: currentStep >= step.id ? "#FFFFFF" : PALETTE.taupe,
+                    }}
+                  >
+                    {step.id}
+                  </div>
+                  <span className="text-xs font-medium" style={{ color: currentStep >= step.id ? PALETTE.espresso : PALETTE.taupe }}>
+                    {step.label}
+                  </span>
+                </div>
+                {idx < steps.length - 1 && (
+                  <div
+                    className="h-px w-16 mt-[-20px]"
+                    style={{
+                      backgroundColor: currentStep > step.id ? PALETTE.champagne : "rgba(42,30,26,0.15)",
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
 
         <div

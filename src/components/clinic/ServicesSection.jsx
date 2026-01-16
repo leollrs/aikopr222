@@ -155,112 +155,52 @@ export default function ServicesSection({
     <section
       id="ServicesSection"
       ref={sectionRef}
-      className="relative overflow-hidden py-20 md:py-24 lg:py-28"
+      className="relative overflow-hidden py-28 md:py-36 lg:py-44"
       style={{ backgroundColor: LINEN }}
     >
-      {/* Soft premium backdrop (no black) */}
+      {/* Clean subtle backdrop */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `
-            radial-gradient(1100px 520px at 20% 20%, rgba(201,174,126,0.28), transparent 60%),
-            radial-gradient(900px 520px at 80% 10%, rgba(195,154,139,0.18), transparent 62%),
-            linear-gradient(to bottom, rgba(251,248,243,0.65), rgba(241,232,221,0.92), rgba(251,248,243,0.78))
+          background: `
+            radial-gradient(1200px 600px at 50% 20%, rgba(201,174,126,0.06), transparent 70%),
+            linear-gradient(to bottom, rgba(251,248,243,0.4), rgba(241,232,221,0.8))
           `,
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
         {/* Section Header */}
-        <div className="mx-auto mb-12 max-w-3xl text-center md:mb-14">
-          <div
-            className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
-            style={{
-              backgroundColor: "rgba(255,252,248,0.70)",
-              borderColor: "rgba(42,30,26,0.12)",
-            }}
-          >
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
-            <span
-              className="text-[11px] font-semibold uppercase tracking-[0.28em]"
-              style={{ color: COCOA }}
-            >
-              {lang === "es" ? "Servicios premium" : "Premium services"}
-            </span>
-          </div>
-
+        <div className="mx-auto mb-20 max-w-2xl text-center">
           <h2
-            className="text-3xl font-light tracking-[-0.03em] md:text-4xl lg:text-5xl"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
             style={{ color: ESPRESSO }}
           >
             {lang === "es" ? "Nuestros Servicios" : "Our Services"}
           </h2>
 
           <p
-            className="mx-auto mt-4 max-w-2xl text-base leading-relaxed md:text-lg"
-            style={{ color: COCOA }}
+            className="font-body text-lg md:text-xl leading-relaxed"
+            style={{ color: COCOA, opacity: 0.88 }}
           >
             {lang === "es"
               ? "Tratamientos estéticos de última generación realizados por profesionales certificados."
               : "State-of-the-art aesthetic treatments performed by certified professionals."}
           </p>
-
-          <div
-            className="mx-auto mt-8 h-px w-full max-w-2xl"
-            style={{
-              backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
-              opacity: 0.7,
-            }}
-          />
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((service) => (
-            <div
+            <ServiceCard
               key={service.id}
-              className="group relative overflow-hidden rounded-3xl border p-1 transition-transform duration-300 hover:-translate-y-1"
-              style={{
-                borderColor: "rgba(42,30,26,0.10)",
-                backgroundColor: "rgba(255,252,248,0.55)",
-                boxShadow: "0 26px 80px rgba(42,30,26,0.10)",
-                backdropFilter: "blur(14px)",
-              }}
-            >
-              {/* Card glow */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  backgroundImage: `
-                    radial-gradient(700px 340px at 30% 10%, rgba(201,174,126,0.22), transparent 60%),
-                    radial-gradient(600px 320px at 80% 20%, rgba(195,154,139,0.16), transparent 62%)
-                  `,
-                }}
-              />
-
-              <div
-                className="relative rounded-[22px]"
-                style={{ backgroundColor: "rgba(251,248,243,0.72)" }}
-              >
-                <ServiceCard
-                  service={service}
-                  lang={lang}
-                  onAddService={onAddService}
-                  onViewDetails={onViewDetails}
-                />
-              </div>
-            </div>
+              service={service}
+              lang={lang}
+              onAddService={onAddService}
+              onViewDetails={onViewDetails}
+            />
           ))}
         </div>
-
-        {/* Bottom divider */}
-        <div
-          className="mx-auto mt-14 h-px w-full max-w-4xl"
-          style={{
-            backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
-            opacity: 0.65,
-          }}
-        />
       </div>
     </section>
   );
