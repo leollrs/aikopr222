@@ -1,85 +1,85 @@
-import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
-
 Deno.serve(async (req) => {
   try {
-    // Keeps Base44 request context (optional but fine)
-    createClientFromRequest(req);
-
-    const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!STRIPE_SECRET_KEY) {
+    // Get Stripe secret key from environment
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    
+    if (!stripeSecretKey) {
       return Response.json(
         { error: "Stripe secret key is not configured on the server." },
         { status: 500 }
       );
     }
 
-    let body = null;
+    // Parse request body
+    let body;
     try {
       body = await req.json();
     } catch {
-      body = null;
-    }
-
-    if (!body) {
-      return Response.json({ error: "Missing JSON body" }, { status: 400 });
-    }
-
-    const { amountCents, currency = "usd", metadata = {} } = body;
-
-    if (
-      typeof amountCents !== "number" ||
-      !Number.isInteger(amountCents) ||
-      amountCents <= 0
-    ) {
       return Response.json(
-        { error: "Invalid amount. Must be a positive integer in cents." },
+        { error: "Invalid JSON body" },
         { status: 400 }
       );
     }
 
-    // Stripe requires x-www-form-urlencoded
-    const form = new URLSearchParams();
-    form.set("amount", String(amountCents));
-    form.set("currency", String(currency).toLowerCase());
-    form.set("automatic_payment_methods[enabled]", "true");
+    const { amountCents, currency = "usd", metadata = {} } = body;
 
-    for (const [k, v] of Object.entries(metadata || {})) {
-      form.set(
-        `metadata[${String(k).slice(0, 40)}]`,
-        String(v).slice(0, 500)
+    // Validate amountCents
+    if (!Number.isInteger(amountCents) || amountCents <= 0) {
+      return Response.json(
+        { error: "amountCents must be a positive integer" },
+        { status: 400 }
       );
     }
 
-    form.set("metadata[created_at]", new Date().toISOString());
+    // Prepare form data for Stripe API
+    const formData = new URLSearchParams();
+    formData.append("amount", amountCents.toString());
+    formData.append("currency", currency.toLowerCase());
+    formData.append("automatic_payment_methods[enabled]", "true");
 
-    const stripeRes = await fetch(
-      "https://api.stripe.com/v1/payment_intents",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: form,
-      }
-    );
+    // Add metadata with truncation
+    const sanitizedMetadata = {
+      created_at: new Date().toISOString(),
+    };
 
-    const data = await stripeRes.json();
+    for (const [key, value] of Object.entries(metadata)) {
+      const truncatedKey = String(key).slice(0, 40);
+      const truncatedValue = String(value).slice(0, 500);
+      sanitizedMetadata[truncatedKey] = truncatedValue;
+    }
 
-    if (!stripeRes.ok) {
+    for (const [key, value] of Object.entries(sanitizedMetadata)) {
+      formData.append(`metadata[${key}]`, value);
+    }
+
+    // Call Stripe API
+    const stripeResponse = await fetch("https://api.stripe.com/v1/payment_intents", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${stripeSecretKey}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    });
+
+    const stripeData = await stripeResponse.json();
+
+    if (!stripeResponse.ok) {
       return Response.json(
-        { error: data?.error?.message || "Stripe error" },
+        { error: stripeData.error?.message || "Stripe API error" },
         { status: 500 }
       );
     }
 
+    // Return clientSecret and paymentIntentId
     return Response.json({
-      clientSecret: data.client_secret,
-      paymentIntentId: data.id,
+      clientSecret: stripeData.client_secret,
+      paymentIntentId: stripeData.id,
     });
+
   } catch (error) {
     return Response.json(
-      { error: error?.message || "Failed to create payment intent" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }
