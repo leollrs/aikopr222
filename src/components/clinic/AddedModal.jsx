@@ -12,6 +12,7 @@ export default function AddedModal({
 }) {
   if (!isOpen) return null;
 
+  // NEW PALETTE
   const CREAM = "#FBF8F3";
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
@@ -22,7 +23,7 @@ export default function AddedModal({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop (no black, still premium) */}
       <div
         className="fixed inset-0 z-50 backdrop-blur-md"
         style={{ backgroundColor: "rgba(42,30,26,0.28)" }}
