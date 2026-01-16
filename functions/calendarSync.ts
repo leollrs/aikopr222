@@ -1,9 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 
-// Puerto Rico shares time with New York; this is a safe IANA TZ
 const TZ = "America/New_York";
-
-// If true: only admin can call. If your booking page is public, keep FALSE.
 const ADMIN_ONLY = false;
 
 function requireString(val, name) {
@@ -17,21 +14,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Optional admin gate
     if (ADMIN_ONLY) {
       const user = await base44.auth.me();
       if (!user || user.role !== "admin") {
-        return Response.json({ error: "Forbidden: Admin access required" }, { status: 403 });
+        // ✅ Return 200 with error payload to avoid invoke() throwing
+        return Response.json({ ok: false, error: "Forbidden: Admin access required" });
       }
     }
 
     const body = await req.json();
-
     const action = requireString(body.action, "action");
-    const date =
-      action === "checkAvailability" || action === "createEvent"
-        ? requireString(body.date, "date")
-        : "";
 
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
 
@@ -39,8 +31,9 @@ Deno.serve(async (req) => {
     // ACTION: checkAvailability
     // -------------------------
     if (action === "checkAvailability") {
-      // IMPORTANT: Use local date-time strings + pass timeZone.
-      // Avoid toISOString() here (it converts to UTC and can shift the day).
+      const date = requireString(body.date, "date");
+
+      // ✅ Use local dateTime strings + explicit TZ
       const timeMin = `${date}T00:00:00`;
       const timeMax = `${date}T23:59:59`;
 
@@ -60,21 +53,30 @@ Deno.serve(async (req) => {
 
       if (!freeBusyResponse.ok) {
         const txt = await freeBusyResponse.text().catch(() => "");
-        throw new Error(`Failed to fetch calendar availability: ${freeBusyResponse.status} ${txt}`);
+        return Response.json({
+          ok: false,
+          error: `Failed to fetch availability: ${freeBusyResponse.status} ${txt}`,
+        });
       }
 
       const freeBusyData = await freeBusyResponse.json();
-      const busySlots = (freeBusyData && freeBusyData.calendars && freeBusyData.calendars.primary && freeBusyData.calendars.primary.busy) || [];
+      const busySlots =
+        (freeBusyData &&
+          freeBusyData.calendars &&
+          freeBusyData.calendars.primary &&
+          freeBusyData.calendars.primary.busy) ||
+        [];
 
-      return Response.json({ busySlots, timeZone: TZ });
+      return Response.json({ ok: true, busySlots, timeZone: TZ });
     }
 
     // -------------------------
     // ACTION: createEvent
     // -------------------------
     if (action === "createEvent") {
-      const startTime = requireString(body.startTime, "startTime"); // "HH:MM"
-      const endTime = requireString(body.endTime, "endTime");       // "HH:MM"
+      const date = requireString(body.date, "date");
+      const startTime = requireString(body.startTime, "startTime");
+      const endTime = requireString(body.endTime, "endTime");
 
       const services = Array.isArray(body.services) ? body.services : [];
       const clientName = requireString(body.clientName, "clientName");
@@ -84,7 +86,7 @@ Deno.serve(async (req) => {
       const timeMin = `${date}T${startTime}:00`;
       const timeMax = `${date}T${endTime}:00`;
 
-      // 1) Conflict check immediately before creating
+      // 1) Conflict check (IMPORTANT: return 200 even if conflict)
       const freeBusyResponse = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
         method: "POST",
         headers: {
@@ -101,14 +103,27 @@ Deno.serve(async (req) => {
 
       if (!freeBusyResponse.ok) {
         const txt = await freeBusyResponse.text().catch(() => "");
-        throw new Error(`Failed to check conflicts: ${freeBusyResponse.status} ${txt}`);
+        return Response.json({
+          ok: false,
+          error: `Failed to check conflicts: ${freeBusyResponse.status} ${txt}`,
+        });
       }
 
       const freeBusyData = await freeBusyResponse.json();
-      const conflicts = (freeBusyData && freeBusyData.calendars && freeBusyData.calendars.primary && freeBusyData.calendars.primary.busy) || [];
+      const conflicts =
+        (freeBusyData &&
+          freeBusyData.calendars &&
+          freeBusyData.calendars.primary &&
+          freeBusyData.calendars.primary.busy) ||
+        [];
 
       if (conflicts.length > 0) {
-        return Response.json({ error: "Time slot no longer available", conflict: true }, { status: 409 });
+        // ✅ No 409. Return 200 so Base44 invoke doesn't throw.
+        return Response.json({
+          ok: true,
+          conflict: true,
+          error: "Time slot no longer available",
+        });
       }
 
       // 2) Build services list
@@ -149,15 +164,21 @@ Deno.serve(async (req) => {
 
       if (!createResponse.ok) {
         const txt = await createResponse.text().catch(() => "");
-        throw new Error(`Failed to create calendar event: ${createResponse.status} ${txt}`);
+        return Response.json({
+          ok: false,
+          error: `Failed to create calendar event: ${createResponse.status} ${txt}`,
+        });
       }
 
       const createdEvent = await createResponse.json();
-      return Response.json({ success: true, eventId: createdEvent && createdEvent.id });
+      return Response.json({ ok: true, success: true, eventId: createdEvent && createdEvent.id });
     }
 
-    return Response.json({ error: "Invalid action" }, { status: 400 });
+    return Response.json({ ok: false, error: "Invalid action" });
   } catch (error) {
-    return Response.json({ error: error && error.message ? error.message : String(error) }, { status: 500 });
+    return Response.json({
+      ok: false,
+      error: error && error.message ? error.message : String(error),
+    });
   }
 });
