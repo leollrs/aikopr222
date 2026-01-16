@@ -5,9 +5,9 @@ import PaymentSection from "./PaymentSection";
 import { base44 } from "@/api/base44Client";
 
 // IMPORTANT:
-// 1) Set VITE_STRIPE_PUBLISHABLE_KEY in your Base44 env to your real Stripe publishable key.
-// 2) Do NOT leave the pk_test_placeholder in production.
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Set VITE_STRIPE_PUBLISHABLE_KEY in your Base44 env to your real Stripe publishable key.
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export default function PaymentSectionWrapper({
   lang,
@@ -106,12 +106,43 @@ export default function PaymentSectionWrapper({
     };
   }, [bookingData, cart, totalCents, metadata]);
 
-  if (!bookingData) return null;
-
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
   const ROSE = "#C39A8B";
+
+  if (!bookingData) return null;
+
+  // Check if Stripe key is configured
+  if (!stripePromise) {
+    return (
+      <section
+        ref={sectionRef}
+        className="py-16 md:py-20 lg:py-28"
+        style={{ backgroundColor: LINEN }}
+      >
+        <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
+          <div
+            className="rounded-2xl border p-6 text-center"
+            style={{
+              backgroundColor: "rgba(195,154,139,0.10)",
+              borderColor: "rgba(195,154,139,0.35)",
+              color: ESPRESSO,
+            }}
+          >
+            <p className="mb-2 font-medium">
+              {lang === "es" ? "Configuración pendiente" : "Configuration required"}
+            </p>
+            <p className="text-sm" style={{ color: COCOA }}>
+              {lang === "es"
+                ? "La clave de Stripe no está configurada. Por favor contacta al administrador."
+                : "Stripe key is not configured. Please contact the administrator."}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // Loading UI while creating intent
   if (isCreatingIntent) {
