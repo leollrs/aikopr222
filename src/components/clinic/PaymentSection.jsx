@@ -1,12 +1,22 @@
 import React, { useMemo, useState } from "react";
-import { Lock, Check, Plus } from "lucide-react";
+import { Lock, Check, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+
+const PALETTE = {
+  cream: "#FBF8F3",
+  linen: "#F1E8DD",
+  espresso: "#2A1E1A",
+  cocoa: "#6B5A52",
+  taupe: "#8B7468",
+  champagne: "#C9AE7E",
+  rose: "#C39A8B",
+};
 
 export default function PaymentSection({
   lang,
   bookingData,
-  cart = [], // ✅ source of truth for services
+  cart = [],
   onConfirm,
   onClearCart,
   onOpenServicePicker,
@@ -15,21 +25,16 @@ export default function PaymentSection({
 }) {
   const stripe = useStripe();
   const elements = useElements();
-  
+
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-
-  const LINEN = "#F1E8DD";
-  const ESPRESSO = "#2A1E1A";
-  const COCOA = "#6B5A52";
-  const ROSE = "#C39A8B";
-  const TAUPE = "#8B7468";
 
   if (!bookingData) return null;
 
   const copy = {
     es: {
+      badge: "Checkout seguro",
       title: "Confirma tu Cita",
       subtitle: "Pago seguro para confirmar tu horario. Atención móvil en tu hogar.",
       secure: "Pago seguro y encriptado",
@@ -46,8 +51,10 @@ export default function PaymentSection({
       add: "Agregar",
       noServices: "No hay servicios seleccionados.",
       addMore: "Agregar más servicios",
+      hint: "Puedes agregar más servicios antes de confirmar.",
     },
     en: {
+      badge: "Secure checkout",
       title: "Confirm Your Appointment",
       subtitle: "Secure checkout to confirm your time. Mobile service at your home.",
       secure: "Secure and encrypted payment",
@@ -64,6 +71,7 @@ export default function PaymentSection({
       add: "Add",
       noServices: "No services selected.",
       addMore: "Add more services",
+      hint: "You can add more services before confirming.",
     },
   };
 
@@ -73,28 +81,28 @@ export default function PaymentSection({
     return (cart || []).reduce((sum, s) => sum + (Number(s?.price) || 0), 0);
   }, [cart]);
 
-  // ✅ IMPORTANT: no card data sent
   const sendConfirmationWebhook = async () => {
     if (!webhookUrl) throw new Error(t.webhookMissing);
 
-    // Sanitize booking data before sending
     const sanitizedBooking = {
-      fullName: String(bookingData?.fullName || '').trim().slice(0, 100),
-      email: String(bookingData?.email || '').toLowerCase().trim().slice(0, 120),
-      phone: String(bookingData?.phone || '').replace(/[^\d\s+\-()]/g, '').trim().slice(0, 20),
-      date: String(bookingData?.date || '').trim(),
-      time: String(bookingData?.time || '').trim(),
+      fullName: String(bookingData?.fullName || "").trim().slice(0, 100),
+      email: String(bookingData?.email || "").toLowerCase().trim().slice(0, 120),
+      phone: String(bookingData?.phone || "")
+        .replace(/[^\d\s+\-()]/g, "")
+        .trim()
+        .slice(0, 20),
+      date: String(bookingData?.date || "").trim(),
+      time: String(bookingData?.time || "").trim(),
     };
 
-    // Validate services (only allow known service IDs)
     const validServiceIds = [1, 2, 3, 4, 5, 6, 7, 8];
     const sanitizedServices = (cart || [])
-      .filter(s => validServiceIds.includes(Number(s?.id)))
+      .filter((s) => validServiceIds.includes(Number(s?.id)))
       .map((s) => ({
         id: Number(s.id),
-        nameEs: String(s.nameEs || '').slice(0, 100),
-        nameEn: String(s.nameEn || '').slice(0, 100),
-        duration: String(s.duration || '').slice(0, 20),
+        nameEs: String(s.nameEs || "").slice(0, 100),
+        nameEn: String(s.nameEn || "").slice(0, 100),
+        duration: String(s.duration || "").slice(0, 20),
         price: Number(s.price) || 0,
       }));
 
@@ -102,35 +110,26 @@ export default function PaymentSection({
       type: "appointment_confirmed",
       status: "paid",
       createdAt: new Date().toISOString(),
-      totals: { 
-        servicesTotal: Number(totalServices) || 0, 
-        currency: "USD" 
-      },
-      booking: {
-        ...sanitizedBooking,
-        services: sanitizedServices,
-      },
+      totals: { servicesTotal: Number(totalServices) || 0, currency: "USD" },
+      booking: { ...sanitizedBooking, services: sanitizedServices },
     };
 
     const res = await fetch(webhookUrl, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "X-Requested-With": "XMLHttpRequest",
       },
       body: JSON.stringify(payload),
     });
 
-    if (!res.ok) {
-      throw new Error(t.errorGeneric);
-    }
-
+    if (!res.ok) throw new Error(t.errorGeneric);
     return true;
   };
 
   const handleConfirm = async () => {
     setErrorMsg("");
-    
+
     if (!stripe || !elements) {
       setErrorMsg(t.errorGeneric);
       return;
@@ -139,13 +138,10 @@ export default function PaymentSection({
     try {
       setIsSubmitting(true);
 
-      // Confirm payment with Stripe
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
-        confirmParams: {
-          return_url: window.location.href,
-        },
+        confirmParams: { return_url: window.location.href },
       });
 
       if (error) {
@@ -153,9 +149,7 @@ export default function PaymentSection({
         return;
       }
 
-      // Only proceed if payment succeeded
       if (paymentIntent?.status === "succeeded") {
-        // Now call webhook (no card data sent)
         await sendConfirmationWebhook();
         onClearCart?.();
         setConfirmed(true);
@@ -174,18 +168,32 @@ export default function PaymentSection({
     return (
       <section
         ref={sectionRef}
-        className="py-16 md:py-20 lg:py-28"
-        style={{ backgroundColor: LINEN }}
+        className="relative overflow-hidden py-20 md:py-24 lg:py-28"
+        style={{ backgroundColor: PALETTE.linen }}
       >
-        <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
+        {/* Subtle premium backdrop */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(1200px 600px at 50% 20%, rgba(201,174,126,0.12), transparent 70%),
+              radial-gradient(900px 520px at 85% 10%, rgba(195,154,139,0.10), transparent 62%),
+              linear-gradient(to bottom, rgba(251,248,243,0.35), rgba(241,232,221,0.85))
+            `,
+          }}
+        />
+
+        <div className="relative mx-auto max-w-xl px-4 sm:px-6 lg:px-10">
           <div
-            className="relative overflow-hidden rounded-3xl border p-8 text-center shadow-[0_36px_110px_rgba(42,30,26,0.18)]"
+            className="relative overflow-hidden rounded-3xl border p-8 text-center shadow-[0_40px_120px_rgba(42,30,26,0.18)]"
             style={{
-              backgroundColor: "rgba(255,252,248,0.92)",
+              backgroundColor: "rgba(255,252,248,0.88)",
               borderColor: "rgba(42,30,26,0.10)",
-              backdropFilter: "blur(10px)",
+              backdropFilter: "blur(14px)",
             }}
           >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_520px_at_20%_0%,rgba(201,174,126,0.20),transparent_62%),radial-gradient(900px_520px_at_90%_10%,rgba(195,154,139,0.14),transparent_62%)]" />
+
             <div className="relative">
               <div
                 className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border"
@@ -198,40 +206,56 @@ export default function PaymentSection({
                   className="flex h-14 w-14 items-center justify-center rounded-full"
                   style={{ backgroundColor: "rgba(195,154,139,0.18)" }}
                 >
-                  <Check className="h-8 w-8" style={{ color: ESPRESSO }} />
+                  <Check className="h-8 w-8" style={{ color: PALETTE.espresso }} />
                 </div>
               </div>
 
-              <h2 className="text-2xl font-light" style={{ color: ESPRESSO }}>
+              <h2 className="text-2xl font-light" style={{ color: PALETTE.espresso }}>
                 {t.confirmedTitle}
               </h2>
-              <p className="mt-3" style={{ color: COCOA }}>
+              <p className="mt-3" style={{ color: PALETTE.cocoa }}>
                 {t.confirmedBody}
               </p>
 
               <div
-                className="mt-6 rounded-2xl p-4 text-left"
-                style={{ backgroundColor: "rgba(241,232,221,0.70)" }}
+                className="mt-7 rounded-2xl border p-5 text-left"
+                style={{
+                  backgroundColor: "rgba(241,232,221,0.55)",
+                  borderColor: "rgba(42,30,26,0.10)",
+                }}
               >
-                <p className="text-sm" style={{ color: TAUPE }}>
-                  {t.date}
-                </p>
-                <p className="font-medium" style={{ color: ESPRESSO }}>
-                  {bookingData?.date}
-                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs tracking-[0.18em] uppercase" style={{ color: PALETTE.taupe }}>
+                      {t.date}
+                    </p>
+                    <p className="mt-1 font-medium" style={{ color: PALETTE.espresso }}>
+                      {bookingData?.date}
+                    </p>
+                  </div>
 
-                <p className="mt-3 text-sm" style={{ color: TAUPE }}>
-                  {t.time}
-                </p>
-                <p className="font-medium" style={{ color: ESPRESSO }}>
-                  {bookingData?.time}
-                </p>
+                  <div>
+                    <p className="text-xs tracking-[0.18em] uppercase" style={{ color: PALETTE.taupe }}>
+                      {t.time}
+                    </p>
+                    <p className="mt-1 font-medium" style={{ color: PALETTE.espresso }}>
+                      {bookingData?.time}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <button
                 onClick={onOpenServicePicker}
-                className="mt-6 text-xs underline transition hover:no-underline"
-                style={{ color: TAUPE }}
+                className="mt-7 inline-flex items-center justify-center gap-2 text-xs font-medium underline decoration-[rgba(201,174,126,0.65)] underline-offset-4 transition hover:no-underline"
+                style={{ color: "rgba(251,248,243,0.75)" }}
+                type="button"
+              />
+
+              <button
+                onClick={onOpenServicePicker}
+                className="mt-7 text-xs underline decoration-[rgba(201,174,126,0.65)] underline-offset-4 transition hover:no-underline"
+                style={{ color: PALETTE.taupe }}
                 type="button"
               >
                 {t.addMore}
@@ -246,46 +270,84 @@ export default function PaymentSection({
   return (
     <section
       ref={sectionRef}
-      className="py-16 md:py-20 lg:py-28"
-      style={{ backgroundColor: LINEN }}
+      className="relative overflow-hidden py-20 md:py-24 lg:py-28"
+      style={{ backgroundColor: PALETTE.linen }}
     >
-      <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
-        <div className="text-center mb-10 md:mb-12">
-          <h2
-            className="text-3xl md:text-4xl font-light mb-4"
-            style={{ color: ESPRESSO }}
+      {/* Premium backdrop consistent with other sections */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(1200px 600px at 50% 15%, rgba(201,174,126,0.10), transparent 70%),
+            radial-gradient(900px 520px at 85% 10%, rgba(195,154,139,0.08), transparent 62%),
+            linear-gradient(to bottom, rgba(251,248,243,0.40), rgba(241,232,221,0.90))
+          `,
+        }}
+      />
+
+      <div className="relative mx-auto max-w-xl px-4 sm:px-6 lg:px-10">
+        {/* Header */}
+        <div className="mx-auto mb-10 max-w-2xl text-center md:mb-12">
+          <div
+            className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
+            style={{
+              backgroundColor: "rgba(255,252,248,0.70)",
+              borderColor: "rgba(42,30,26,0.12)",
+            }}
           >
+            <Sparkles className="h-4 w-4" style={{ color: PALETTE.champagne }} />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-[0.28em]"
+              style={{ color: PALETTE.taupe }}
+            >
+              {t.badge}
+            </span>
+          </div>
+
+          <h2 className="text-3xl font-light tracking-[-0.02em] md:text-4xl" style={{ color: PALETTE.espresso }}>
             {t.title}
           </h2>
-          <p style={{ color: COCOA }}>{t.subtitle}</p>
+
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed" style={{ color: PALETTE.cocoa }}>
+            {t.subtitle}
+          </p>
+
+          <div
+            className="mx-auto mt-8 h-px w-full max-w-md"
+            style={{
+              backgroundImage: `linear-gradient(to right, transparent, ${PALETTE.champagne}, transparent)`,
+              opacity: 0.7,
+            }}
+          />
         </div>
 
+        {/* Card */}
         <div
-          className="relative overflow-hidden rounded-3xl border p-6 md:p-8 shadow-[0_36px_110px_rgba(42,30,26,0.16)]"
+          className="relative overflow-hidden rounded-3xl border p-6 shadow-[0_40px_120px_rgba(42,30,26,0.16)] md:p-8"
           style={{
-            backgroundColor: "rgba(255,252,248,0.92)",
+            backgroundColor: "rgba(255,252,248,0.88)",
             borderColor: "rgba(42,30,26,0.10)",
-            backdropFilter: "blur(10px)",
+            backdropFilter: "blur(14px)",
           }}
         >
+          {/* internal glow */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1100px_620px_at_20%_0%,rgba(201,174,126,0.20),transparent_62%),radial-gradient(900px_520px_at_90%_10%,rgba(195,154,139,0.14),transparent_62%)]" />
+
           <div className="relative">
             {/* Summary */}
-            <div
-              className="mb-6 pb-6 border-b"
-              style={{ borderColor: "rgba(42,30,26,0.10)" }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium" style={{ color: ESPRESSO }}>
+            <div className="mb-6 border-b pb-6" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: PALETTE.espresso }}>
                   {t.summary}
                 </h3>
 
                 <button
                   onClick={onOpenServicePicker}
-                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-105"
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition hover:scale-[1.02]"
                   style={{
-                    backgroundColor: "rgba(195,154,139,0.15)",
-                    borderColor: "rgba(195,154,139,0.35)",
-                    color: ROSE,
+                    backgroundColor: "rgba(195,154,139,0.14)",
+                    borderColor: "rgba(195,154,139,0.32)",
+                    color: PALETTE.rose,
                   }}
                   type="button"
                 >
@@ -294,57 +356,82 @@ export default function PaymentSection({
                 </button>
               </div>
 
+              <p className="mt-3 text-xs" style={{ color: PALETTE.taupe }}>
+                {t.hint}
+              </p>
+
               {(!cart || cart.length === 0) ? (
-                <div className="text-sm" style={{ color: TAUPE }}>
+                <div
+                  className="mt-5 rounded-2xl border px-4 py-4 text-sm"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(241,232,221,0.40)",
+                    color: PALETTE.taupe,
+                  }}
+                >
                   {t.noServices}
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="mt-5 space-y-2">
                   {cart.map((service, idx) => (
                     <div
                       key={`${service.id}-${idx}`}
-                      className="flex justify-between text-sm"
+                      className="flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
+                      style={{
+                        borderColor: "rgba(42,30,26,0.08)",
+                        backgroundColor: "rgba(255,252,248,0.55)",
+                      }}
                     >
-                      <span style={{ color: COCOA }}>
+                      <span style={{ color: PALETTE.cocoa }}>
                         {lang === "es" ? service.nameEs : service.nameEn}
                       </span>
-                      <span style={{ color: ESPRESSO }}>${service.price}</span>
+                      <span className="font-medium" style={{ color: PALETTE.espresso }}>
+                        ${Number(service.price) || 0}
+                      </span>
                     </div>
                   ))}
 
                   <div
-                    className="flex justify-between text-sm pt-2 border-t"
-                    style={{ borderColor: "rgba(42,30,26,0.10)" }}
+                    className="mt-3 flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
+                    style={{
+                      borderColor: "rgba(42,30,26,0.10)",
+                      backgroundColor: "rgba(241,232,221,0.55)",
+                    }}
                   >
-                    <span style={{ color: COCOA }}>{t.servicesTotal}</span>
-                    <span style={{ color: ESPRESSO }}>${totalServices}</span>
+                    <span style={{ color: PALETTE.cocoa }}>{t.servicesTotal}</span>
+                    <span className="font-semibold" style={{ color: PALETTE.espresso }}>
+                      ${Number(totalServices) || 0}
+                    </span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Stripe Payment Element */}
-            <div className="py-4">
+            {/* Stripe Payment */}
+            <div
+              className="rounded-2xl border p-4 md:p-5"
+              style={{
+                borderColor: "rgba(42,30,26,0.10)",
+                backgroundColor: "rgba(255,252,248,0.55)",
+              }}
+            >
               <PaymentElement />
             </div>
 
             {errorMsg ? (
               <div
-                className="mt-4 rounded-2xl border px-4 py-3 text-sm"
+                className="mt-5 rounded-2xl border px-4 py-3 text-sm"
                 style={{
                   borderColor: "rgba(195,154,139,0.45)",
                   backgroundColor: "rgba(195,154,139,0.10)",
-                  color: ESPRESSO,
+                  color: PALETTE.espresso,
                 }}
               >
                 {errorMsg}
               </div>
             ) : null}
 
-            <div
-              className="my-6 flex items-center justify-center gap-2 text-xs"
-              style={{ color: TAUPE }}
-            >
+            <div className="my-6 flex items-center justify-center gap-2 text-xs" style={{ color: PALETTE.taupe }}>
               <Lock className="h-3 w-3" />
               {t.secure}
             </div>
@@ -352,9 +439,9 @@ export default function PaymentSection({
             <Button
               onClick={handleConfirm}
               disabled={!stripe || !elements || isSubmitting || cart.length === 0}
-              className="w-full h-12 rounded-xl text-base font-medium"
+              className="h-12 w-full rounded-xl text-base font-medium"
               style={{
-                backgroundColor: ROSE,
+                backgroundColor: PALETTE.rose,
                 color: "#FFFFFF",
                 boxShadow: "0 22px 70px rgba(195,154,139,0.32)",
                 opacity: !stripe || !elements || isSubmitting || cart.length === 0 ? 0.7 : 1,
@@ -363,11 +450,11 @@ export default function PaymentSection({
               {isSubmitting ? t.sending : t.confirm}
             </Button>
 
-            <div className="text-center mt-3">
+            <div className="mt-4 text-center">
               <button
                 onClick={onOpenServicePicker}
-                className="text-xs underline transition hover:no-underline"
-                style={{ color: TAUPE }}
+                className="text-xs underline decoration-[rgba(201,174,126,0.65)] underline-offset-4 transition hover:no-underline"
+                style={{ color: PALETTE.taupe }}
                 type="button"
               >
                 {t.addMore}
