@@ -201,7 +201,7 @@ export default function Home() {
         onClose={() => setShowAddedModal(false)}
         onAddMore={() => {
           setShowAddedModal(false);
-          scrollToServices();
+          setShowPickerModal(true);
         }}
         onContinue={handleContinueToBooking}
         lang={lang}
