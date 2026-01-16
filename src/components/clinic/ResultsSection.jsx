@@ -2,45 +2,56 @@ import React from "react";
 
 const results = [
   {
-    id: 1,
-    treatmentEn: "Laser Hair Removal",
-    treatmentEs: "Depilación Láser",
-    areaEn: "Full Legs",
-    areaEs: "Piernas Completas",
-    beforeImage: "/results/laser-legs-before.jpg",
-    afterImage: "/results/laser-legs-after.jpg",
+    nameEs: "Depilación Láser",
+    nameEn: "Laser Hair Removal",
+    areaEs: "Piernas completas",
+    areaEn: "Full legs",
+    before: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=400&h=400&fit=crop",
+    after: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=400&h=400&fit=crop",
   },
   {
-    id: 2,
-    treatmentEn: "Carbon Peel",
-    treatmentEs: "Peeling de Carbón",
-    areaEn: "Face",
-    areaEs: "Rostro",
-    beforeImage: "/results/carbon-face-before.jpg",
-    afterImage: "/results/carbon-face-after.jpg",
+    nameEs: "Carbon Peel",
+    nameEn: "Carbon Peel",
+    areaEs: "Rostro completo",
+    areaEn: "Full face",
+    before: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
+    after: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop",
   },
   {
-    id: 3,
-    treatmentEn: "Tattoo Removal",
-    treatmentEs: "Remoción de Tatuajes",
-    areaEn: "Arm",
-    areaEs: "Brazo",
-    beforeImage: "/results/tattoo-arm-before.jpg",
-    afterImage: "/results/tattoo-arm-after.jpg",
+    nameEs: "Eliminación de Tatuajes",
+    nameEn: "Tattoo Removal",
+    areaEs: "Brazo superior",
+    areaEn: "Upper arm",
+    before: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400&h=400&fit=crop",
+    after: "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?w=400&h=400&fit=crop",
   },
   {
-    id: 4,
-    treatmentEn: "HIFU",
-    treatmentEs: "HIFU",
-    areaEn: "Face & Neck",
-    areaEs: "Rostro y Cuello",
-    beforeImage: "/results/hifu-face-neck-before.jpg",
-    afterImage: "/results/hifu-face-neck-after.jpg",
+    nameEs: "Plasma Fibroblast",
+    nameEn: "Plasma Fibroblast",
+    areaEs: "Párpados superiores",
+    areaEn: "Upper eyelids",
+    before: "https://images.unsplash.com/photo-1499887142886-791eca5918cd?w=400&h=400&fit=crop",
+    after: "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=400&h=400&fit=crop",
+  },
+  {
+    nameEs: "Microneedling",
+    nameEn: "Microneedling",
+    areaEs: "Cicatrices de acné",
+    areaEn: "Acne scars",
+    before: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop",
+    after: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=400&fit=crop",
+  },
+  {
+    nameEs: "HIFU Rejuvenecimiento",
+    nameEn: "HIFU Rejuvenation",
+    areaEs: "Lifting facial",
+    areaEn: "Facial lifting",
+    before: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
+    after: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop",
   },
 ];
 
-export default function ResultsSection({ lang }) {
-  // NEW PALETTE (shared)
+export default function ResultsSection({ lang = "es", sectionRef }) {
   const CREAM = "#FBF8F3";
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
@@ -49,201 +60,136 @@ export default function ResultsSection({ lang }) {
   const ROSE = "#C39A8B";
   const TAUPE = "#8B7468";
 
-  const isEs = lang === "es";
-
   return (
     <section
       id="ResultsSection"
-      className="py-16 md:py-20 lg:py-28"
-      style={{ backgroundColor: LINEN }}
+      ref={sectionRef}
+      className="relative overflow-hidden py-28 md:py-36 lg:py-44"
+      style={{ backgroundColor: CREAM }}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
-        {/* Section Header */}
-        <div className="text-center mb-10 md:mb-12">
-          <div
-            className="mx-auto inline-flex items-center gap-2 rounded-full border px-5 py-2"
-            style={{
-              backgroundColor: "rgba(255,252,248,0.70)",
-              borderColor: "rgba(42,30,26,0.10)",
-            }}
-          >
-            <span
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: CHAMPAGNE }}
-            />
-            <span
-              className="text-[11px] font-semibold uppercase tracking-[0.28em]"
-              style={{ color: TAUPE }}
-            >
-              {isEs ? "ANTES / DESPUÉS" : "BEFORE / AFTER"}
-            </span>
-          </div>
+      {/* Clean subtle backdrop */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(1200px 600px at 50% 20%, rgba(201,174,126,0.06), transparent 70%),
+            linear-gradient(to bottom, rgba(251,248,243,0.4), rgba(241,232,221,0.8))
+          `,
+        }}
+      />
 
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+        {/* Section Header */}
+        <div className="mx-auto mb-20 max-w-2xl text-center">
           <h2
-            className="mt-6 text-3xl md:text-4xl font-light"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
             style={{ color: ESPRESSO }}
           >
-            {isEs ? "Resultados Reales" : "Real Results"}
+            {lang === "es" ? "Nuestros Resultados" : "Our Results"}
           </h2>
 
-          <p className="mt-3 max-w-2xl mx-auto" style={{ color: COCOA }}>
-            {isEs
-              ? "Transformaciones auténticas de nuestros pacientes."
-              : "Authentic transformations from our patients."}
+          <p
+            className="font-body text-lg md:text-xl leading-relaxed"
+            style={{ color: COCOA, opacity: 0.88 }}
+          >
+            {lang === "es"
+              ? "Casos reales de nuestros clientes. Imágenes sin editar."
+              : "Real cases from our clients. Unedited images."}
           </p>
-
-          <div
-            className="mx-auto mt-6 h-px w-28"
-            style={{
-              backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
-              opacity: 0.75,
-            }}
-          />
         </div>
 
         {/* Results Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {results.map((result) => {
-            const treatment = isEs ? result.treatmentEs : result.treatmentEn;
-            const area = isEs ? result.areaEs : result.areaEn;
-
-            return (
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+          {results.map((result, idx) => (
+            <div
+              key={idx}
+              className="group relative overflow-hidden rounded-3xl transition-all duration-500 hover:-translate-y-2"
+              style={{
+                backgroundColor: "rgba(255,252,248,0.95)",
+                border: "1px solid rgba(42,30,26,0.06)",
+                boxShadow: "0 8px 32px rgba(42,30,26,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+              }}
+            >
+              {/* Hover glow */}
               <div
-                key={result.id}
-                className="group relative overflow-hidden rounded-3xl border shadow-[0_24px_80px_rgba(42,30,26,0.12)] transition-transform duration-300 hover:-translate-y-0.5"
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                 style={{
-                  backgroundColor: "rgba(255,252,248,0.90)",
-                  borderColor: "rgba(42,30,26,0.10)",
-                  backdropFilter: "blur(10px)",
+                  background: "radial-gradient(600px 300px at 50% 0%, rgba(201,174,126,0.08), transparent 70%)",
                 }}
-              >
-                {/* Soft glow */}
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_70%_0%,rgba(201,174,126,0.18),transparent_60%),radial-gradient(900px_420px_at_15%_50%,rgba(195,154,139,0.10),transparent_62%)]" />
+              />
 
-                {/* Before/After */}
-                <div className="relative p-4">
+              <div className="relative p-6">
+                {/* Title */}
+                <div className="mb-6">
+                  <h3 className="font-display text-xl font-medium tracking-tight mb-1" style={{ color: ESPRESSO }}>
+                    {lang === "es" ? result.nameEs : result.nameEn}
+                  </h3>
+                  <p className="font-body text-sm" style={{ color: TAUPE }}>
+                    {lang === "es" ? result.areaEs : result.areaEn}
+                  </p>
+                </div>
+
+                {/* Before/After with premium framing */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div
-                    className="grid grid-cols-2 overflow-hidden rounded-2xl border"
-                    style={{ borderColor: "rgba(42,30,26,0.10)" }}
+                    className="relative overflow-hidden rounded-2xl"
+                    style={{
+                      border: "1px solid rgba(42,30,26,0.08)",
+                      boxShadow: "inset 0 2px 8px rgba(42,30,26,0.04)",
+                    }}
                   >
-                    {/* BEFORE */}
+                    <img
+                      src={result.before}
+                      alt={lang === "es" ? "Antes" : "Before"}
+                      className="h-52 w-full object-cover"
+                    />
                     <div
-                      className="relative aspect-square flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(241,232,221,0.85)" }}
+                      className="absolute bottom-3 left-3 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-md"
+                      style={{
+                        backgroundColor: "rgba(255,252,248,0.92)",
+                        border: "1px solid rgba(42,30,26,0.08)",
+                        color: ESPRESSO,
+                      }}
                     >
-                      {result.beforeImage ? (
-                        <img
-                          src={result.beforeImage}
-                          alt={`${isEs ? "Antes" : "Before"} ${treatment} – ${area}`}
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.35),transparent_55%)]" />
-                      )}
-
-                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.35),transparent_55%)]" />
-
-                      <span
-                        className="relative text-[11px] font-semibold uppercase tracking-[0.28em]"
-                        style={{ color: TAUPE }}
-                      >
-                        {isEs ? "Antes" : "Before"}
-                      </span>
-
-                      <span
-                        className="absolute left-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                        style={{
-                          backgroundColor: "rgba(255,252,248,0.75)",
-                          color: ESPRESSO,
-                          border: "1px solid rgba(42,30,26,0.10)",
-                        }}
-                      >
-                        A
-                      </span>
-                    </div>
-
-                    {/* AFTER */}
-                    <div
-                      className="relative aspect-square flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(201,174,126,0.18)" }}
-                    >
-                      {result.afterImage ? (
-                        <img
-                          src={result.afterImage}
-                          alt={`${isEs ? "Después" : "After"} ${treatment} – ${area}`}
-                          className="absolute inset-0 h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.25),transparent_55%)]" />
-                      )}
-
-                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.25),transparent_55%)]" />
-
-                      <span
-                        className="relative text-[11px] font-semibold uppercase tracking-[0.28em]"
-                        style={{ color: TAUPE }}
-                      >
-                        {isEs ? "Después" : "After"}
-                      </span>
-
-                      <span
-                        className="absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                        style={{
-                          backgroundColor: "rgba(255,252,248,0.75)",
-                          color: ESPRESSO,
-                          border: "1px solid rgba(42,30,26,0.10)",
-                        }}
-                      >
-                        B
-                      </span>
+                      {lang === "es" ? "Antes" : "Before"}
                     </div>
                   </div>
 
-                  {/* Info */}
-                  <div className="mt-4">
-                    <p className="text-sm font-medium" style={{ color: ESPRESSO }}>
-                      {treatment}
-                    </p>
-                    <p className="mt-1 text-xs" style={{ color: COCOA }}>
-                      {area}
-                    </p>
-
-                    <div
-                      className="mt-4 h-px w-full"
-                      style={{ backgroundColor: "rgba(42,30,26,0.08)" }}
+                  <div
+                    className="relative overflow-hidden rounded-2xl"
+                    style={{
+                      border: "1px solid rgba(42,30,26,0.08)",
+                      boxShadow: "inset 0 2px 8px rgba(42,30,26,0.04)",
+                    }}
+                  >
+                    <img
+                      src={result.after}
+                      alt={lang === "es" ? "Después" : "After"}
+                      className="h-52 w-full object-cover"
                     />
-
-                    <p
-                      className="mt-3 text-[11px] uppercase tracking-[0.22em]"
-                      style={{ color: TAUPE }}
+                    <div
+                      className="absolute bottom-3 right-3 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-md"
+                      style={{
+                        backgroundColor: "rgba(255,252,248,0.92)",
+                        border: "1px solid rgba(42,30,26,0.08)",
+                        color: ESPRESSO,
+                      }}
                     >
-                      {isEs ? "Resultados visibles" : "Visible improvement"}
-                    </p>
+                      {lang === "es" ? "Después" : "After"}
+                    </div>
                   </div>
                 </div>
 
-                {/* Bottom accent line */}
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]"
-                  style={{
-                    backgroundImage: `linear-gradient(to right, transparent, ${ROSE}, ${CHAMPAGNE}, transparent)`,
-                    opacity: 0.9,
-                  }}
-                />
+                {/* Disclaimer */}
+                <p className="font-body text-xs leading-relaxed" style={{ color: TAUPE, opacity: 0.8 }}>
+                  {lang === "es"
+                    ? "* Los resultados individuales pueden variar. Consulta con nuestro especialista."
+                    : "* Individual results may vary. Consult with our specialist."}
+                </p>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
-
-        {/* Disclaimer */}
-        <p
-          className="text-center text-xs mt-10 italic"
-          style={{ color: "rgba(107,90,82,0.75)" }}
-        >
-          {isEs
-            ? "Los resultados pueden variar según cada paciente. Todas las fotos son de pacientes reales con su consentimiento."
-            : "Results may vary depending on each patient. All photos are from real patients with their consent."}
-        </p>
       </div>
     </section>
   );
