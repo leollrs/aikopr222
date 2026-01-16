@@ -30,6 +30,8 @@ export default function PaymentSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const DEPOSIT_AMOUNT = 30;
+
   if (!bookingData) return null;
 
   const copy = {
@@ -39,7 +41,9 @@ export default function PaymentSection({
       subtitle: "Pago seguro para confirmar tu horario. Atención móvil en tu hogar.",
       secure: "Pago seguro y encriptado",
       summary: "Resumen",
-      servicesTotal: "Total servicios",
+      servicesTotal: "Servicios seleccionados",
+      depositToday: "Depósito requerido hoy",
+      remainingBalance: "Balance restante",
       confirm: "Confirmar cita",
       confirmedTitle: "¡Cita Confirmada!",
       confirmedBody: "Te hemos enviado un correo con los detalles de tu cita.",
@@ -52,6 +56,7 @@ export default function PaymentSection({
       noServices: "No hay servicios seleccionados.",
       addMore: "Agregar más servicios",
       hint: "Puedes agregar más servicios antes de confirmar.",
+      balanceNote: "El resto del balance se paga el día de la cita.",
     },
     en: {
       badge: "Secure checkout",
@@ -59,7 +64,9 @@ export default function PaymentSection({
       subtitle: "Secure checkout to confirm your time. Mobile service at your home.",
       secure: "Secure and encrypted payment",
       summary: "Summary",
-      servicesTotal: "Services total",
+      servicesTotal: "Selected services",
+      depositToday: "Deposit due today",
+      remainingBalance: "Remaining balance",
       confirm: "Confirm appointment",
       confirmedTitle: "Appointment Confirmed!",
       confirmedBody: "We’ve emailed you your appointment details.",
@@ -72,6 +79,7 @@ export default function PaymentSection({
       noServices: "No services selected.",
       addMore: "Add more services",
       hint: "You can add more services before confirming.",
+      balanceNote: "The remaining balance is paid on the day of your appointment.",
     },
   };
 
