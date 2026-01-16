@@ -1,12 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 
-export default function ServiceCard({
-  service,
-  lang,
-  onAddService,
-  onViewDetails,
-}) {
+export default function ServiceCard({ service, lang, onAddService, onViewDetails }) {
   // NEW PALETTE (shared)
   const CREAM = "#FBF8F3";
   const LINEN = "#F1E8DD";
@@ -21,7 +16,7 @@ export default function ServiceCard({
 
   return (
     <div
-      className="group relative mx-auto flex h-full max-w-md flex-col overflow-hidden rounded-3xl border p-8 transition-all duration-500 hover:-translate-y-2"
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border p-8 transition-all duration-500 hover:-translate-y-2"
       style={{
         backgroundColor: "rgba(255,252,248,0.92)",
         borderColor: "rgba(42,30,26,0.08)",
@@ -34,30 +29,19 @@ export default function ServiceCard({
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col">
         {/* Title */}
-        <h3
-          className="mb-4 font-display text-xl font-medium tracking-tight"
-          style={{ color: ESPRESSO }}
-        >
+        <h3 className="font-display text-xl font-medium tracking-tight mb-4" style={{ color: ESPRESSO }}>
           {name}
         </h3>
 
         {/* Meta */}
-        <div
-          className="mb-6 flex items-center gap-3 text-sm"
-          style={{ color: TAUPE }}
-        >
+        <div className="mb-6 flex items-center gap-3 text-sm" style={{ color: TAUPE }}>
           <span className="font-medium">{service.duration}</span>
           <span style={{ color: CHAMPAGNE }}>•</span>
-          <span className="font-semibold" style={{ color: ESPRESSO }}>
-            ${service.price}
-          </span>
+          <span className="font-semibold" style={{ color: ESPRESSO }}>${service.price}</span>
         </div>
 
         {/* Description */}
-        <p
-          className="mb-8 flex-grow font-body text-base leading-relaxed"
-          style={{ color: COCOA, opacity: 0.88 }}
-        >
+        <p className="font-body flex-grow text-base leading-relaxed mb-8" style={{ color: COCOA, opacity: 0.88 }}>
           {desc}
         </p>
 
