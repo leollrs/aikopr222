@@ -4,13 +4,6 @@ import { Elements } from "@stripe/react-stripe-js";
 import PaymentSection from "./PaymentSection";
 import { base44 } from "@/api/base44Client";
 
-// IMPORTANT:
-// Set VITE_STRIPE_PUBLISHABLE_KEY in your Base44 env to your real Stripe publishable key.
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
-
-console.log("stripeKey:", import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
 export default function PaymentSectionWrapper({
   lang,
   bookingData,
@@ -20,103 +13,17 @@ export default function PaymentSectionWrapper({
   onOpenServicePicker,
   sectionRef,
 }) {
-  const [clientSecret, setClientSecret] = useState("");
-  const [isCreatingIntent, setIsCreatingIntent] = useState(false);
-  const [intentError, setIntentError] = useState("");
-
-  // Compute total in cents (Stripe requires integer cents)
-  const totalCents = useMemo(() => {
-    const totalDollars = (cart || []).reduce(
-      (sum, s) => sum + (Number(s?.price) || 0),
-      0
-    );
-    const cents = Math.round(Number(totalDollars) * 100);
-    return Number.isFinite(cents) ? cents : 0;
-  }, [cart]);
-
-  // Light, safe metadata (Stripe metadata values should be strings)
-  const metadata = useMemo(() => {
-    const email = String(bookingData?.email || "").toLowerCase().trim().slice(0, 120);
-    const date = String(bookingData?.date || "").trim().slice(0, 40);
-    const time = String(bookingData?.time || "").trim().slice(0, 40);
-
-    // Keep short; avoid huge metadata payloads
-    const services = (cart || [])
-      .map((s) => String(s?.id ?? s?.nameEn ?? "").trim())
-      .filter(Boolean)
-      .slice(0, 20)
-      .join(",");
-
-    return { email, date, time, services };
-  }, [bookingData, cart]);
-
-  // Create PaymentIntent when we have bookingData + non-empty cart + valid amount
-  useEffect(() => {
-    let cancelled = false;
-
-    async function createIntent() {
-      setIsCreatingIntent(true);
-      setIntentError("");
-
-      try {
-        const response = await base44.functions.invoke("createPaymentIntent", {
-          body: {
-            amountCents: totalCents,
-            currency: "usd",
-            metadata,
-          },
-        });
-
-        if (cancelled) return;
-
-        if (response?.error) {
-          throw new Error(
-            response.error?.message || response.error || "Failed to initialize payment"
-          );
-        }
-
-        const secret = response?.data?.clientSecret;
-        if (!secret) {
-          throw new Error("Missing clientSecret from server.");
-        }
-
-        setClientSecret(secret);
-      } catch (err) {
-        if (cancelled) return;
-        console.error("Error creating payment intent:", err);
-        setClientSecret("");
-        setIntentError(err?.message || "Failed to initialize payment");
-      } finally {
-        if (!cancelled) setIsCreatingIntent(false);
-      }
-    }
-
-    // Reset if not ready
-    if (!bookingData || !cart?.length || totalCents <= 0) {
-      setClientSecret("");
-      setIntentError("");
-      setIsCreatingIntent(false);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    createIntent();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [bookingData, cart, totalCents, metadata]);
-
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
   const ROSE = "#C39A8B";
 
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
   if (!bookingData) return null;
 
-  // Check if Stripe key is configured
-  if (!stripePromise) {
+  // ✅ Frontend publishable key guard
+  if (!stripeKey) {
     return (
       <section
         ref={sectionRef}
@@ -137,8 +44,8 @@ export default function PaymentSectionWrapper({
             </p>
             <p className="text-sm" style={{ color: COCOA }}>
               {lang === "es"
-                ? "La clave de Stripe no está configurada. Por favor contacta al administrador."
-                : "Stripe key is not configured. Please contact the administrator."}
+                ? "Falta VITE_STRIPE_PUBLISHABLE_KEY en el frontend. Configúrala y redeploy."
+                : "Missing VITE_STRIPE_PUBLISHABLE_KEY in the frontend. Set it and redeploy."}
             </p>
           </div>
         </div>
@@ -146,7 +53,93 @@ export default function PaymentSectionWrapper({
     );
   }
 
-  // Loading UI while creating intent
+  const stripePromise = useMemo(() => loadStripe(stripeKey), [stripeKey]);
+
+  const [clientSecret, setClientSecret] = useState("");
+  const [isCreatingIntent, setIsCreatingIntent] = useState(false);
+  const [intentError, setIntentError] = useState("");
+
+  // Compute total in cents
+  const totalCents = useMemo(() => {
+    const totalDollars = (cart || []).reduce(
+      (sum, s) => sum + (Number(s?.price) || 0),
+      0
+    );
+    const cents = Math.round(totalDollars * 100);
+    return Number.isFinite(cents) ? cents : 0;
+  }, [cart]);
+
+  // Metadata (small + strings only)
+  const metadata = useMemo(() => {
+    const email = String(bookingData?.email || "").toLowerCase().trim().slice(0, 120);
+    const date = String(bookingData?.date || "").trim().slice(0, 40);
+    const time = String(bookingData?.time || "").trim().slice(0, 40);
+
+    const services = (cart || [])
+      .map((s) => String(s?.id ?? s?.nameEn ?? "").trim())
+      .filter(Boolean)
+      .slice(0, 20)
+      .join(",");
+
+    return { email, date, time, services };
+  }, [bookingData, cart]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function createIntent() {
+      setIsCreatingIntent(true);
+      setIntentError("");
+      setClientSecret("");
+
+      try {
+        // ✅ IMPORTANT: send JSON directly (no { body: ... })
+        const res = await base44.functions.invoke("createPaymentIntent", {
+          amountCents: totalCents,
+          currency: "usd",
+          metadata,
+        });
+
+        if (cancelled) return;
+
+        // Base44 returns the function JSON under res.data
+        const secret = res?.data?.clientSecret;
+        if (!secret) {
+          const errMsg =
+            res?.data?.error ||
+            res?.error?.message ||
+            res?.error ||
+            "Missing clientSecret from server.";
+          throw new Error(errMsg);
+        }
+
+        setClientSecret(secret);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("createPaymentIntent failed:", err);
+        setIntentError(err?.message || "Failed to initialize payment.");
+      } finally {
+        if (!cancelled) setIsCreatingIntent(false);
+      }
+    }
+
+    // reset if not ready
+    if (!cart?.length || totalCents <= 0) {
+      setClientSecret("");
+      setIntentError("");
+      setIsCreatingIntent(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    createIntent();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cart, totalCents, metadata]);
+
   if (isCreatingIntent) {
     return (
       <section
@@ -163,7 +156,6 @@ export default function PaymentSectionWrapper({
     );
   }
 
-  // Error UI if intent creation failed
   if (intentError) {
     return (
       <section
@@ -181,7 +173,6 @@ export default function PaymentSectionWrapper({
             }}
           >
             <p className="mb-4">{intentError}</p>
-
             <button
               onClick={() => window.location.reload()}
               className="text-sm underline"
@@ -196,11 +187,8 @@ export default function PaymentSectionWrapper({
     );
   }
 
-  // If we still don't have a clientSecret, don't render Elements.
-  // (This prevents Stripe Element initialization errors.)
   if (!clientSecret) return null;
 
-  // Stripe Elements appearance (optional)
   const options = {
     clientSecret,
     appearance: {
