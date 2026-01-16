@@ -1,19 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+// ServiceModal.jsx (FULL with hero image + before/after fallback)
+import React, { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ServiceModal({
-  service,
-  lang,
-  isOpen,
-  onClose,
-  onAddService,
-}) {
+export default function ServiceModal({ service, lang, isOpen, onClose, onAddService }) {
   if (!isOpen || !service) return null;
 
-  // NEW PALETTE (shared)
-  const CREAM = "#FBF8F3";
-  const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
   const CHAMPAGNE = "#C9AE7E";
@@ -25,25 +17,18 @@ export default function ServiceModal({
   const benefits = lang === "es" ? service.benefitsEs : service.benefitsEn;
   const desc = lang === "es" ? service.descEs : service.descEn;
 
-  // Optional: wire these up however you store images.
-  // Example:
-  // service.caseStudy.beforeImage = "/results/laser-legs-before.jpg"
-  // service.caseStudy.afterImage  = "/results/laser-legs-after.jpg"
   const beforeImage = service?.caseStudy?.beforeImage || "";
   const afterImage = service?.caseStudy?.afterImage || "";
 
   return (
     <>
-      {/* Backdrop (no harsh black) */}
       <div
         className="fixed inset-0 z-50 backdrop-blur-sm"
         style={{ backgroundColor: "rgba(42,30,26,0.28)" }}
         onClick={onClose}
       />
 
-      {/* Modal wrapper */}
       <div className="fixed inset-x-0 bottom-0 z-50 p-4 md:inset-0 md:flex md:items-center md:justify-center md:p-6">
-        {/* Modal shell */}
         <div
           className="relative w-full max-w-xl overflow-hidden rounded-t-[26px] border shadow-[0_40px_120px_rgba(42,30,26,0.22)] md:rounded-[28px]"
           style={{
@@ -52,10 +37,8 @@ export default function ServiceModal({
             backdropFilter: "blur(14px)",
           }}
         >
-          {/* Glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1100px_620px_at_20%_0%,rgba(201,174,126,0.22),transparent_62%),radial-gradient(900px_520px_at_90%_10%,rgba(195,154,139,0.16),transparent_62%)]" />
 
-          {/* Header */}
           <div
             className="sticky top-0 z-10 flex items-center justify-between border-b px-6 py-4 backdrop-blur"
             style={{
@@ -65,10 +48,7 @@ export default function ServiceModal({
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: CHAMPAGNE }}
-                />
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
                 <span
                   className="text-[11px] font-semibold tracking-[0.28em] uppercase"
                   style={{ color: TAUPE }}
@@ -76,10 +56,7 @@ export default function ServiceModal({
                   {lang === "es" ? "Detalles del servicio" : "Service details"}
                 </span>
               </div>
-              <h3
-                className="mt-2 truncate text-xl font-medium tracking-[-0.01em]"
-                style={{ color: ESPRESSO }}
-              >
+              <h3 className="mt-2 truncate text-xl font-medium tracking-[-0.01em]" style={{ color: ESPRESSO }}>
                 {name}
               </h3>
             </div>
@@ -97,8 +74,25 @@ export default function ServiceModal({
             </button>
           </div>
 
-          {/* Content */}
           <div className="relative max-h-[72vh] overflow-y-auto px-6 py-6 md:max-h-[75vh]">
+            {/* Hero image */}
+            {service.image && (
+              <div
+                className="mb-6 overflow-hidden rounded-2xl border"
+                style={{ borderColor: "rgba(42,30,26,0.10)" }}
+              >
+                <div className="relative">
+                  <img
+                    src={service.image}
+                    alt={name}
+                    className="h-52 w-full object-cover md:h-60"
+                    loading="lazy"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(42,30,26,0.25),transparent_55%)]" />
+                </div>
+              </div>
+            )}
+
             {/* Meta */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div
@@ -117,7 +111,6 @@ export default function ServiceModal({
                 </span>
               </div>
 
-              {/* Price badge (remove if you don’t want pricing anywhere) */}
               <div
                 className="inline-flex items-center rounded-full border px-4 py-2"
                 style={{
@@ -149,10 +142,7 @@ export default function ServiceModal({
                 backgroundColor: "rgba(241,232,221,0.55)",
               }}
             >
-              <h4
-                className="text-xs font-semibold tracking-[0.22em] uppercase"
-                style={{ color: ESPRESSO }}
-              >
+              <h4 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
                 {lang === "es" ? "Ideal para" : "Ideal for"}
               </h4>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA }}>
@@ -162,10 +152,7 @@ export default function ServiceModal({
 
             {/* Benefits */}
             <div className="mt-7">
-              <h4
-                className="text-xs font-semibold tracking-[0.22em] uppercase"
-                style={{ color: ESPRESSO }}
-              >
+              <h4 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
                 {lang === "es" ? "Beneficios" : "Benefits"}
               </h4>
 
@@ -203,46 +190,44 @@ export default function ServiceModal({
             >
               <div className="flex items-center justify-between gap-3 px-5 py-4">
                 <div>
-                  <div
-                    className="text-xs font-semibold tracking-[0.22em] uppercase"
-                    style={{ color: ESPRESSO }}
-                  >
+                  <div className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
                     {lang === "es" ? "Caso real" : "Real case"}
                   </div>
                   <div className="mt-1 text-sm" style={{ color: COCOA }}>
-                    {service.caseStudy.sessions}{" "}
-                    {lang === "es" ? "sesiones" : "sessions"} · {service.caseStudy.months}{" "}
-                    {lang === "es" ? "meses" : "months"} · ~{service.caseStudy.improvement}{" "}
-                    {lang === "es" ? "mejora" : "improvement"}
+                    {service.caseStudy.sessions} {lang === "es" ? "sesiones" : "sessions"} ·{" "}
+                    {service.caseStudy.months} {lang === "es" ? "meses" : "months"} · ~
+                    {service.caseStudy.improvement} {lang === "es" ? "mejora" : "improvement"}
                   </div>
-                </div>
-
-                <div
-                  className="hidden sm:inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
-                  style={{
-                    borderColor: "rgba(42,30,26,0.12)",
-                    backgroundColor: "rgba(255,252,248,0.60)",
-                    color: ESPRESSO,
-                  }}
-                >
-                  {lang === "es" ? "Desliza para comparar" : "Slide to compare"}
                 </div>
               </div>
 
               <div className="px-5 pb-5">
-                <BeforeAfterSlider
-                  lang={lang}
-                  beforeSrc={beforeImage}
-                  afterSrc={afterImage}
-                  // If you want, pass a fixed start position:
-                  // initial={55}
-                  containerStyle={{
-                    borderColor: "rgba(42,30,26,0.10)",
-                    backgroundColor: "rgba(241,232,221,0.75)",
-                  }}
-                  accent={CHAMPAGNE}
-                  textColor={ESPRESSO}
-                />
+                {beforeImage && afterImage ? (
+                  <BeforeAfterSlider
+                    lang={lang}
+                    beforeSrc={beforeImage}
+                    afterSrc={afterImage}
+                    containerStyle={{
+                      borderColor: "rgba(42,30,26,0.10)",
+                      backgroundColor: "rgba(241,232,221,0.75)",
+                    }}
+                    accent={CHAMPAGNE}
+                    textColor={ESPRESSO}
+                  />
+                ) : (
+                  <div
+                    className="rounded-xl border p-6 text-sm"
+                    style={{
+                      borderColor: "rgba(42,30,26,0.10)",
+                      color: COCOA,
+                      backgroundColor: "rgba(255,252,248,0.55)",
+                    }}
+                  >
+                    {lang === "es"
+                      ? "Fotos de resultados disponibles pronto."
+                      : "Result photos coming soon."}
+                  </div>
+                )}
 
                 <p className="mt-4 text-xs italic" style={{ color: "rgba(107,90,82,0.78)" }}>
                   {lang === "es"
@@ -255,7 +240,6 @@ export default function ServiceModal({
             <div className="h-6" />
           </div>
 
-          {/* Footer */}
           <div
             className="sticky bottom-0 z-10 flex gap-3 border-t px-6 py-4 backdrop-blur"
             style={{
@@ -297,11 +281,6 @@ export default function ServiceModal({
   );
 }
 
-/**
- * Before/After slider:
- * - Drag the handle (mouse/touch)
- * - Also has an invisible range input for accessibility + keyboard control
- */
 function BeforeAfterSlider({
   lang,
   beforeSrc,
@@ -314,7 +293,6 @@ function BeforeAfterSlider({
   const [pct, setPct] = useState(clamp(initial, 0, 100));
   const wrapRef = useRef(null);
   const draggingRef = useRef(false);
-
   const isEs = lang === "es";
 
   const setFromClientX = (clientX) => {
@@ -343,7 +321,6 @@ function BeforeAfterSlider({
     draggingRef.current = false;
   };
 
-  // Nice defaults if you haven’t uploaded images yet
   const hasBefore = Boolean(beforeSrc);
   const hasAfter = Boolean(afterSrc);
 
@@ -351,11 +328,7 @@ function BeforeAfterSlider({
     <div
       ref={wrapRef}
       className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border select-none"
-      style={{
-        ...containerStyle,
-        position: "relative",
-        touchAction: "none", // important for iOS drag
-      }}
+      style={{ ...containerStyle, position: "relative", touchAction: "none" }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -364,7 +337,7 @@ function BeforeAfterSlider({
       aria-label={isEs ? "Comparación antes y después" : "Before and after comparison"}
       role="group"
     >
-      {/* AFTER (full) */}
+      {/* AFTER */}
       {hasAfter ? (
         <img
           src={afterSrc}
@@ -380,12 +353,8 @@ function BeforeAfterSlider({
         </div>
       )}
 
-      {/* BEFORE (clipped) */}
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${pct}%` }}
-        aria-hidden="true"
-      >
+      {/* BEFORE clipped */}
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pct}%` }} aria-hidden="true">
         {hasBefore ? (
           <img
             src={beforeSrc}
@@ -402,10 +371,8 @@ function BeforeAfterSlider({
         )}
       </div>
 
-      {/* Soft top gradient */}
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.16),transparent_60%)]" />
 
-      {/* Labels */}
       <div
         className="pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
         style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
@@ -419,7 +386,6 @@ function BeforeAfterSlider({
         {isEs ? "Después" : "After"}
       </div>
 
-      {/* Divider line */}
       <div
         className="pointer-events-none absolute inset-y-0"
         style={{
@@ -430,13 +396,9 @@ function BeforeAfterSlider({
         }}
       />
 
-      {/* Handle */}
       <div
         className="absolute top-1/2 -translate-y-1/2"
-        style={{
-          left: `${pct}%`,
-          transform: "translate(-50%, -50%)",
-        }}
+        style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}
       >
         <div
           className="flex h-11 w-11 items-center justify-center rounded-full border shadow-[0_20px_60px_rgba(42,30,26,0.22)]"
@@ -447,23 +409,13 @@ function BeforeAfterSlider({
           }}
         >
           <div className="flex items-center gap-1">
-            <span
-              className="h-3 w-[2px] rounded"
-              style={{ backgroundColor: accent, opacity: 0.9 }}
-            />
-            <span
-              className="h-5 w-[2px] rounded"
-              style={{ backgroundColor: accent, opacity: 0.9 }}
-            />
-            <span
-              className="h-3 w-[2px] rounded"
-              style={{ backgroundColor: accent, opacity: 0.9 }}
-            />
+            <span className="h-3 w-[2px] rounded" style={{ backgroundColor: accent, opacity: 0.9 }} />
+            <span className="h-5 w-[2px] rounded" style={{ backgroundColor: accent, opacity: 0.9 }} />
+            <span className="h-3 w-[2px] rounded" style={{ backgroundColor: accent, opacity: 0.9 }} />
           </div>
         </div>
       </div>
 
-      {/* Accessible slider (invisible) */}
       <input
         type="range"
         min={0}
@@ -474,7 +426,6 @@ function BeforeAfterSlider({
         aria-label={isEs ? "Deslizar comparación" : "Slide comparison"}
       />
 
-      {/* Hint */}
       <div
         className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] backdrop-blur"
         style={{
