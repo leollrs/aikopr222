@@ -13,8 +13,7 @@ const services = [
       "Permanent hair removal with state-of-the-art laser technology for all skin types.",
     duration: "30-60 min",
     price: 99,
-    idealEs:
-      "Ideal para quienes buscan una solución permanente al vello no deseado.",
+    idealEs: "Ideal para quienes buscan una solución permanente al vello no deseado.",
     idealEn: "Ideal for those seeking a permanent solution to unwanted hair.",
     benefitsEs: ["Resultados duraderos", "Sin dolor significativo", "Apto para todo tipo de piel"],
     benefitsEn: ["Long-lasting results", "Minimal discomfort", "Suitable for all skin types"],
@@ -37,8 +36,7 @@ const services = [
       "Rejuvenating facial treatment using carbon and laser for instantly radiant skin.",
     duration: "45 min",
     price: 149,
-    idealEs:
-      "Perfecto para eventos especiales o mantenimiento regular de la piel.",
+    idealEs: "Perfecto para eventos especiales o mantenimiento regular de la piel.",
     idealEn: "Perfect for special events or regular skin maintenance.",
     benefitsEs: ["Piel luminosa inmediata", "Reduce poros", "Sin tiempo de recuperación"],
     benefitsEn: ["Immediate glowing skin", "Reduces pores", "No downtime"],
@@ -193,12 +191,7 @@ const services = [
 
 export { services };
 
-export default function ServicesSection({
-  lang = "es",
-  onAddService,
-  onViewDetails,
-  sectionRef,
-}) {
+export default function ServicesSection({ lang = "es", onAddService, onViewDetails, sectionRef }) {
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
@@ -229,10 +222,7 @@ export default function ServicesSection({
             {lang === "es" ? "Nuestros Servicios" : "Our Services"}
           </h2>
 
-          <p
-            className="font-body text-lg md:text-xl leading-relaxed"
-            style={{ color: COCOA, opacity: 0.88 }}
-          >
+          <p className="font-body text-lg md:text-xl leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
             {lang === "es"
               ? "Tratamientos estéticos de última generación realizados por profesionales certificados."
               : "State-of-the-art aesthetic treatments performed by certified professionals."}
