@@ -24,7 +24,7 @@ const content = {
     cardDesc:
       "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
     cardMeta1: "60–75 min",
-    cardMeta2: "Desde $___",
+    cardMeta2: "Desde $99",
     cardNote: "Consulta inicial incluida",
     checkAvailability: "Consultar disponibilidad",
     rec: "Recomendación personalizada",
@@ -43,7 +43,7 @@ const content = {
     cardDesc:
       "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin.",
     cardMeta1: "60–75 min",
-    cardMeta2: "From $___",
+    cardMeta2: "From $99",
     cardNote: "Initial consult included",
     checkAvailability: "Check availability",
     rec: "Personalized recommendation",
