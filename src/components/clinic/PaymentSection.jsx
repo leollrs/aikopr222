@@ -110,7 +110,13 @@ export default function PaymentSection({
       type: "appointment_confirmed",
       status: "paid",
       createdAt: new Date().toISOString(),
-      totals: { servicesTotal: Number(totalServices) || 0, currency: "USD" },
+      payment: {
+        deposit: DEPOSIT_AMOUNT,
+        total: Number(totalServices) || 0,
+        remaining: Math.max(0, (Number(totalServices) || 0) - DEPOSIT_AMOUNT),
+      },
+      serviceType: bookingData?.serviceType || "unknown",
+      ...(bookingData?.serviceType === "mobile" && bookingData?.address ? { address: bookingData.address } : {}),
       booking: { ...sanitizedBooking, services: sanitizedServices },
     };
 
@@ -391,17 +397,33 @@ export default function PaymentSection({
                     </div>
                   ))}
 
-                  <div
-                    className="mt-3 flex items-center justify-between rounded-xl border px-4 py-3 text-sm"
-                    style={{
-                      borderColor: "rgba(42,30,26,0.10)",
-                      backgroundColor: "rgba(241,232,221,0.55)",
-                    }}
-                  >
-                    <span style={{ color: PALETTE.cocoa }}>{t.servicesTotal}</span>
-                    <span className="font-semibold" style={{ color: PALETTE.espresso }}>
-                      ${Number(totalServices) || 0}
-                    </span>
+                  <div className="mt-3 space-y-2 pt-3 border-t" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
+                    <div className="flex items-center justify-between px-4 py-2 text-sm">
+                      <span style={{ color: PALETTE.cocoa }}>{t.servicesTotal}</span>
+                      <span className="font-medium" style={{ color: PALETTE.espresso }}>
+                        ${Number(totalServices) || 0}
+                      </span>
+                    </div>
+
+                    <div
+                      className="flex items-center justify-between rounded-xl border px-4 py-3"
+                      style={{
+                        borderColor: "rgba(201,174,126,0.35)",
+                        backgroundColor: "rgba(201,174,126,0.10)",
+                      }}
+                    >
+                      <span className="font-semibold" style={{ color: PALETTE.espresso }}>{t.depositToday}</span>
+                      <span className="text-lg font-bold" style={{ color: PALETTE.espresso }}>
+                        ${DEPOSIT_AMOUNT}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between px-4 py-2 text-sm">
+                      <span style={{ color: PALETTE.taupe }}>{t.remainingBalance}</span>
+                      <span className="font-medium" style={{ color: PALETTE.cocoa }}>
+                        ${Math.max(0, totalServices - DEPOSIT_AMOUNT)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
@@ -431,9 +453,14 @@ export default function PaymentSection({
               </div>
             ) : null}
 
-            <div className="my-6 flex items-center justify-center gap-2 text-xs" style={{ color: PALETTE.taupe }}>
-              <Lock className="h-3 w-3" />
-              {t.secure}
+            <div className="my-6 space-y-3">
+              <div className="flex items-center justify-center gap-2 text-xs" style={{ color: PALETTE.taupe }}>
+                <Lock className="h-3 w-3" />
+                {t.secure}
+              </div>
+              <p className="text-center text-sm font-medium" style={{ color: PALETTE.cocoa }}>
+                {t.balanceNote}
+              </p>
             </div>
 
             <Button

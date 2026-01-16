@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Clock, User, Phone, Mail, Trash2, Plus } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, Trash2, Plus, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { base44 } from "@/api/base44Client";
 
 const timeSlots = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
@@ -42,6 +43,8 @@ export default function BookingSection({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
+  const [serviceType, setServiceType] = useState(""); // "mobile" or "onsite"
+  const [address, setAddress] = useState({ line1: "", city: "", zip: "", notes: "" });
 
   const [blockedTimes, setBlockedTimes] = useState([]);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
@@ -164,7 +167,9 @@ export default function BookingSection({
     selectedTime &&
     formData.name &&
     formData.phone &&
-    formData.email;
+    formData.email &&
+    serviceType &&
+    (serviceType === "onsite" || (address.line1 && address.city && address.zip));
 
   const handleContinue = async () => {
     if (!isFormValid) return;
@@ -247,6 +252,8 @@ export default function BookingSection({
         date: selectedDate,
         time: selectedTime,
         ...formData,
+        serviceType,
+        ...(serviceType === "mobile" ? { address } : {}),
       });
     } catch (error) {
       console.error("createEvent invoke error:", error);

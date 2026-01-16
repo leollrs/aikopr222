@@ -70,15 +70,11 @@ export default function PaymentSectionWrapper({
     return loadStripe(stripeKey);
   }, [stripeKey]);
 
-  // Compute total in cents
+  // ALWAYS charge $30 deposit only
+  const DEPOSIT_AMOUNT = 30;
   const totalCents = useMemo(() => {
-    const totalDollars = (cart || []).reduce(
-      (sum, s) => sum + (Number(s?.price) || 0),
-      0
-    );
-    const cents = Math.round(totalDollars * 100);
-    return Number.isFinite(cents) ? cents : 0;
-  }, [cart]);
+    return DEPOSIT_AMOUNT * 100; // Always 3000 cents = $30
+  }, []);
 
   // Metadata (small + strings only)
   const metadata = useMemo(() => {
