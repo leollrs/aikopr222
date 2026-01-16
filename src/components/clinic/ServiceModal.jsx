@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ServiceModal({ service, lang, isOpen, onClose, onAddService }) {
+export default function ServiceModal({
+  service,
+  lang,
+  isOpen,
+  onClose,
+  onAddService,
+}) {
   if (!isOpen || !service) return null;
 
   // NEW PALETTE (shared)
@@ -18,6 +24,13 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   const ideal = lang === "es" ? service.idealEs : service.idealEn;
   const benefits = lang === "es" ? service.benefitsEs : service.benefitsEn;
   const desc = lang === "es" ? service.descEs : service.descEn;
+
+  // Optional: wire these up however you store images.
+  // Example:
+  // service.caseStudy.beforeImage = "/results/laser-legs-before.jpg"
+  // service.caseStudy.afterImage  = "/results/laser-legs-after.jpg"
+  const beforeImage = service?.caseStudy?.beforeImage || "";
+  const afterImage = service?.caseStudy?.afterImage || "";
 
   return (
     <>
@@ -52,7 +65,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: CHAMPAGNE }}
+                />
                 <span
                   className="text-[11px] font-semibold tracking-[0.28em] uppercase"
                   style={{ color: TAUPE }}
@@ -60,7 +76,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
                   {lang === "es" ? "Detalles del servicio" : "Service details"}
                 </span>
               </div>
-              <h3 className="mt-2 truncate text-xl font-medium tracking-[-0.01em]" style={{ color: ESPRESSO }}>
+              <h3
+                className="mt-2 truncate text-xl font-medium tracking-[-0.01em]"
+                style={{ color: ESPRESSO }}
+              >
                 {name}
               </h3>
             </div>
@@ -130,7 +149,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
                 backgroundColor: "rgba(241,232,221,0.55)",
               }}
             >
-              <h4 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
+              <h4
+                className="text-xs font-semibold tracking-[0.22em] uppercase"
+                style={{ color: ESPRESSO }}
+              >
                 {lang === "es" ? "Ideal para" : "Ideal for"}
               </h4>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA }}>
@@ -140,7 +162,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
 
             {/* Benefits */}
             <div className="mt-7">
-              <h4 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
+              <h4
+                className="text-xs font-semibold tracking-[0.22em] uppercase"
+                style={{ color: ESPRESSO }}
+              >
                 {lang === "es" ? "Beneficios" : "Benefits"}
               </h4>
 
@@ -178,13 +203,17 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
             >
               <div className="flex items-center justify-between gap-3 px-5 py-4">
                 <div>
-                  <div className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
+                  <div
+                    className="text-xs font-semibold tracking-[0.22em] uppercase"
+                    style={{ color: ESPRESSO }}
+                  >
                     {lang === "es" ? "Caso real" : "Real case"}
                   </div>
                   <div className="mt-1 text-sm" style={{ color: COCOA }}>
-                    {service.caseStudy.sessions} {lang === "es" ? "sesiones" : "sessions"} ·{" "}
-                    {service.caseStudy.months} {lang === "es" ? "meses" : "months"} · ~
-                    {service.caseStudy.improvement} {lang === "es" ? "mejora" : "improvement"}
+                    {service.caseStudy.sessions}{" "}
+                    {lang === "es" ? "sesiones" : "sessions"} · {service.caseStudy.months}{" "}
+                    {lang === "es" ? "meses" : "months"} · ~{service.caseStudy.improvement}{" "}
+                    {lang === "es" ? "mejora" : "improvement"}
                   </div>
                 </div>
 
@@ -196,54 +225,26 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
                     color: ESPRESSO,
                   }}
                 >
-                  {lang === "es" ? "Antes / Después" : "Before / After"}
-                </div>
-              </div>
-
-              <div className="grid gap-3 px-5 pb-5 sm:grid-cols-2">
-                <div
-                  className="relative aspect-[4/3] overflow-hidden rounded-xl border"
-                  style={{
-                    borderColor: "rgba(42,30,26,0.10)",
-                    backgroundColor: "rgba(241,232,221,0.75)",
-                  }}
-                >
-                  <div
-                    className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
-                    style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
-                  >
-                    {lang === "es" ? "Antes" : "Before"}
-                  </div>
-                  <div className="flex h-full items-center justify-center">
-                    <span className="text-xs" style={{ color: TAUPE }}>
-                      {lang === "es" ? "Imagen de referencia" : "Reference image"}
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className="relative aspect-[4/3] overflow-hidden rounded-xl border"
-                  style={{
-                    borderColor: "rgba(42,30,26,0.10)",
-                    backgroundColor: "rgba(201,174,126,0.22)",
-                  }}
-                >
-                  <div
-                    className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
-                    style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
-                  >
-                    {lang === "es" ? "Después" : "After"}
-                  </div>
-                  <div className="flex h-full items-center justify-center">
-                    <span className="text-xs" style={{ color: TAUPE }}>
-                      {lang === "es" ? "Imagen de referencia" : "Reference image"}
-                    </span>
-                  </div>
+                  {lang === "es" ? "Desliza para comparar" : "Slide to compare"}
                 </div>
               </div>
 
               <div className="px-5 pb-5">
-                <p className="text-xs italic" style={{ color: "rgba(107,90,82,0.78)" }}>
+                <BeforeAfterSlider
+                  lang={lang}
+                  beforeSrc={beforeImage}
+                  afterSrc={afterImage}
+                  // If you want, pass a fixed start position:
+                  // initial={55}
+                  containerStyle={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(241,232,221,0.75)",
+                  }}
+                  accent={CHAMPAGNE}
+                  textColor={ESPRESSO}
+                />
+
+                <p className="mt-4 text-xs italic" style={{ color: "rgba(107,90,82,0.78)" }}>
                   {lang === "es"
                     ? "Los resultados pueden variar según cada paciente."
                     : "Results may vary depending on each patient."}
@@ -294,4 +295,200 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
       </div>
     </>
   );
+}
+
+/**
+ * Before/After slider:
+ * - Drag the handle (mouse/touch)
+ * - Also has an invisible range input for accessibility + keyboard control
+ */
+function BeforeAfterSlider({
+  lang,
+  beforeSrc,
+  afterSrc,
+  initial = 50,
+  containerStyle = {},
+  accent = "#C9AE7E",
+  textColor = "#2A1E1A",
+}) {
+  const [pct, setPct] = useState(clamp(initial, 0, 100));
+  const wrapRef = useRef(null);
+  const draggingRef = useRef(false);
+
+  const isEs = lang === "es";
+
+  const setFromClientX = (clientX) => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const next = (x / rect.width) * 100;
+    setPct(clamp(next, 0, 100));
+  };
+
+  const onPointerDown = (e) => {
+    draggingRef.current = true;
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {}
+    setFromClientX(e.clientX);
+  };
+
+  const onPointerMove = (e) => {
+    if (!draggingRef.current) return;
+    setFromClientX(e.clientX);
+  };
+
+  const onPointerUp = () => {
+    draggingRef.current = false;
+  };
+
+  // Nice defaults if you haven’t uploaded images yet
+  const hasBefore = Boolean(beforeSrc);
+  const hasAfter = Boolean(afterSrc);
+
+  return (
+    <div
+      ref={wrapRef}
+      className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border select-none"
+      style={{
+        ...containerStyle,
+        position: "relative",
+        touchAction: "none", // important for iOS drag
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      onPointerLeave={onPointerUp}
+      aria-label={isEs ? "Comparación antes y después" : "Before and after comparison"}
+      role="group"
+    >
+      {/* AFTER (full) */}
+      {hasAfter ? (
+        <img
+          src={afterSrc}
+          alt={isEs ? "Después" : "After"}
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs opacity-80" style={{ color: textColor }}>
+            {isEs ? "Sube foto DESPUÉS" : "Upload AFTER photo"}
+          </span>
+        </div>
+      )}
+
+      {/* BEFORE (clipped) */}
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ width: `${pct}%` }}
+        aria-hidden="true"
+      >
+        {hasBefore ? (
+          <img
+            src={beforeSrc}
+            alt={isEs ? "Antes" : "Before"}
+            className="absolute inset-0 h-full w-full object-cover"
+            draggable={false}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-xs opacity-80" style={{ color: textColor }}>
+              {isEs ? "Sube foto ANTES" : "Upload BEFORE photo"}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Soft top gradient */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.16),transparent_60%)]" />
+
+      {/* Labels */}
+      <div
+        className="pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
+        style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
+      >
+        {isEs ? "Antes" : "Before"}
+      </div>
+      <div
+        className="pointer-events-none absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
+        style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
+      >
+        {isEs ? "Después" : "After"}
+      </div>
+
+      {/* Divider line */}
+      <div
+        className="pointer-events-none absolute inset-y-0"
+        style={{
+          left: `${pct}%`,
+          width: "2px",
+          backgroundColor: "rgba(255,255,255,0.85)",
+          transform: "translateX(-1px)",
+        }}
+      />
+
+      {/* Handle */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{
+          left: `${pct}%`,
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-full border shadow-[0_20px_60px_rgba(42,30,26,0.22)]"
+          style={{
+            backgroundColor: "rgba(255,252,248,0.88)",
+            borderColor: "rgba(42,30,26,0.14)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <div className="flex items-center gap-1">
+            <span
+              className="h-3 w-[2px] rounded"
+              style={{ backgroundColor: accent, opacity: 0.9 }}
+            />
+            <span
+              className="h-5 w-[2px] rounded"
+              style={{ backgroundColor: accent, opacity: 0.9 }}
+            />
+            <span
+              className="h-3 w-[2px] rounded"
+              style={{ backgroundColor: accent, opacity: 0.9 }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Accessible slider (invisible) */}
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={pct}
+        onChange={(e) => setPct(Number(e.target.value))}
+        className="absolute inset-0 h-full w-full opacity-0"
+        aria-label={isEs ? "Deslizar comparación" : "Slide comparison"}
+      />
+
+      {/* Hint */}
+      <div
+        className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] backdrop-blur"
+        style={{
+          backgroundColor: "rgba(255,252,248,0.72)",
+          border: "1px solid rgba(42,30,26,0.12)",
+          color: "rgba(107,90,82,0.92)",
+        }}
+      >
+        {isEs ? "Arrastra para comparar" : "Drag to compare"}
+      </div>
+    </div>
+  );
+}
+
+function clamp(n, a, b) {
+  return Math.max(a, Math.min(b, n));
 }
