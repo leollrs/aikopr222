@@ -1,33 +1,32 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { SilkBackground } from "@/components/ui/silk-background-animation";
+import { motion } from "framer-motion";
+import { Sparkles, Calendar, ArrowRight } from "lucide-react";
 
-const heroContent = {
+const content = {
   es: {
-    badge: "CLÍNICA ESTÉTICA PREMIUM",
-    title: "Estética Avanzada\n& Tratamientos Láser",
-    subtitle: "Servicio estético premium\nen la comodidad de tu hogar",
-    cta1: "Agendar Cita",
-    cta2: "Ver Servicios",
-    micro: "Resultados naturales • Atención profesional",
+    badge: "Tratamientos premium a domicilio",
+    title: "Belleza avanzada con tecnología láser de última generación",
+    subtitle:
+      "Tratamientos estéticos certificados diseñados para realzar tu belleza natural. Servicio móvil profesional en Puerto Rico.",
+    cta1: "Agendar cita",
+    cta2: "Ver servicios",
+    microproof: ["Atención a domicilio", "Resultados naturales", "Equipos profesionales"],
   },
   en: {
-    badge: "PREMIUM AESTHETICS CLINIC",
-    title: "Advanced Aesthetics\n& Laser Treatments",
-    subtitle: "Premium aesthetic services\nin the comfort of your home",
-    cta1: "Book Appointment",
-    cta2: "View Services",
-    micro: "Natural results • Professional care",
+    badge: "Premium at-home treatments",
+    title: "Advanced aesthetics with state-of-the-art laser technology",
+    subtitle:
+      "Certified aesthetic treatments designed to enhance your natural beauty. Professional mobile service in Puerto Rico.",
+    cta1: "Book appointment",
+    cta2: "View services",
+    microproof: ["Home service", "Natural results", "Professional equipment"],
   },
 };
 
-export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
-  const t = heroContent[lang] || heroContent.es;
+export default function Hero({ lang = "es", onBookClick, onViewServices }) {
+  const t = content[lang] || content.es;
 
-  // NEW PALETTE (shared)
-  const CREAM = "#FBF8F3";
-  const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
   const CHAMPAGNE = "#C9AE7E";
@@ -35,50 +34,38 @@ export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
   const TAUPE = "#8B7468";
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden">
-      {/* Full-bleed premium light base */}
-      <div className="absolute inset-0" style={{ backgroundColor: CREAM }} />
-
-      {/* Silk background tuned to warm, airy clinic look */}
-      <SilkBackground
-        className="absolute inset-0 h-full w-full opacity-[0.95]"
-        theme={{
-          bg0: CREAM,
-          bg1: LINEN,
-          bg2: CREAM,
-          silkR: 201,
-          silkG: 174,
-          silkB: 126,
-          vignetteInner: "rgba(42,30,26,0.04)",
-          vignetteOuter: "rgba(42,30,26,0.14)",
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Clean luxury background - subtle gradient only */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(1400px 700px at 50% 20%, rgba(201,174,126,0.08), transparent 70%),
+            radial-gradient(1200px 600px at 80% 50%, rgba(195,154,139,0.05), transparent 65%),
+            linear-gradient(to bottom, #FBF8F3, #F1E8DD 50%, #FBF8F3)
+          `,
         }}
       />
 
-      {/* Overlays: make sure they cover FULL hero height (not 25%) */}
-      <div className="absolute inset-0">
-        {/* warmth blooms */}
-        <div className="absolute inset-0 bg-[radial-gradient(1100px_520px_at_50%_28%,rgba(201,174,126,0.22),transparent_60%),radial-gradient(900px_520px_at_18%_48%,rgba(195,154,139,0.14),transparent_62%)]" />
-        {/* soft top/bottom veil for readability */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(251,248,243,0.35),rgba(241,232,221,0.55),rgba(251,248,243,0.70))]" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 mx-auto max-w-6xl px-6 sm:px-8">
-        <div className="min-h-screen flex flex-col items-center justify-center text-center">
+      {/* Hero content */}
+      <div className="relative z-10 mx-auto max-w-4xl px-6 sm:px-8 lg:px-12 text-center py-24 md:py-32">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           {/* Badge */}
           <div
-            className="inline-flex items-center gap-2 rounded-full border px-5 py-2 backdrop-blur-sm"
+            className="mx-auto mb-8 inline-flex items-center gap-2.5 rounded-full border px-6 py-2.5 backdrop-blur-sm"
             style={{
-              backgroundColor: "rgba(255,252,248,0.72)",
-              borderColor: "rgba(42,30,26,0.12)",
+              backgroundColor: "rgba(255,252,248,0.85)",
+              borderColor: "rgba(42,30,26,0.08)",
+              boxShadow: "0 4px 16px rgba(42,30,26,0.04)",
             }}
           >
+            <Sparkles className="h-3.5 w-3.5" style={{ color: CHAMPAGNE }} />
             <span
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: CHAMPAGNE }}
-            />
-            <span
-              className="text-[11px] tracking-[0.28em] font-semibold uppercase"
+              className="text-xs font-medium uppercase tracking-[0.24em]"
               style={{ color: COCOA }}
             >
               {t.badge}
@@ -87,77 +74,73 @@ export default function Hero({ lang = "es", onBookClick, onServicesClick }) {
 
           {/* Title */}
           <h1
-            className="
-              mt-8 whitespace-pre-line text-balance
-              font-light leading-[0.98] tracking-[-0.055em]
-              text-5xl sm:text-6xl md:text-7xl lg:text-8xl
-            "
-            style={{
-              color: ESPRESSO,
-              textShadow: "0 18px 60px rgba(42,30,26,0.18)",
-            }}
+            className="font-display text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.03em] leading-[1.08] mb-8 text-balance"
+            style={{ color: ESPRESSO }}
           >
             {t.title}
           </h1>
 
           {/* Subtitle */}
           <p
-            className="mt-7 whitespace-pre-line text-base sm:text-lg md:text-xl leading-relaxed"
-            style={{ color: COCOA }}
+            className="font-body mx-auto max-w-xl text-lg md:text-xl leading-relaxed mb-12"
+            style={{ color: COCOA, opacity: 0.92 }}
           >
             {t.subtitle}
           </p>
 
-          {/* Divider */}
-          <div
-            className="mt-10 h-px w-28"
-            style={{
-              backgroundImage: `linear-gradient(to right, transparent, ${CHAMPAGNE}, transparent)`,
-              opacity: 0.65,
-            }}
-          />
-
-          {/* CTAs */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center gap-3">
-            <Button
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <motion.button
               onClick={onBookClick}
-              className="h-12 rounded-xl px-8 text-[15px] font-medium"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="group h-16 px-10 rounded-2xl text-base font-medium transition-all duration-300 flex items-center gap-3"
               style={{
                 backgroundColor: ROSE,
                 color: "#FFFFFF",
-                boxShadow: "0 22px 70px rgba(195,154,139,0.35)",
+                boxShadow: "0 20px 60px rgba(195,154,139,0.28)",
               }}
             >
-              {t.cta1}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+              <Calendar className="h-5 w-5" />
+              <span>{t.cta1}</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </motion.button>
 
-            <Button
-              onClick={onServicesClick}
-              variant="outline"
-              className="h-12 rounded-xl px-8 text-[15px] font-medium"
+            <motion.button
+              onClick={onViewServices}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="h-16 px-10 rounded-2xl text-base font-medium border transition-all duration-300"
               style={{
-                backgroundColor: "rgba(255,252,248,0.55)",
-                borderColor: "rgba(42,30,26,0.18)",
+                backgroundColor: "rgba(251,248,243,0.85)",
+                borderColor: "rgba(42,30,26,0.12)",
                 color: ESPRESSO,
+                backdropFilter: "blur(12px)",
               }}
             >
               {t.cta2}
-            </Button>
+            </motion.button>
           </div>
 
-          {/* Micro */}
-          <p
-            className="mt-8 text-xs tracking-[0.26em] uppercase"
-            style={{ color: TAUPE }}
-          >
-            {t.micro}
-          </p>
-        </div>
+          {/* Microproof */}
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm" style={{ color: TAUPE }}>
+            {t.microproof.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
+                <span className="font-medium">{item}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
       {/* Bottom divider */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(to_right,transparent,rgba(201,174,126,0.70),transparent)]" />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px"
+        style={{
+          backgroundImage: "linear-gradient(to right, transparent, rgba(201,174,126,0.4), transparent)",
+        }}
+      />
     </section>
   );
 }
