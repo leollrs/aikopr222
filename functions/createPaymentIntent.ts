@@ -1,85 +1,85 @@
+import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
+
 Deno.serve(async (req) => {
   try {
-    // Get Stripe secret key from environment
+    // Keep Base44 context (safe even if unused)
+    createClientFromRequest(req);
+
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
-    
+
     if (!stripeSecretKey) {
       return Response.json(
-        { error: "Stripe secret key is not configured on the server." },
+        { error: "STRIPE_SECRET_KEY is missing in server environment variables." },
         { status: 500 }
       );
     }
 
-    // Parse request body
-    let body;
+    // Parse JSON body
+    let body = null;
     try {
       body = await req.json();
     } catch {
-      return Response.json(
-        { error: "Invalid JSON body" },
-        { status: 400 }
-      );
+      body = null;
+    }
+
+    if (!body) {
+      return Response.json({ error: "Missing or invalid JSON body." }, { status: 400 });
     }
 
     const { amountCents, currency = "usd", metadata = {} } = body;
 
-    // Validate amountCents
-    if (!Number.isInteger(amountCents) || amountCents <= 0) {
+    // Validate cents
+    if (
+      typeof amountCents !== "number" ||
+      !Number.isInteger(amountCents) ||
+      amountCents <= 0
+    ) {
       return Response.json(
-        { error: "amountCents must be a positive integer" },
+        { error: "amountCents must be a positive integer." },
         { status: 400 }
       );
     }
 
-    // Prepare form data for Stripe API
-    const formData = new URLSearchParams();
-    formData.append("amount", amountCents.toString());
-    formData.append("currency", currency.toLowerCase());
-    formData.append("automatic_payment_methods[enabled]", "true");
+    // Stripe form encoding
+    const form = new URLSearchParams();
+    form.set("amount", String(amountCents));
+    form.set("currency", String(currency).toLowerCase());
+    form.set("automatic_payment_methods[enabled]", "true");
 
-    // Add metadata with truncation
-    const sanitizedMetadata = {
-      created_at: new Date().toISOString(),
-    };
+    // Metadata must be strings
+    form.set("metadata[created_at]", new Date().toISOString());
 
-    for (const [key, value] of Object.entries(metadata)) {
-      const truncatedKey = String(key).slice(0, 40);
-      const truncatedValue = String(value).slice(0, 500);
-      sanitizedMetadata[truncatedKey] = truncatedValue;
+    for (const [k, v] of Object.entries(metadata || {})) {
+      const key = String(k).slice(0, 40);
+      const val = String(v).slice(0, 500);
+      if (key) form.set(`metadata[${key}]`, val);
     }
 
-    for (const [key, value] of Object.entries(sanitizedMetadata)) {
-      formData.append(`metadata[${key}]`, value);
-    }
-
-    // Call Stripe API
-    const stripeResponse = await fetch("https://api.stripe.com/v1/payment_intents", {
+    const stripeRes = await fetch("https://api.stripe.com/v1/payment_intents", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${stripeSecretKey}`,
+        Authorization: `Bearer ${stripeSecretKey}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: formData.toString(),
+      body: form,
     });
 
-    const stripeData = await stripeResponse.json();
+    const data = await stripeRes.json();
 
-    if (!stripeResponse.ok) {
+    if (!stripeRes.ok) {
       return Response.json(
-        { error: stripeData.error?.message || "Stripe API error" },
+        { error: data?.error?.message || "Stripe API error creating PaymentIntent." },
         { status: 500 }
       );
     }
 
-    // Return clientSecret and paymentIntentId
     return Response.json({
-      clientSecret: stripeData.client_secret,
-      paymentIntentId: stripeData.id,
+      clientSecret: data.client_secret,
+      paymentIntentId: data.id,
     });
-
   } catch (error) {
     return Response.json(
-      { error: error.message || "Internal server error" },
+      { error: error?.message || "Internal server error." },
       { status: 500 }
     );
   }
