@@ -1,6 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Calendar, ArrowRight, ShieldCheck, MapPin, Award } from "lucide-react";
+import {
+  Sparkles,
+  Calendar,
+  ArrowRight,
+  ShieldCheck,
+  MapPin,
+  Award,
+} from "lucide-react";
 
 const content = {
   es: {
@@ -12,7 +19,11 @@ const content = {
     cta2: "Ver servicios",
     microproof: ["Servicio a domicilio", "Protocolos profesionales", "Resultados naturales"],
     trust: ["Tratamientos certificados", "Atención 1:1", "Equipo profesional"],
-    cardTitle: "Signature Treatment",
+
+    // ✅ bilingual label + premium pill
+    signatureLabel: "Tratamiento Signature",
+    premium: "Premium",
+
     cardName: "Láser Rejuvenation",
     cardDesc:
       "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
@@ -30,7 +41,11 @@ const content = {
     cta2: "View services",
     microproof: ["At-home service", "Professional protocols", "Natural results"],
     trust: ["Certified treatments", "1:1 care", "Pro equipment"],
-    cardTitle: "Signature Treatment",
+
+    // ✅ bilingual label + premium pill
+    signatureLabel: "Signature Treatment",
+    premium: "Premium",
+
     cardName: "Laser Rejuvenation",
     cardDesc:
       "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin.",
@@ -46,7 +61,7 @@ export default function Hero({
   onBookClick,
   onViewServices,
 
-  // NEW: cart hook-in
+  // cart hook-in
   onAddService,
   signatureService,
 }) {
@@ -62,10 +77,9 @@ export default function Hero({
   const TAUPE = "#8B7468";
 
   const handleCheckAvailability = () => {
-    // 1) add signature service to cart automatically
+    // add signature service to cart automatically
     if (onAddService && signatureService) onAddService(signatureService);
-
-    // 2) then proceed to booking flow / open modal / scroll to cart
+    // then proceed to booking flow
     if (onBookClick) onBookClick();
   };
 
@@ -216,12 +230,14 @@ export default function Hero({
                 >
                   <div className="relative z-10">
                     <div className="flex items-center justify-between">
+                      {/* ✅ NOW bilingual */}
                       <span
                         className="text-xs font-medium uppercase tracking-[0.22em]"
                         style={{ color: COCOA }}
                       >
-                        {t.cardTitle}
+                        {t.signatureLabel}
                       </span>
+
                       <span
                         className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
                         style={{
@@ -230,7 +246,7 @@ export default function Hero({
                         }}
                       >
                         <Sparkles className="h-3.5 w-3.5" style={{ color: CHAMPAGNE }} />
-                        Premium
+                        {t.premium}
                       </span>
                     </div>
 
@@ -241,7 +257,10 @@ export default function Hero({
                       {t.cardName}
                     </h3>
 
-                    <p className="mt-3 text-base leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                    <p
+                      className="mt-3 text-base leading-relaxed"
+                      style={{ color: COCOA, opacity: 0.92 }}
+                    >
                       {t.cardDesc}
                     </p>
 
@@ -270,7 +289,6 @@ export default function Hero({
                       </span>
                     </div>
 
-                    {/* THIS is the button you asked about */}
                     <motion.button
                       onClick={handleCheckAvailability}
                       whileHover={{ y: -2, scale: 1.01 }}
