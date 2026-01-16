@@ -13,13 +13,13 @@ function safeStorage() {
   // Try localStorage
   try {
     localStorage.setItem("__ls_test__", "1");
-    localStorage.removeItem("__ls_test__");
+    localStorage.removeItem("__ls_test__", "1");
     return localStorage;
   } catch {
     // Fallback: sessionStorage
     try {
       sessionStorage.setItem("__ss_test__", "1");
-      sessionStorage.removeItem("__ss_test__");
+      sessionStorage.removeItem("__ss_test__", "1");
       return sessionStorage;
     } catch {
       return null;
@@ -75,6 +75,18 @@ const QUICK_REPLIES = {
   en: ["Pricing", "Deposit", "Availability"],
 };
 
+const WELCOME_COPY = {
+  es: "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad.",
+  en: "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
+};
+
+function getWelcomeMessage(lang) {
+  return {
+    role: "assistant",
+    content: WELCOME_COPY[lang] || WELCOME_COPY.es,
+  };
+}
+
 export default function ChatDrawer({
   isOpen,
   onClose,
@@ -84,14 +96,8 @@ export default function ChatDrawer({
 }) {
   const isEs = lang === "es";
 
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: isEs
-        ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
-        : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
-    },
-  ]);
+  // ✅ Start with correct language on mount
+  const [messages, setMessages] = useState(() => [getWelcomeMessage(lang)]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -118,6 +124,28 @@ export default function ChatDrawer({
     getSessionId();
   }, [isOpen]);
 
+  // ✅ If user switches language, update ONLY the initial assistant message
+  // (and do not rewrite the rest of the conversation)
+  useEffect(() => {
+    setMessages((prev) => {
+      if (!prev || prev.length === 0) return [getWelcomeMessage(lang)];
+
+      const first = prev[0];
+      const isFirstAssistant = first?.role === "assistant";
+      const isWelcomeText =
+        first?.content === WELCOME_COPY.es || first?.content === WELCOME_COPY.en;
+
+      if (isFirstAssistant && isWelcomeText) {
+        const updated = [...prev];
+        updated[0] = getWelcomeMessage(lang);
+        return updated;
+      }
+
+      return prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
+
   // Prevent body scroll behind the drawer
   useEffect(() => {
     if (!isOpen) return;
@@ -141,7 +169,7 @@ export default function ChatDrawer({
           body: JSON.stringify({
             clientId,
             sessionId,
-            lang,
+            lang, // ✅ always send current language
             messages: nextMessages.map((m) => ({
               role: m.role,
               content: m.content,
@@ -264,15 +292,15 @@ export default function ChatDrawer({
     // Force-create a fresh sessionId so next send uses it
     getSessionId();
 
-    setMessages([
-      {
-        role: "assistant",
-        content: isEs
-          ? "¡Hola! Soy tu asistente de AIKOPR222. Puedes preguntar por precios, depósito o disponibilidad."
-          : "Hi! I'm your AIKOPR222 assistant. You can ask about pricing, deposit, or availability.",
-      },
-    ]);
+    setMessages([getWelcomeMessage(lang)]);
   };
+
+  // ✅ If drawer opens and there are no messages (edge), restore correct welcome
+  useEffect(() => {
+    if (!isOpen) return;
+    setMessages((prev) => (prev?.length ? prev : [getWelcomeMessage(lang)]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -333,12 +361,16 @@ export default function ChatDrawer({
                 borderColor: "rgba(42,30,26,0.12)",
               }}
               aria-label={isEs ? "Nuevo chat" : "New chat"}
+              type="button"
             >
               <RotateCcw
                 className="h-4 w-4"
                 style={{ color: PALETTE.cocoa }}
               />
-              <span className="text-xs font-medium" style={{ color: PALETTE.cocoa }}>
+              <span
+                className="text-xs font-medium"
+                style={{ color: PALETTE.cocoa }}
+              >
                 {isEs ? "Nuevo" : "New"}
               </span>
             </button>
@@ -351,6 +383,7 @@ export default function ChatDrawer({
                 borderColor: "rgba(42,30,26,0.12)",
               }}
               aria-label={isEs ? "Cerrar" : "Close"}
+              type="button"
             >
               <X className="h-5 w-5" style={{ color: PALETTE.cocoa }} />
             </button>
@@ -362,6 +395,7 @@ export default function ChatDrawer({
           className="relative flex-1 overflow-y-auto px-6 py-6"
           style={{ overscrollBehavior: "contain" }}
         >
+          {/* Quick replies show only at very beginning */}
           {messages.length === 1 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {(QUICK_REPLIES[lang] || QUICK_REPLIES.en).map((reply) => (
@@ -374,6 +408,7 @@ export default function ChatDrawer({
                     borderColor: "rgba(195,154,139,0.25)",
                     color: PALETTE.rose,
                   }}
+                  type="button"
                 >
                   {reply}
                 </button>
@@ -447,12 +482,16 @@ export default function ChatDrawer({
               className="inline-flex h-12 w-12 items-center justify-center rounded-xl transition disabled:opacity-50"
               style={{ backgroundColor: PALETTE.rose, color: "#FFFFFF" }}
               aria-label={isEs ? "Enviar" : "Send"}
+              type="button"
             >
               <Send className="h-5 w-5" />
             </button>
           </div>
 
-          <p className="mt-2 text-[11px]" style={{ color: "rgba(139,116,104,0.9)" }}>
+          <p
+            className="mt-2 text-[11px]"
+            style={{ color: "rgba(139,116,104,0.9)" }}
+          >
             {isEs
               ? "Consejo: usa los botones de arriba para respuestas rápidas."
               : "Tip: use the buttons above for quick replies."}
@@ -503,6 +542,7 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
                   borderColor: "rgba(195,154,139,0.25)",
                   color: PALETTE.rose,
                 }}
+                type="button"
               >
                 <Plus className="h-3 w-3" />
                 {isEs ? "Agregar" : "Add"} {isEs ? service.nameEs : service.nameEn}
@@ -517,6 +557,7 @@ function MessageBubble({ message, lang, onAddService, onBookNow }) {
                 borderColor: "rgba(42,30,26,0.15)",
                 color: PALETTE.espresso,
               }}
+              type="button"
             >
               <Calendar className="h-3 w-3" />
               {isEs ? "Reservar ahora" : "Book now"}
