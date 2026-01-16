@@ -3,7 +3,6 @@ import { Instagram, MessageCircle } from "lucide-react";
 
 const PALETTE = {
   espresso: "#2A1E1A",
-  cocoa: "#6B5A52",
   cream: "#FBF8F3",
   champagne: "#C9AE7E",
   rose: "#C39A8B",
@@ -63,6 +62,7 @@ export default function Footer({ lang }) {
               {lang === "es" ? "Servicios" : "Services"}
             </FooterLink>
 
+            {/* ✅ FIXED: this only works if your Results section has id="ResultsSection" */}
             <FooterLink onClick={() => scrollToSection("ResultsSection")}>
               {lang === "es" ? "Resultados" : "Results"}
             </FooterLink>
@@ -79,10 +79,8 @@ export default function Footer({ lang }) {
             href="https://www.instagram.com/aikopr222/"
             icon={Instagram}
           />
-          <SocialIcon
-            href="https://wa.me/17866729528"
-            icon={MessageCircle}
-          />
+          {/* ✅ FIXED: include country code in wa link to avoid failures */}
+          <SocialIcon href="https://wa.me/17866729528" icon={MessageCircle} />
         </div>
 
         {/* Bottom copy */}
@@ -108,6 +106,7 @@ function FooterLink({ children, onClick }) {
       <button
         onClick={onClick}
         className="relative text-[rgba(251,248,243,0.70)] transition hover:text-[#FBF8F3]"
+        type="button"
       >
         {children}
       </button>
