@@ -3,6 +3,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 const TZ = "America/New_York";
 const ADMIN_ONLY = false;
 
+// -------- helpers --------
 function requireString(val, name) {
   if (typeof val !== "string" || !val.trim()) {
     throw new Error(`Missing or invalid "${name}"`);
@@ -10,6 +11,56 @@ function requireString(val, name) {
   return val.trim();
 }
 
+// Get timezone offset minutes for a given Date in a named IANA timezone
+// Returns e.g. -300 for GMT-5, -240 for GMT-4.
+function getTimeZoneOffsetMinutes(date, timeZone) {
+  // "GMT-5" / "GMT-04:00" etc
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  const parts = dtf.formatToParts(date);
+  const tzName = parts.find((p) => p.type === "timeZoneName")?.value || "GMT";
+
+  // tzName examples: "GMT-5", "GMT-05:00", "GMT+4"
+  const m = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
+  if (!m) return 0;
+
+  const sign = m[1] === "-" ? -1 : 1;
+  const hours = parseInt(m[2], 10) || 0;
+  const mins = parseInt(m[3] || "0", 10) || 0;
+  return sign * (hours * 60 + mins);
+}
+
+// Convert local wall time in a timezone to UTC ISO (RFC3339 with Z)
+function localTimeInTZToUtcIso(dateStr, timeStr, timeZone) {
+  // dateStr: "YYYY-MM-DD", timeStr: "HH:MM" or "HH:MM:SS"
+  const [y, mo, d] = dateStr.split("-").map(Number);
+  const [hh, mm, ss] = (timeStr.includes(":") ? timeStr : `${timeStr}:00`)
+    .split(":")
+    .map((n) => Number(n));
+
+  // Start with a naive UTC date using the same components
+  const naiveUtc = new Date(Date.UTC(y, (mo || 1) - 1, d || 1, hh || 0, mm || 0, ss || 0));
+
+  // Figure out what the offset is in the target TZ at that instant
+  const offsetMin = getTimeZoneOffsetMinutes(naiveUtc, timeZone);
+
+  // Convert wall time -> UTC by subtracting the offset (note offset is negative for GMT-5)
+  const trueUtc = new Date(naiveUtc.getTime() - offsetMin * 60 * 1000);
+
+  return trueUtc.toISOString(); // RFC3339 with Z
+}
+
+// -------- handler --------
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -17,7 +68,6 @@ Deno.serve(async (req) => {
     if (ADMIN_ONLY) {
       const user = await base44.auth.me();
       if (!user || user.role !== "admin") {
-        // ✅ Return 200 with error payload to avoid invoke() throwing
         return Response.json({ ok: false, error: "Forbidden: Admin access required" });
       }
     }
@@ -33,9 +83,9 @@ Deno.serve(async (req) => {
     if (action === "checkAvailability") {
       const date = requireString(body.date, "date");
 
-      // ✅ Use local dateTime strings + explicit TZ
-      const timeMin = `${date}T00:00:00`;
-      const timeMax = `${date}T23:59:59`;
+      // ✅ Must be RFC3339 (ISO with Z or offset)
+      const timeMin = localTimeInTZToUtcIso(date, "00:00:00", TZ);
+      const timeMax = localTimeInTZToUtcIso(date, "23:59:59", TZ);
 
       const freeBusyResponse = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
         method: "POST",
@@ -75,18 +125,19 @@ Deno.serve(async (req) => {
     // -------------------------
     if (action === "createEvent") {
       const date = requireString(body.date, "date");
-      const startTime = requireString(body.startTime, "startTime");
-      const endTime = requireString(body.endTime, "endTime");
+      const startTime = requireString(body.startTime, "startTime"); // "HH:MM"
+      const endTime = requireString(body.endTime, "endTime");       // "HH:MM"
 
       const services = Array.isArray(body.services) ? body.services : [];
       const clientName = requireString(body.clientName, "clientName");
       const clientEmail = requireString(body.clientEmail, "clientEmail");
       const clientPhone = requireString(body.clientPhone, "clientPhone");
 
-      const timeMin = `${date}T${startTime}:00`;
-      const timeMax = `${date}T${endTime}:00`;
+      // ✅ RFC3339 for freeBusy
+      const timeMin = localTimeInTZToUtcIso(date, `${startTime}:00`, TZ);
+      const timeMax = localTimeInTZToUtcIso(date, `${endTime}:00`, TZ);
 
-      // 1) Conflict check (IMPORTANT: return 200 even if conflict)
+      // 1) Conflict check (return 200 even if conflict)
       const freeBusyResponse = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", {
         method: "POST",
         headers: {
@@ -118,7 +169,6 @@ Deno.serve(async (req) => {
         [];
 
       if (conflicts.length > 0) {
-        // ✅ No 409. Return 200 so Base44 invoke doesn't throw.
         return Response.json({
           ok: true,
           conflict: true,
@@ -126,7 +176,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 2) Build services list
+      // 2) Create event (Google accepts RFC3339; include TZ as well)
       const servicesList = services
         .map((s) => {
           const name = String((s && (s.nameEn || s.nameEs)) || "Service");
@@ -143,16 +193,15 @@ Deno.serve(async (req) => {
           `Email: ${clientEmail}\n\n` +
           (servicesList ? `Services:\n${servicesList}` : ""),
         start: {
-          dateTime: timeMin,
+          dateTime: timeMin,  // RFC3339
           timeZone: TZ,
         },
         end: {
-          dateTime: timeMax,
+          dateTime: timeMax,  // RFC3339
           timeZone: TZ,
         },
       };
 
-      // 3) Create event
       const createResponse = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
         method: "POST",
         headers: {
