@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, Clock, User, Phone, Mail, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { base44 } from "@/api/base44Client";
 
 const timeSlots = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"];
 
@@ -28,6 +29,56 @@ export default function BookingSection({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
+  const [blockedTimes, setBlockedTimes] = useState([]);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+
+  // Fetch availability when date changes
+  useEffect(() => {
+    if (!selectedDate) {
+      setBlockedTimes([]);
+      return;
+    }
+
+    const fetchAvailability = async () => {
+      setIsLoadingAvailability(true);
+      setBlockedTimes([]);
+
+      try {
+        const response = await base44.functions.invoke('calendarSync', {
+          action: 'checkAvailability',
+          date: selectedDate,
+        });
+
+        const { busySlots } = response.data;
+
+        const blocked = [];
+        busySlots.forEach((slot) => {
+          const start = new Date(slot.start);
+          const end = new Date(slot.end);
+
+          timeSlots.forEach((time) => {
+            const [hour, minute] = time.split(':').map(Number);
+            const slotTime = new Date(selectedDate);
+            slotTime.setHours(hour, minute, 0, 0);
+
+            if (slotTime >= start && slotTime < end) {
+              blocked.push(time);
+            }
+          });
+        });
+
+        setBlockedTimes(blocked);
+      } catch (error) {
+        console.error('Failed to fetch availability:', error);
+      } finally {
+        setIsLoadingAvailability(false);
+      }
+    };
+
+    fetchAvailability();
+  }, [selectedDate]);
 
   // ✅ Phone formatter: (787) 414 - 3249
   const formatPhone = (value) => {
@@ -43,7 +94,7 @@ export default function BookingSection({
     return `(${a}) ${b} - ${c}`;
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (
       cart.length > 0 &&
       selectedDate &&
@@ -52,12 +103,62 @@ export default function BookingSection({
       formData.phone &&
       formData.email
     ) {
-      onContinueToPayment({
-        services: cart,
-        date: selectedDate,
-        time: selectedTime,
-        ...formData,
-      });
+      setBookingError("");
+      setIsCreatingEvent(true);
+
+      try {
+        // Calculate end time based on service durations
+        const totalMinutes = cart.reduce((sum, service) => {
+          const [hours, minutes] = (service.duration || '0 min').match(/\d+/g) || [0, 0];
+          return sum + (parseInt(hours) * 60) + parseInt(minutes);
+        }, 0);
+
+        const [startHour, startMinute] = selectedTime.split(':').map(Number);
+        const endDate = new Date(selectedDate);
+        endDate.setHours(startHour, startMinute + totalMinutes, 0, 0);
+        const endTime = endDate.toTimeString().slice(0, 5);
+
+        // Create calendar event
+        const response = await base44.functions.invoke('calendarSync', {
+          action: 'createEvent',
+          date: selectedDate,
+          startTime: selectedTime,
+          endTime: endTime,
+          services: cart,
+          clientName: formData.name,
+          clientEmail: formData.email,
+          clientPhone: formData.phone,
+        });
+
+        if (response.data.conflict) {
+          setBookingError(lang === "es" 
+            ? "Este horario ya no está disponible. Por favor selecciona otro." 
+            : "This time slot is no longer available. Please select another.");
+          setSelectedTime("");
+          return;
+        }
+
+        if (response.data.error) {
+          setBookingError(lang === "es" 
+            ? "Error al crear la cita. Intenta nuevamente." 
+            : "Error creating appointment. Please try again.");
+          return;
+        }
+
+        // Continue to payment only after successful calendar creation
+        onContinueToPayment({
+          services: cart,
+          date: selectedDate,
+          time: selectedTime,
+          ...formData,
+        });
+      } catch (error) {
+        setBookingError(lang === "es" 
+          ? "Error al procesar tu solicitud. Intenta nuevamente." 
+          : "Error processing your request. Please try again.");
+      } finally {
+        setIsCreatingEvent(false);
+      }
     }
   };
 
@@ -267,10 +368,13 @@ export default function BookingSection({
               <div className="mx-auto flex max-w-xl flex-wrap justify-center gap-2">
                 {timeSlots.map((time) => {
                   const isActive = selectedTime === time;
+                  const isBlocked = blockedTimes.includes(time);
+                  const isDisabled = isLoadingAvailability || isBlocked;
                   return (
                     <button
                       key={time}
-                      onClick={() => setSelectedTime(time)}
+                      onClick={() => !isDisabled && setSelectedTime(time)}
+                      disabled={isDisabled}
                       className="rounded-2xl px-5 py-2.5 text-sm border transition focus:outline-none focus:ring-2"
                       style={{
                         backgroundColor: isActive ? "rgba(42,30,26,0.92)" : "rgba(251,248,243,0.72)",
@@ -279,6 +383,8 @@ export default function BookingSection({
                         boxShadow: isActive
                           ? "0 18px 55px rgba(42,30,26,0.22)"
                           : "0 10px 30px rgba(42,30,26,0.08)",
+                        opacity: isDisabled ? 0.4 : 1,
+                        cursor: isDisabled ? 'not-allowed' : 'pointer',
                       }}
                     >
                       {time}
