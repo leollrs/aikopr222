@@ -1,4 +1,8 @@
-// ServiceModal.jsx (FULL — no top image, no bottom "Cerrar", slider works + clean placeholder)
+// ServiceModal.jsx (FULL — with temporary placeholder images per service)
+// ✅ no top image
+// ✅ no bottom "Cerrar"
+// ✅ slider works
+// ✅ uses service.caseStudy.beforeImage / afterImage
 import React, { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,9 +22,54 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   const benefits = lang === "es" ? service.benefitsEs : service.benefitsEn;
   const desc = lang === "es" ? service.descEs : service.descEn;
 
-  // Optional — will be empty for now (placeholders will show)
-  const beforeImage = service?.caseStudy?.beforeImage || "";
-  const afterImage = service?.caseStudy?.afterImage || "";
+  // ✅ TEMP PLACEHOLDERS (mapped by service.id)
+  const PLACEHOLDER_BY_ID = {
+    1: {
+      before: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&fit=crop",
+    },
+    2: {
+      before: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1200&fit=crop",
+    },
+    3: {
+      before: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?w=1200&fit=crop",
+    },
+    4: {
+      before: "https://images.unsplash.com/photo-1499887142886-791eca5918cd?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=1200&fit=crop",
+    },
+    5: {
+      before: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=1200&fit=crop",
+    },
+    6: {
+      before: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=1200&fit=crop",
+    },
+    7: {
+      before: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=1200&fit=crop",
+    },
+    8: {
+      before: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&fit=crop",
+      after: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=1200&fit=crop",
+    },
+  };
+
+  // Optional — uses real photos if present, otherwise placeholders
+  const fallback = PLACEHOLDER_BY_ID?.[service.id] || null;
+
+  const beforeImage =
+    service?.caseStudy?.beforeImage && service.caseStudy.beforeImage.trim() !== ""
+      ? service.caseStudy.beforeImage
+      : fallback?.before || "";
+
+  const afterImage =
+    service?.caseStudy?.afterImage && service.caseStudy.afterImage.trim() !== ""
+      ? service.caseStudy.afterImage
+      : fallback?.after || "";
 
   const hasBeforeAfter = Boolean(beforeImage) && Boolean(afterImage);
 
@@ -290,20 +339,33 @@ function BeforeAfterPlaceholder({ lang }) {
       <div className="absolute inset-0 p-4">
         <div
           className="h-full w-full rounded-lg border"
-          style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(255,252,248,0.55)" }}
+          style={{
+            borderColor: "rgba(42,30,26,0.10)",
+            backgroundColor: "rgba(255,252,248,0.55)",
+          }}
         />
       </div>
 
-      <div className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium" style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}>
+      <div
+        className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium"
+        style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}
+      >
         {isEs ? "Antes" : "Before"}
       </div>
-      <div className="absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium" style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}>
+      <div
+        className="absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium"
+        style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}
+      >
         {isEs ? "Después" : "After"}
       </div>
 
       <div
         className="absolute inset-y-0 left-1/2"
-        style={{ width: "2px", backgroundColor: "rgba(255,255,255,0.85)", transform: "translateX(-1px)" }}
+        style={{
+          width: "2px",
+          backgroundColor: "rgba(255,255,255,0.85)",
+          transform: "translateX(-1px)",
+        }}
       />
 
       <div
@@ -333,7 +395,7 @@ function BeforeAfterPlaceholder({ lang }) {
 
 /**
  * Before/After slider:
- * - Drag the handle (mouse/touch)
+ * - Drag anywhere (mouse/touch)
  * - Invisible range input for accessibility
  */
 function BeforeAfterSlider({
