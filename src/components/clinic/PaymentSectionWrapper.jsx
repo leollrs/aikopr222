@@ -9,6 +9,8 @@ import { base44 } from "@/api/base44Client";
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
+console.log("stripeKey:", import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 export default function PaymentSectionWrapper({
   lang,
   bookingData,
