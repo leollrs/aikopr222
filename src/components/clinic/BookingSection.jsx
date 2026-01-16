@@ -29,10 +29,43 @@ export default function BookingSection({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
+
   const [blockedTimes, setBlockedTimes] = useState([]);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
+
+  // ✅ Robust duration parser -> minutes
+  // Handles: "30 min", "45m", "1h", "1 h", "1h 30m", "1 hr 15 min", "60"
+  const durationToMinutes = (duration) => {
+    const s = String(duration || "").toLowerCase().trim();
+
+    const hrMatch = s.match(/(\d+)\s*(h|hr|hrs|hour|hours)\b/);
+    const minMatch = s.match(/(\d+)\s*(m|min|mins|minute|minutes)\b/);
+
+    // If explicit units exist
+    if (hrMatch || minMatch) {
+      const h = hrMatch ? parseInt(hrMatch[1], 10) : 0;
+      const m = minMatch ? parseInt(minMatch[1], 10) : 0;
+      const total = h * 60 + m;
+      return Number.isFinite(total) ? total : 0;
+    }
+
+    // Fallback numbers (e.g. "30", "1 30")
+    const nums = s.match(/\d+/g) || [];
+    if (nums.length === 1) {
+      const m = parseInt(nums[0], 10);
+      return Number.isFinite(m) ? m : 0;
+    }
+    if (nums.length >= 2) {
+      const h = parseInt(nums[0], 10);
+      const m = parseInt(nums[1], 10);
+      const total = (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+      return Number.isFinite(total) ? total : 0;
+    }
+
+    return 0;
+  };
 
   // Fetch availability when date changes
   useEffect(() => {
@@ -44,34 +77,37 @@ export default function BookingSection({
     const fetchAvailability = async () => {
       setIsLoadingAvailability(true);
       setBlockedTimes([]);
+      setSelectedTime(""); // reset time when date changes (prevents stale selection)
+      setBookingError("");
 
       try {
-        const response = await base44.functions.invoke('calendarSync', {
-          action: 'checkAvailability',
+        const response = await base44.functions.invoke("calendarSync", {
+          action: "checkAvailability",
           date: selectedDate,
         });
 
-        const { busySlots } = response.data;
+        const busySlots = response?.data?.busySlots || [];
 
-        const blocked = [];
+        const blockedSet = new Set();
+
         busySlots.forEach((slot) => {
           const start = new Date(slot.start);
           const end = new Date(slot.end);
 
           timeSlots.forEach((time) => {
-            const [hour, minute] = time.split(':').map(Number);
-            const slotTime = new Date(selectedDate);
-            slotTime.setHours(hour, minute, 0, 0);
+            // ✅ construct slot datetime consistently (avoid YYYY-MM-DD UTC parsing issues)
+            const slotTime = new Date(`${selectedDate}T${time}:00`);
 
             if (slotTime >= start && slotTime < end) {
-              blocked.push(time);
+              blockedSet.add(time);
             }
           });
         });
 
-        setBlockedTimes(blocked);
+        setBlockedTimes(Array.from(blockedSet));
       } catch (error) {
-        console.error('Failed to fetch availability:', error);
+        console.error("Failed to fetch availability:", error);
+        // Keep it minimal; don't change UI structure
       } finally {
         setIsLoadingAvailability(false);
       }
@@ -94,74 +130,6 @@ export default function BookingSection({
     return `(${a}) ${b} - ${c}`;
   };
 
-  const handleContinue = async () => {
-    if (
-      cart.length > 0 &&
-      selectedDate &&
-      selectedTime &&
-      formData.name &&
-      formData.phone &&
-      formData.email
-    ) {
-      setBookingError("");
-      setIsCreatingEvent(true);
-
-      try {
-        // Calculate end time based on service durations
-        const totalMinutes = cart.reduce((sum, service) => {
-          const [hours, minutes] = (service.duration || '0 min').match(/\d+/g) || [0, 0];
-          return sum + (parseInt(hours) * 60) + parseInt(minutes);
-        }, 0);
-
-        const [startHour, startMinute] = selectedTime.split(':').map(Number);
-        const endDate = new Date(selectedDate);
-        endDate.setHours(startHour, startMinute + totalMinutes, 0, 0);
-        const endTime = endDate.toTimeString().slice(0, 5);
-
-        // Create calendar event
-        const response = await base44.functions.invoke('calendarSync', {
-          action: 'createEvent',
-          date: selectedDate,
-          startTime: selectedTime,
-          endTime: endTime,
-          services: cart,
-          clientName: formData.name,
-          clientEmail: formData.email,
-          clientPhone: formData.phone,
-        });
-
-        if (response.data.conflict) {
-          setBookingError(lang === "es" 
-            ? "Este horario ya no está disponible. Por favor selecciona otro." 
-            : "This time slot is no longer available. Please select another.");
-          setSelectedTime("");
-          return;
-        }
-
-        if (response.data.error) {
-          setBookingError(lang === "es" 
-            ? "Error al crear la cita. Intenta nuevamente." 
-            : "Error creating appointment. Please try again.");
-          return;
-        }
-
-        // Continue to payment only after successful calendar creation
-        onContinueToPayment({
-          services: cart,
-          date: selectedDate,
-          time: selectedTime,
-          ...formData,
-        });
-      } catch (error) {
-        setBookingError(lang === "es" 
-          ? "Error al procesar tu solicitud. Intenta nuevamente." 
-          : "Error processing your request. Please try again.");
-      } finally {
-        setIsCreatingEvent(false);
-      }
-    }
-  };
-
   const isFormValid =
     cart.length > 0 &&
     selectedDate &&
@@ -170,14 +138,125 @@ export default function BookingSection({
     formData.phone &&
     formData.email;
 
+  const handleContinue = async () => {
+    if (!isFormValid) return;
+
+    setBookingError("");
+    setIsCreatingEvent(true);
+
+    try {
+      // ✅ Total service duration in minutes
+      const totalMinutes = cart.reduce((sum, service) => {
+        return sum + durationToMinutes(service?.duration);
+      }, 0);
+
+      if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+        setBookingError(
+          lang === "es"
+            ? "Duración inválida de servicio. Verifica los servicios seleccionados."
+            : "Invalid service duration. Please verify selected services."
+        );
+        return;
+      }
+
+      // Start & End times
+      const start = new Date(`${selectedDate}T${selectedTime}:00`);
+      if (Number.isNaN(start.getTime())) {
+        setBookingError(
+          lang === "es"
+            ? "Fecha u hora inválida. Intenta nuevamente."
+            : "Invalid date or time. Please try again."
+        );
+        return;
+      }
+
+      const end = new Date(start.getTime() + totalMinutes * 60 * 1000);
+      const endTime = end.toTimeString().slice(0, 5);
+
+      // Create calendar event
+      const response = await base44.functions.invoke("calendarSync", {
+        action: "createEvent",
+        date: selectedDate,
+        startTime: selectedTime,
+        endTime: endTime,
+        services: cart,
+        clientName: formData.name,
+        clientEmail: formData.email,
+        clientPhone: formData.phone,
+      });
+
+      if (response?.data?.conflict) {
+        setBookingError(
+          lang === "es"
+            ? "Este horario ya no está disponible. Por favor selecciona otro."
+            : "This time slot is no longer available. Please select another."
+        );
+        setSelectedTime("");
+        return;
+      }
+
+      if (response?.data?.error) {
+        setBookingError(
+          lang === "es"
+            ? "Error al crear la cita. Intenta nuevamente."
+            : "Error creating appointment. Please try again."
+        );
+        return;
+      }
+
+      // ✅ Refresh availability for the same date so UI updates right away
+      // (This avoids the "it stays blocked / weird state" feeling after booking)
+      try {
+        const refresh = await base44.functions.invoke("calendarSync", {
+          action: "checkAvailability",
+          date: selectedDate,
+        });
+
+        const busySlots = refresh?.data?.busySlots || [];
+        const blockedSet = new Set();
+
+        busySlots.forEach((slot) => {
+          const start = new Date(slot.start);
+          const end = new Date(slot.end);
+
+          timeSlots.forEach((time) => {
+            const slotTime = new Date(`${selectedDate}T${time}:00`);
+            if (slotTime >= start && slotTime < end) blockedSet.add(time);
+          });
+        });
+
+        setBlockedTimes(Array.from(blockedSet));
+      } catch (e) {
+        // ignore refresh failure
+      }
+
+      // Continue to payment only after successful calendar creation
+      onContinueToPayment({
+        services: cart,
+        date: selectedDate,
+        time: selectedTime,
+        ...formData,
+      });
+    } catch (error) {
+      console.error(error);
+      setBookingError(
+        lang === "es"
+          ? "Error al procesar tu solicitud. Intenta nuevamente."
+          : "Error processing your request. Please try again."
+      );
+    } finally {
+      setIsCreatingEvent(false);
+    }
+  };
+
   // Generate next 14 days (excluding Sundays)
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
     for (let i = 1; i <= 14; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      if (date.getDay() !== 0) dates.push(date);
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      if (d.getDay() !== 0) dates.push(d);
     }
     return dates;
   };
@@ -244,9 +323,7 @@ export default function BookingSection({
                   }}
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  <span>
-                    {lang === "es" ? "Agregar servicio" : "Add service"}
-                  </span>
+                  <span>{lang === "es" ? "Agregar servicio" : "Add service"}</span>
                 </button>
               </div>
 
@@ -342,7 +419,10 @@ export default function BookingSection({
                           : "0 10px 30px rgba(42,30,26,0.08)",
                       }}
                     >
-                      <div className="text-[11px] uppercase tracking-[0.16em]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
+                      <div
+                        className="text-[11px] uppercase tracking-[0.16em]"
+                        style={{ opacity: isActive ? 0.9 : 0.75 }}
+                      >
                         {dayName}
                       </div>
                       <div className="text-lg font-medium">{dayNum}</div>
@@ -370,6 +450,7 @@ export default function BookingSection({
                   const isActive = selectedTime === time;
                   const isBlocked = blockedTimes.includes(time);
                   const isDisabled = isLoadingAvailability || isBlocked;
+
                   return (
                     <button
                       key={time}
@@ -384,8 +465,9 @@ export default function BookingSection({
                           ? "0 18px 55px rgba(42,30,26,0.22)"
                           : "0 10px 30px rgba(42,30,26,0.08)",
                         opacity: isDisabled ? 0.4 : 1,
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        cursor: isDisabled ? "not-allowed" : "pointer",
                       }}
+                      title={isBlocked ? (lang === "es" ? "No disponible" : "Unavailable") : ""}
                     >
                       {time}
                     </button>
@@ -407,7 +489,10 @@ export default function BookingSection({
               <div className="mx-auto grid max-w-xl grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Name */}
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
+                  <User
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: PALETTE.taupe }}
+                  />
                   <Input
                     type="text"
                     placeholder={lang === "es" ? "Nombre completo" : "Full name"}
@@ -424,19 +509,14 @@ export default function BookingSection({
 
                 {/* Phone */}
                 <div className="relative">
-                  <Phone
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: PALETTE.taupe }}
-                  />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
                   <Input
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"
                     placeholder={lang === "es" ? "Teléfono" : "Phone"}
                     value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: formatPhone(e.target.value) })
-                    }
+                    onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                     className="pl-10 rounded-2xl"
                     style={{
                       backgroundColor: "rgba(241,232,221,0.65)",
@@ -450,7 +530,10 @@ export default function BookingSection({
 
                 {/* Email */}
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: PALETTE.taupe }} />
+                  <Mail
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: PALETTE.taupe }}
+                  />
                   <Input
                     type="email"
                     placeholder={lang === "es" ? "Correo electrónico" : "Email"}
@@ -491,9 +574,13 @@ export default function BookingSection({
                   boxShadow: isFormValid && !isCreatingEvent ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
                 }}
               >
-                {isCreatingEvent 
-                  ? (lang === "es" ? "Creando cita..." : "Creating appointment...") 
-                  : (lang === "es" ? "Continuar" : "Continue")}
+                {isCreatingEvent
+                  ? lang === "es"
+                    ? "Creando cita..."
+                    : "Creating appointment..."
+                  : lang === "es"
+                  ? "Continuar"
+                  : "Continue"}
               </Button>
             </div>
           </div>
