@@ -3,32 +3,52 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Optional: Authenticate user if needed
-    // const user = await base44.auth.me();
-    // if (!user) {
-    //   return Response.json({ error: "Unauthorized" }, { status: 401 });
-    // }
 
-    const { amountCents, currency = "usd", metadata = {} } = await req.json();
+    // Read JSON safely
+    let body = null;
+    try {
+      body = await req.json();
+    } catch {
+      body = null;
+    }
 
-    // Validate amount
-    if (!amountCents || amountCents <= 0 || !Number.isInteger(amountCents)) {
+    if (!body) {
+      return Response.json({ error: "Missing JSON body" }, { status: 400 });
+    }
+
+    const { amountCents, currency = "usd", metadata = {} } = body;
+
+    // Validate amount (integer cents > 0)
+    if (
+      typeof amountCents !== "number" ||
+      !Number.isInteger(amountCents) ||
+      amountCents <= 0
+    ) {
       return Response.json(
         { error: "Invalid amount. Must be a positive integer in cents." },
         { status: 400 }
       );
     }
 
-    // Create PaymentIntent using Base44 Stripe integration
-    const paymentIntent = await base44.asServiceRole.integrations.Stripe.CreatePaymentIntent({
-      amount: amountCents,
-      currency: currency.toLowerCase(),
-      metadata: {
-        ...metadata,
-        created_at: new Date().toISOString(),
-      },
-    });
+    // Stripe metadata values should be strings; keep small
+    const safeMetadata = {};
+    for (const [k, v] of Object.entries(metadata || {})) {
+      safeMetadata[String(k).slice(0, 40)] = String(v).slice(0, 500);
+    }
+
+    const paymentIntent =
+      await base44.asServiceRole.integrations.Stripe.CreatePaymentIntent({
+        amount: amountCents,
+        currency: String(currency).toLowerCase(),
+
+        // Payment Element works best with this enabled
+        automatic_payment_methods: { enabled: true },
+
+        metadata: {
+          ...safeMetadata,
+          created_at: new Date().toISOString(),
+        },
+      });
 
     return Response.json({
       clientSecret: paymentIntent.client_secret,
