@@ -25,7 +25,7 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   // ✅ TEMP PLACEHOLDERS (mapped by service.id)
   const PLACEHOLDER_BY_ID = {
     1: {
-      before: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=1200&fit=crop",
+      before: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=800&fit=crop",
       after: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1200&fit=crop",
     },
     2: {
