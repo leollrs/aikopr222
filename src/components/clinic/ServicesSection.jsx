@@ -1,3 +1,4 @@
+// ServicesSection.jsx
 import React from "react";
 import ServiceCard from "./ServiceCard";
 
@@ -17,7 +18,14 @@ const services = [
     idealEn: "Ideal for those seeking a permanent solution to unwanted hair.",
     benefitsEs: ["Resultados duraderos", "Sin dolor significativo", "Apto para todo tipo de piel"],
     benefitsEn: ["Long-lasting results", "Minimal discomfort", "Suitable for all skin types"],
-    caseStudy: { sessions: 6, months: 8, improvement: "85%" },
+    image: "/services/depilacion-laser.jpg",
+    caseStudy: {
+      sessions: 6,
+      months: 8,
+      improvement: "85%",
+      beforeImage: "/results/depilacion-laser-before.jpg",
+      afterImage: "/results/depilacion-laser-after.jpg",
+    },
   },
   {
     id: 2,
@@ -34,7 +42,14 @@ const services = [
     idealEn: "Perfect for special events or regular skin maintenance.",
     benefitsEs: ["Piel luminosa inmediata", "Reduce poros", "Sin tiempo de recuperación"],
     benefitsEn: ["Immediate glowing skin", "Reduces pores", "No downtime"],
-    caseStudy: { sessions: 4, months: 3, improvement: "90%" },
+    image: "/services/carbon-peel.jpg",
+    caseStudy: {
+      sessions: 4,
+      months: 3,
+      improvement: "90%",
+      beforeImage: "/results/carbon-peel-before.jpg",
+      afterImage: "/results/carbon-peel-after.jpg",
+    },
   },
   {
     id: 3,
@@ -50,7 +65,14 @@ const services = [
     idealEn: "For those wanting to remove or lighten unwanted tattoos.",
     benefitsEs: ["Elimina todos los colores", "Tratamiento progresivo", "Mínima cicatrización"],
     benefitsEn: ["Removes all colors", "Progressive treatment", "Minimal scarring"],
-    caseStudy: { sessions: 8, months: 12, improvement: "95%" },
+    image: "/services/eliminacion-tatuajes.jpg",
+    caseStudy: {
+      sessions: 8,
+      months: 12,
+      improvement: "95%",
+      beforeImage: "/results/eliminacion-tatuajes-before.jpg",
+      afterImage: "/results/eliminacion-tatuajes-after.jpg",
+    },
   },
   {
     id: 4,
@@ -66,7 +88,14 @@ const services = [
     idealEn: "Ideal for correcting faded or poorly done micropigmentation.",
     benefitsEs: ["Resultados precisos", "Recuperación rápida", "Técnica especializada"],
     benefitsEn: ["Precise results", "Quick recovery", "Specialized technique"],
-    caseStudy: { sessions: 4, months: 4, improvement: "88%" },
+    image: "/services/eliminacion-micropigmentacion.jpg",
+    caseStudy: {
+      sessions: 4,
+      months: 4,
+      improvement: "88%",
+      beforeImage: "/results/eliminacion-micropigmentacion-before.jpg",
+      afterImage: "/results/eliminacion-micropigmentacion-after.jpg",
+    },
   },
   {
     id: 5,
@@ -82,7 +111,14 @@ const services = [
     idealEn: "For removing warts anywhere on the body.",
     benefitsEs: ["Procedimiento rápido", "Sin suturas", "Recuperación inmediata"],
     benefitsEn: ["Quick procedure", "No stitches", "Immediate recovery"],
-    caseStudy: { sessions: 2, months: 1, improvement: "100%" },
+    image: "/services/eliminacion-verrugas.jpg",
+    caseStudy: {
+      sessions: 2,
+      months: 1,
+      improvement: "100%",
+      beforeImage: "/results/eliminacion-verrugas-before.jpg",
+      afterImage: "/results/eliminacion-verrugas-after.jpg",
+    },
   },
   {
     id: 6,
@@ -98,7 +134,14 @@ const services = [
     idealEn: "For those seeking a lift without surgery.",
     benefitsEs: ["Efecto lifting natural", "Estimula colágeno", "Resultados duraderos"],
     benefitsEn: ["Natural lifting effect", "Stimulates collagen", "Long-lasting results"],
-    caseStudy: { sessions: 2, months: 6, improvement: "80%" },
+    image: "/services/plasma-fibroblast.jpg",
+    caseStudy: {
+      sessions: 2,
+      months: 6,
+      improvement: "80%",
+      beforeImage: "/results/plasma-fibroblast-before.jpg",
+      afterImage: "/results/plasma-fibroblast-after.jpg",
+    },
   },
   {
     id: 7,
@@ -114,7 +157,14 @@ const services = [
     idealEn: "Ideal for acne scars, fine lines, and texture improvement.",
     benefitsEs: ["Regenera la piel", "Reduce cicatrices", "Mejora absorción de productos"],
     benefitsEn: ["Regenerates skin", "Reduces scars", "Improves product absorption"],
-    caseStudy: { sessions: 4, months: 4, improvement: "75%" },
+    image: "/services/microneedling.jpg",
+    caseStudy: {
+      sessions: 4,
+      months: 4,
+      improvement: "75%",
+      beforeImage: "/results/microneedling-before.jpg",
+      afterImage: "/results/microneedling-after.jpg",
+    },
   },
   {
     id: 8,
@@ -130,7 +180,14 @@ const services = [
     idealEn: "For those wanting a deep lift with no recovery time.",
     benefitsEs: ["Lifting profundo", "Sin anestesia", "Resultados progresivos"],
     benefitsEn: ["Deep lifting", "No anesthesia", "Progressive results"],
-    caseStudy: { sessions: 1, months: 6, improvement: "70%" },
+    image: "/services/hifu.jpg",
+    caseStudy: {
+      sessions: 1,
+      months: 6,
+      improvement: "70%",
+      beforeImage: "/results/hifu-before.jpg",
+      afterImage: "/results/hifu-after.jpg",
+    },
   },
 ];
 
@@ -142,14 +199,9 @@ export default function ServicesSection({
   onViewDetails,
   sectionRef,
 }) {
-  // NEW PALETTE (shared)
-  const CREAM = "#FBF8F3";
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
-  const CHAMPAGNE = "#C9AE7E";
-  const ROSE = "#C39A8B";
-  const TAUPE = "#8B7468";
 
   return (
     <section
@@ -158,7 +210,6 @@ export default function ServicesSection({
       className="relative overflow-hidden py-28 md:py-36 lg:py-44"
       style={{ backgroundColor: LINEN }}
     >
-      {/* Clean subtle backdrop */}
       <div
         className="absolute inset-0"
         style={{
@@ -170,7 +221,6 @@ export default function ServicesSection({
       />
 
       <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-        {/* Section Header */}
         <div className="mx-auto mb-20 max-w-2xl text-center">
           <h2
             className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
@@ -189,7 +239,6 @@ export default function ServicesSection({
           </p>
         </div>
 
-        {/* Services Grid */}
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {services.map((service) => (
             <ServiceCard
