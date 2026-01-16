@@ -18,10 +18,8 @@ const PALETTE = {
   rose: "#C39A8B",
 };
 
-// ✅ Robust unwrap for Base44 invoke responses
 const unwrap = (res) => res?.data ?? res?.result ?? res ?? {};
 
-// ✅ Local-safe YYYY-MM-DD (no UTC shift like toISOString)
 const toLocalYYYYMMDD = (d) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -29,7 +27,6 @@ const toLocalYYYYMMDD = (d) => {
   return `${y}-${m}-${day}`;
 };
 
-// ✅ Local-safe DateTime from YYYY-MM-DD + HH:mm
 const makeLocalDateTime = (dateStr, timeStr) => new Date(`${dateStr}T${timeStr}:00`);
 
 export default function BookingSection({
@@ -43,7 +40,7 @@ export default function BookingSection({
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
-  const [serviceType, setServiceType] = useState(""); // "mobile" or "onsite"
+  const [serviceType, setServiceType] = useState("");
   const [address, setAddress] = useState({ line1: "", city: "", zip: "", notes: "" });
 
   const [blockedTimes, setBlockedTimes] = useState([]);
@@ -51,70 +48,53 @@ export default function BookingSection({
   const [bookingError, setBookingError] = useState("");
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
-  // ✅ Robust duration parser -> minutes
   const durationToMinutes = (duration) => {
     const s = String(duration || "").toLowerCase().trim();
-
     const hrMatch = s.match(/(\d+)\s*(h|hr|hrs|hour|hours)\b/);
     const minMatch = s.match(/(\d+)\s*(m|min|mins|minute|minutes)\b/);
-
     if (hrMatch || minMatch) {
       const h = hrMatch ? parseInt(hrMatch[1], 10) : 0;
       const m = minMatch ? parseInt(minMatch[1], 10) : 0;
       const total = h * 60 + m;
       return Number.isFinite(total) ? total : 0;
     }
-
     const nums = s.match(/\d+/g) || [];
     if (nums.length === 1) return Number(nums[0]) || 0;
     if (nums.length >= 2) return (Number(nums[0]) || 0) * 60 + (Number(nums[1]) || 0);
-
     return 0;
   };
 
   const computeBlockedTimes = (busySlots, dateStr) => {
     const blockedSet = new Set();
-
     busySlots.forEach((slot) => {
       const start = new Date(slot.start);
       const end = new Date(slot.end);
-
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
-
       timeSlots.forEach((time) => {
         const slotTime = makeLocalDateTime(dateStr, time);
         if (slotTime >= start && slotTime < end) blockedSet.add(time);
       });
     });
-
     return Array.from(blockedSet);
   };
 
-  // Fetch availability when date changes
   useEffect(() => {
     if (!selectedDate) {
       setBlockedTimes([]);
       return;
     }
-
     const fetchAvailability = async () => {
       setIsLoadingAvailability(true);
       setBookingError("");
       setBlockedTimes([]);
       setSelectedTime("");
-
       try {
         const res = await base44.functions.invoke("calendarSync", {
           action: "checkAvailability",
           date: selectedDate,
         });
-
         const data = unwrap(res);
-
         if (!data.ok) {
-          console.error("checkAvailability raw res:", res);
-          console.error("checkAvailability parsed data:", data);
-
           setBookingError(
             lang === "es"
               ? `No pudimos verificar disponibilidad: ${data.error || "Unknown error"}`
@@ -122,18 +102,14 @@ export default function BookingSection({
           );
           return;
         }
-
         const busySlots = data.busySlots || [];
         setBlockedTimes(computeBlockedTimes(busySlots, selectedDate));
       } catch (error) {
-        console.error("checkAvailability invoke error:", error);
-
         const msg =
           error?.message ||
           error?.response?.data?.error ||
           error?.data?.error ||
           "Unknown error";
-
         setBookingError(
           lang === "es"
             ? `No pudimos verificar disponibilidad: ${msg}`
@@ -143,19 +119,15 @@ export default function BookingSection({
         setIsLoadingAvailability(false);
       }
     };
-
     fetchAvailability();
   }, [selectedDate, lang]);
 
-  // Phone formatter
   const formatPhone = (value) => {
     const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
     if (digits.length === 0) return "";
-
     const a = digits.slice(0, 3);
     const b = digits.slice(3, 6);
     const c = digits.slice(6, 10);
-
     if (digits.length <= 3) return `(${a}`;
     if (digits.length <= 6) return `(${a}) ${b}`;
     return `(${a}) ${b} - ${c}`;
@@ -173,13 +145,10 @@ export default function BookingSection({
 
   const handleContinue = async () => {
     if (!isFormValid) return;
-
     setBookingError("");
     setIsCreatingEvent(true);
-
     try {
       const totalMinutes = cart.reduce((sum, s) => sum + durationToMinutes(s?.duration), 0);
-
       if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
         setBookingError(
           lang === "es"
@@ -188,16 +157,13 @@ export default function BookingSection({
         );
         return;
       }
-
       const start = makeLocalDateTime(selectedDate, selectedTime);
       if (Number.isNaN(start.getTime())) {
         setBookingError(lang === "es" ? "Fecha u hora inválida." : "Invalid date or time.");
         return;
       }
-
       const end = new Date(start.getTime() + totalMinutes * 60 * 1000);
       const endTime = end.toTimeString().slice(0, 5);
-
       const res = await base44.functions.invoke("calendarSync", {
         action: "createEvent",
         date: selectedDate,
@@ -208,13 +174,8 @@ export default function BookingSection({
         clientEmail: formData.email,
         clientPhone: formData.phone,
       });
-
       const data = unwrap(res);
-
       if (!data.ok) {
-        console.error("createEvent raw res:", res);
-        console.error("createEvent parsed data:", data);
-
         setBookingError(
           lang === "es"
             ? `Error al procesar tu solicitud: ${data.error || "Unknown error"}`
@@ -222,7 +183,6 @@ export default function BookingSection({
         );
         return;
       }
-
       if (data.conflict) {
         setBookingError(
           lang === "es"
@@ -232,8 +192,6 @@ export default function BookingSection({
         setSelectedTime("");
         return;
       }
-
-      // Refresh availability so UI blocks the time immediately
       try {
         const refresh = await base44.functions.invoke("calendarSync", {
           action: "checkAvailability",
@@ -246,7 +204,6 @@ export default function BookingSection({
       } catch {
         // ignore refresh issues
       }
-
       onContinueToPayment({
         services: cart,
         date: selectedDate,
@@ -256,16 +213,12 @@ export default function BookingSection({
         ...(serviceType === "mobile" ? { address } : {}),
       });
     } catch (error) {
-      console.error("createEvent invoke error:", error);
-
       const status =
         error?.response?.status ||
         error?.status ||
         (typeof error?.message === "string" && error.message.match(/\b(\d{3})\b/)
           ? Number(error.message.match(/\b(\d{3})\b/)[1])
           : null);
-
-      // ✅ If Base44 throws on 409, treat it as a conflict
       if (status === 409) {
         setBookingError(
           lang === "es"
@@ -275,13 +228,11 @@ export default function BookingSection({
         setSelectedTime("");
         return;
       }
-
       const msg =
         error?.response?.data?.error ||
         error?.data?.error ||
         error?.message ||
         "Unknown error";
-
       setBookingError(
         lang === "es"
           ? `Error al procesar tu solicitud: ${msg}`
@@ -292,7 +243,6 @@ export default function BookingSection({
     }
   };
 
-  // Generate next 14 days (excluding Sundays)
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
@@ -336,7 +286,6 @@ export default function BookingSection({
               : "Select services, date and time, then enter your details."}
           </p>
 
-          {/* Progress indicator */}
           <div className="mt-12 flex items-center justify-center gap-3">
             {steps.map((step, idx) => (
               <React.Fragment key={step.id}>
@@ -615,8 +564,124 @@ export default function BookingSection({
               <p className="mt-4 text-center text-xs" style={{ color: PALETTE.taupe }}>
                 {lang === "es"
                   ? "Confirmaremos tu cita por mensaje tan pronto recibamos tu solicitud."
-                  : "We’ll confirm your appointment by message as soon as we receive your request."}
+                  : "We'll confirm your appointment by message as soon as we receive your request."}
               </p>
+            </div>
+
+            {/* Service Location Choice */}
+            <div className="mb-10">
+              <h3
+                className="text-sm font-semibold mb-4 flex items-center justify-center gap-2 tracking-[0.12em] uppercase"
+                style={{ color: PALETTE.espresso }}
+              >
+                <MapPin className="w-4 h-4" style={{ color: PALETTE.champagne }} />
+                {lang === "es" ? "¿Dónde será el servicio?" : "Where will the service take place?"}
+              </h3>
+
+              <div className="mx-auto max-w-xl grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setServiceType("mobile")}
+                  className="rounded-2xl px-6 py-4 border transition focus:outline-none focus:ring-2"
+                  style={{
+                    backgroundColor: serviceType === "mobile" ? "rgba(195,154,139,0.95)" : "rgba(251,248,243,0.72)",
+                    borderColor: serviceType === "mobile" ? "rgba(195,154,139,0.55)" : "rgba(42,30,26,0.10)",
+                    color: serviceType === "mobile" ? "#FFFFFF" : PALETTE.espresso,
+                    boxShadow: serviceType === "mobile"
+                      ? "0 18px 55px rgba(195,154,139,0.30)"
+                      : "0 10px 30px rgba(42,30,26,0.08)",
+                  }}
+                >
+                  <MapPin className="mx-auto mb-2 h-6 w-6" style={{ color: serviceType === "mobile" ? "#FFFFFF" : PALETTE.champagne }} />
+                  <div className="text-sm font-medium">
+                    {lang === "es" ? "A domicilio" : "Mobile"}
+                  </div>
+                  <div className="text-xs mt-1" style={{ opacity: 0.85 }}>
+                    {lang === "es" ? "En tu hogar" : "At your home"}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setServiceType("onsite");
+                    setAddress({ line1: "", city: "", zip: "", notes: "" });
+                  }}
+                  className="rounded-2xl px-6 py-4 border transition focus:outline-none focus:ring-2"
+                  style={{
+                    backgroundColor: serviceType === "onsite" ? "rgba(195,154,139,0.95)" : "rgba(251,248,243,0.72)",
+                    borderColor: serviceType === "onsite" ? "rgba(195,154,139,0.55)" : "rgba(42,30,26,0.10)",
+                    color: serviceType === "onsite" ? "#FFFFFF" : PALETTE.espresso,
+                    boxShadow: serviceType === "onsite"
+                      ? "0 18px 55px rgba(195,154,139,0.30)"
+                      : "0 10px 30px rgba(42,30,26,0.08)",
+                  }}
+                >
+                  <Building2 className="mx-auto mb-2 h-6 w-6" style={{ color: serviceType === "onsite" ? "#FFFFFF" : PALETTE.champagne }} />
+                  <div className="text-sm font-medium">
+                    {lang === "es" ? "En clínica" : "On-site"}
+                  </div>
+                  <div className="text-xs mt-1" style={{ opacity: 0.85 }}>
+                    {lang === "es" ? "En nuestra ubicación" : "At our location"}
+                  </div>
+                </button>
+              </div>
+
+              {serviceType === "mobile" && (
+                <div className="mt-6 mx-auto max-w-xl space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <Input
+                    type="text"
+                    placeholder={lang === "es" ? "Dirección" : "Address Line 1"}
+                    value={address.line1}
+                    onChange={(e) => setAddress({ ...address, line1: e.target.value })}
+                    className="rounded-2xl"
+                    style={{
+                      backgroundColor: "rgba(241,232,221,0.65)",
+                      borderColor: "rgba(42,30,26,0.12)",
+                      color: PALETTE.espresso,
+                    }}
+                  />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      type="text"
+                      placeholder={lang === "es" ? "Ciudad" : "City"}
+                      value={address.city}
+                      onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                      className="rounded-2xl"
+                      style={{
+                        backgroundColor: "rgba(241,232,221,0.65)",
+                        borderColor: "rgba(42,30,26,0.12)",
+                        color: PALETTE.espresso,
+                      }}
+                    />
+
+                    <Input
+                      type="text"
+                      placeholder={lang === "es" ? "Código Postal" : "ZIP Code"}
+                      value={address.zip}
+                      onChange={(e) => setAddress({ ...address, zip: e.target.value })}
+                      className="rounded-2xl"
+                      style={{
+                        backgroundColor: "rgba(241,232,221,0.65)",
+                        borderColor: "rgba(42,30,26,0.12)",
+                        color: PALETTE.espresso,
+                      }}
+                    />
+                  </div>
+
+                  <Textarea
+                    placeholder={lang === "es" ? "Notas opcionales (código de portón, estacionamiento, etc.)" : "Optional notes (gate code, parking, etc.)"}
+                    value={address.notes}
+                    onChange={(e) => setAddress({ ...address, notes: e.target.value })}
+                    className="rounded-2xl resize-none"
+                    rows={3}
+                    style={{
+                      backgroundColor: "rgba(241,232,221,0.65)",
+                      borderColor: "rgba(42,30,26,0.12)",
+                      color: PALETTE.espresso,
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {bookingError && (
