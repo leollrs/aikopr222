@@ -1,4 +1,4 @@
-// ServiceModal.jsx (SLIDER ONLY — no side-by-side)
+// ServiceModal.jsx (FULL — no top image, no bottom "Cerrar", slider works + clean placeholder)
 import React, { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 export default function ServiceModal({ service, lang, isOpen, onClose, onAddService }) {
   if (!isOpen || !service) return null;
 
+  // NEW PALETTE (shared)
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
   const CHAMPAGNE = "#C9AE7E";
@@ -17,14 +18,24 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   const benefits = lang === "es" ? service.benefitsEs : service.benefitsEn;
   const desc = lang === "es" ? service.descEs : service.descEn;
 
+  // Optional — will be empty for now (placeholders will show)
   const beforeImage = service?.caseStudy?.beforeImage || "";
   const afterImage = service?.caseStudy?.afterImage || "";
 
+  const hasBeforeAfter = Boolean(beforeImage) && Boolean(afterImage);
+
   return (
     <>
-      <div className="fixed inset-0 z-50 backdrop-blur-sm" style={{ backgroundColor: "rgba(42,30,26,0.28)" }} onClick={onClose} />
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-50 backdrop-blur-sm"
+        style={{ backgroundColor: "rgba(42,30,26,0.28)" }}
+        onClick={onClose}
+      />
 
+      {/* Modal wrapper */}
       <div className="fixed inset-x-0 bottom-0 z-50 p-4 md:inset-0 md:flex md:items-center md:justify-center md:p-6">
+        {/* Modal shell */}
         <div
           className="relative w-full max-w-xl overflow-hidden rounded-t-[26px] border shadow-[0_40px_120px_rgba(42,30,26,0.22)] md:rounded-[28px]"
           style={{
@@ -33,21 +44,32 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
             backdropFilter: "blur(14px)",
           }}
         >
+          {/* Glow */}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1100px_620px_at_20%_0%,rgba(201,174,126,0.22),transparent_62%),radial-gradient(900px_520px_at_90%_10%,rgba(195,154,139,0.16),transparent_62%)]" />
 
           {/* Header */}
           <div
             className="sticky top-0 z-10 flex items-center justify-between border-b px-6 py-4 backdrop-blur"
-            style={{ backgroundColor: "rgba(251,248,243,0.80)", borderColor: "rgba(42,30,26,0.10)" }}
+            style={{
+              backgroundColor: "rgba(251,248,243,0.80)",
+              borderColor: "rgba(42,30,26,0.10)",
+            }}
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
-                <span className="text-[11px] font-semibold tracking-[0.28em] uppercase" style={{ color: TAUPE }}>
+                <span
+                  className="text-[11px] font-semibold tracking-[0.28em] uppercase"
+                  style={{ color: TAUPE }}
+                >
                   {lang === "es" ? "Detalles del servicio" : "Service details"}
                 </span>
               </div>
-              <h3 className="mt-2 truncate text-xl font-medium tracking-[-0.01em]" style={{ color: ESPRESSO }}>
+
+              <h3
+                className="mt-2 truncate text-xl font-medium tracking-[-0.01em]"
+                style={{ color: ESPRESSO }}
+              >
                 {name}
               </h3>
             </div>
@@ -55,7 +77,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
             <button
               onClick={onClose}
               className="rounded-full border p-2 transition"
-              style={{ borderColor: "rgba(42,30,26,0.14)", backgroundColor: "rgba(255,252,248,0.65)" }}
+              style={{
+                borderColor: "rgba(42,30,26,0.14)",
+                backgroundColor: "rgba(255,252,248,0.65)",
+              }}
               aria-label={lang === "es" ? "Cerrar" : "Close"}
             >
               <X className="h-5 w-5" style={{ color: ESPRESSO }} />
@@ -64,21 +89,14 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
 
           {/* Content */}
           <div className="relative max-h-[72vh] overflow-y-auto px-6 py-6 md:max-h-[75vh]">
-            {/* Hero image */}
-            {service.image && (
-              <div className="mb-6 overflow-hidden rounded-2xl border" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
-                <div className="relative">
-                  <img src={service.image} alt={name} className="h-52 w-full object-cover md:h-60" loading="lazy" />
-                  <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(42,30,26,0.25),transparent_55%)]" />
-                </div>
-              </div>
-            )}
-
             {/* Meta */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div
                 className="inline-flex items-center gap-2 rounded-full border px-4 py-2"
-                style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(251,248,243,0.75)" }}
+                style={{
+                  borderColor: "rgba(42,30,26,0.10)",
+                  backgroundColor: "rgba(251,248,243,0.75)",
+                }}
               >
                 <span className="text-xs font-medium" style={{ color: ESPRESSO }}>
                   {service.duration}
@@ -89,9 +107,13 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
                 </span>
               </div>
 
+              {/* Price badge */}
               <div
                 className="inline-flex items-center rounded-full border px-4 py-2"
-                style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(255,252,248,0.55)" }}
+                style={{
+                  borderColor: "rgba(42,30,26,0.10)",
+                  backgroundColor: "rgba(255,252,248,0.55)",
+                }}
               >
                 <span className="text-xs" style={{ color: TAUPE }}>
                   {lang === "es" ? "Desde" : "From"}
@@ -112,9 +134,15 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
             {/* Ideal for */}
             <div
               className="mt-7 rounded-2xl border p-5"
-              style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(241,232,221,0.55)" }}
+              style={{
+                borderColor: "rgba(42,30,26,0.10)",
+                backgroundColor: "rgba(241,232,221,0.55)",
+              }}
             >
-              <h4 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
+              <h4
+                className="text-xs font-semibold tracking-[0.22em] uppercase"
+                style={{ color: ESPRESSO }}
+              >
                 {lang === "es" ? "Ideal para" : "Ideal for"}
               </h4>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA }}>
@@ -124,7 +152,10 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
 
             {/* Benefits */}
             <div className="mt-7">
-              <h4 className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
+              <h4
+                className="text-xs font-semibold tracking-[0.22em] uppercase"
+                style={{ color: ESPRESSO }}
+              >
                 {lang === "es" ? "Beneficios" : "Benefits"}
               </h4>
 
@@ -133,9 +164,15 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
                   <div
                     key={idx}
                     className="flex items-start gap-2 rounded-2xl border px-4 py-3"
-                    style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(255,252,248,0.65)" }}
+                    style={{
+                      borderColor: "rgba(42,30,26,0.10)",
+                      backgroundColor: "rgba(255,252,248,0.65)",
+                    }}
                   >
-                    <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full" style={{ backgroundColor: "rgba(201,174,126,0.18)" }}>
+                    <span
+                      className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full"
+                      style={{ backgroundColor: "rgba(201,174,126,0.18)" }}
+                    >
                       <Check className="h-4 w-4" style={{ color: CHAMPAGNE }} />
                     </span>
                     <span className="text-sm leading-relaxed" style={{ color: COCOA }}>
@@ -146,46 +183,56 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
               </div>
             </div>
 
-            {/* Case Study + SLIDER */}
+            {/* Case study */}
             <div
               className="mt-8 overflow-hidden rounded-2xl border"
-              style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(241,232,221,0.45)" }}
+              style={{
+                borderColor: "rgba(42,30,26,0.10)",
+                backgroundColor: "rgba(241,232,221,0.45)",
+              }}
             >
-              <div className="px-5 py-4">
-                <div className="text-xs font-semibold tracking-[0.22em] uppercase" style={{ color: ESPRESSO }}>
-                  {lang === "es" ? "Caso real" : "Real case"}
+              <div className="flex items-center justify-between gap-3 px-5 py-4">
+                <div>
+                  <div
+                    className="text-xs font-semibold tracking-[0.22em] uppercase"
+                    style={{ color: ESPRESSO }}
+                  >
+                    {lang === "es" ? "Caso real" : "Real case"}
+                  </div>
+                  <div className="mt-1 text-sm" style={{ color: COCOA }}>
+                    {service.caseStudy.sessions} {lang === "es" ? "sesiones" : "sessions"} ·{" "}
+                    {service.caseStudy.months} {lang === "es" ? "meses" : "months"} · ~
+                    {service.caseStudy.improvement} {lang === "es" ? "mejora" : "improvement"}
+                  </div>
                 </div>
-                <div className="mt-1 text-sm" style={{ color: COCOA }}>
-                  {service.caseStudy.sessions} {lang === "es" ? "sesiones" : "sessions"} · {service.caseStudy.months}{" "}
-                  {lang === "es" ? "meses" : "months"} · ~{service.caseStudy.improvement}{" "}
-                  {lang === "es" ? "mejora" : "improvement"}
+
+                <div
+                  className="hidden sm:inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.12)",
+                    backgroundColor: "rgba(255,252,248,0.60)",
+                    color: ESPRESSO,
+                  }}
+                >
+                  {lang === "es" ? "Arrastra para comparar" : "Drag to compare"}
                 </div>
               </div>
 
               <div className="px-5 pb-5">
-                {beforeImage && afterImage ? (
+                {hasBeforeAfter ? (
                   <BeforeAfterSlider
                     lang={lang}
                     beforeSrc={beforeImage}
                     afterSrc={afterImage}
-                    accent={CHAMPAGNE}
-                    textColor={ESPRESSO}
                     containerStyle={{
                       borderColor: "rgba(42,30,26,0.10)",
                       backgroundColor: "rgba(241,232,221,0.75)",
                     }}
+                    accent={CHAMPAGNE}
+                    textColor={ESPRESSO}
                   />
                 ) : (
-                  <div
-                    className="rounded-xl border p-6 text-sm"
-                    style={{
-                      borderColor: "rgba(42,30,26,0.10)",
-                      color: COCOA,
-                      backgroundColor: "rgba(255,252,248,0.55)",
-                    }}
-                  >
-                    {lang === "es" ? "Fotos de resultados disponibles pronto." : "Result photos coming soon."}
-                  </div>
+                  <BeforeAfterPlaceholder lang={lang} />
                 )}
 
                 <p className="mt-4 text-xs italic" style={{ color: "rgba(107,90,82,0.78)" }}>
@@ -199,29 +246,27 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
             <div className="h-6" />
           </div>
 
-          {/* Footer */}
+          {/* Footer (ONLY one button) */}
           <div
-            className="sticky bottom-0 z-10 flex gap-3 border-t px-6 py-4 backdrop-blur"
-            style={{ backgroundColor: "rgba(251,248,243,0.82)", borderColor: "rgba(42,30,26,0.10)" }}
+            className="sticky bottom-0 z-10 border-t px-6 py-4 backdrop-blur"
+            style={{
+              backgroundColor: "rgba(251,248,243,0.82)",
+              borderColor: "rgba(42,30,26,0.10)",
+            }}
           >
             <Button
               onClick={() => {
                 onAddService(service);
                 onClose();
               }}
-              className="flex-1 rounded-xl py-3 font-medium"
-              style={{ backgroundColor: ROSE, color: "#fff", boxShadow: "0 18px 55px rgba(195,154,139,0.28)" }}
+              className="w-full rounded-xl py-3 font-medium"
+              style={{
+                backgroundColor: ROSE,
+                color: "#fff",
+                boxShadow: "0 18px 55px rgba(195,154,139,0.28)",
+              }}
             >
               {lang === "es" ? "Agregar a cita" : "Add to appointment"}
-            </Button>
-
-            <Button
-              onClick={onClose}
-              variant="outline"
-              className="rounded-xl px-6 py-3 font-medium"
-              style={{ backgroundColor: "rgba(255,252,248,0.55)", borderColor: "rgba(42,30,26,0.18)", color: ESPRESSO }}
-            >
-              {lang === "es" ? "Cerrar" : "Close"}
             </Button>
           </div>
         </div>
@@ -230,6 +275,67 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   );
 }
 
+/** Placeholder until you have real photos */
+function BeforeAfterPlaceholder({ lang }) {
+  const isEs = lang === "es";
+  return (
+    <div
+      className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border"
+      style={{
+        borderColor: "rgba(42,30,26,0.10)",
+        background:
+          "radial-gradient(900px 520px at 20% 0%, rgba(201,174,126,0.18), transparent 60%), radial-gradient(900px 520px at 90% 10%, rgba(195,154,139,0.14), transparent 60%), linear-gradient(to bottom, rgba(255,252,248,0.75), rgba(241,232,221,0.65))",
+      }}
+    >
+      <div className="absolute inset-0 p-4">
+        <div
+          className="h-full w-full rounded-lg border"
+          style={{ borderColor: "rgba(42,30,26,0.10)", backgroundColor: "rgba(255,252,248,0.55)" }}
+        />
+      </div>
+
+      <div className="absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium" style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}>
+        {isEs ? "Antes" : "Before"}
+      </div>
+      <div className="absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium" style={{ backgroundColor: "rgba(42,30,26,0.20)", color: "#fff" }}>
+        {isEs ? "Después" : "After"}
+      </div>
+
+      <div
+        className="absolute inset-y-0 left-1/2"
+        style={{ width: "2px", backgroundColor: "rgba(255,255,255,0.85)", transform: "translateX(-1px)" }}
+      />
+
+      <div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border px-4 py-2 text-[11px] font-medium backdrop-blur"
+        style={{
+          borderColor: "rgba(42,30,26,0.12)",
+          backgroundColor: "rgba(255,252,248,0.78)",
+          color: "rgba(107,90,82,0.92)",
+        }}
+      >
+        {isEs ? "Fotos de resultados pronto" : "Result photos coming soon"}
+      </div>
+
+      <div
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] backdrop-blur"
+        style={{
+          backgroundColor: "rgba(255,252,248,0.72)",
+          border: "1px solid rgba(42,30,26,0.12)",
+          color: "rgba(107,90,82,0.92)",
+        }}
+      >
+        {isEs ? "Arrastra para comparar" : "Drag to compare"}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Before/After slider:
+ * - Drag the handle (mouse/touch)
+ * - Invisible range input for accessibility
+ */
 function BeforeAfterSlider({
   lang,
   beforeSrc,
@@ -249,7 +355,8 @@ function BeforeAfterSlider({
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const x = clientX - rect.left;
-    setPct(clamp((x / rect.width) * 100, 0, 100));
+    const next = (x / rect.width) * 100;
+    setPct(clamp(next, 0, 100));
   };
 
   const onPointerDown = (e) => {
@@ -259,14 +366,25 @@ function BeforeAfterSlider({
     } catch {}
     setFromClientX(e.clientX);
   };
-  const onPointerMove = (e) => draggingRef.current && setFromClientX(e.clientX);
-  const onPointerUp = () => (draggingRef.current = false);
+
+  const onPointerMove = (e) => {
+    if (!draggingRef.current) return;
+    setFromClientX(e.clientX);
+  };
+
+  const onPointerUp = () => {
+    draggingRef.current = false;
+  };
 
   return (
     <div
       ref={wrapRef}
       className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border select-none"
-      style={{ ...containerStyle, position: "relative", touchAction: "none" }}
+      style={{
+        ...containerStyle,
+        position: "relative",
+        touchAction: "none",
+      }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -275,15 +393,42 @@ function BeforeAfterSlider({
       aria-label={isEs ? "Comparación antes y después" : "Before and after comparison"}
       role="group"
     >
-      {/* AFTER full */}
-      <img src={afterSrc} alt={isEs ? "Después" : "After"} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+      {/* AFTER (full) */}
+      <img
+        src={afterSrc}
+        alt={isEs ? "Después" : "After"}
+        className="absolute inset-0 h-full w-full object-cover"
+        draggable={false}
+      />
 
-      {/* BEFORE clipped */}
+      {/* BEFORE (clipped) */}
       <div className="absolute inset-0 overflow-hidden" style={{ width: `${pct}%` }} aria-hidden="true">
-        <img src={beforeSrc} alt={isEs ? "Antes" : "Before"} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+        <img
+          src={beforeSrc}
+          alt={isEs ? "Antes" : "Before"}
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
       </div>
 
-      {/* Divider */}
+      {/* Soft top gradient */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.16),transparent_60%)]" />
+
+      {/* Labels */}
+      <div
+        className="pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
+        style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
+      >
+        {isEs ? "Antes" : "Before"}
+      </div>
+      <div
+        className="pointer-events-none absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur"
+        style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}
+      >
+        {isEs ? "Después" : "After"}
+      </div>
+
+      {/* Divider line */}
       <div
         className="pointer-events-none absolute inset-y-0"
         style={{
@@ -295,7 +440,13 @@ function BeforeAfterSlider({
       />
 
       {/* Handle */}
-      <div className="absolute top-1/2 -translate-y-1/2" style={{ left: `${pct}%`, transform: "translate(-50%, -50%)" }}>
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{
+          left: `${pct}%`,
+          transform: "translate(-50%, -50%)",
+        }}
+      >
         <div
           className="flex h-11 w-11 items-center justify-center rounded-full border shadow-[0_20px_60px_rgba(42,30,26,0.22)]"
           style={{
@@ -312,15 +463,7 @@ function BeforeAfterSlider({
         </div>
       </div>
 
-      {/* Labels */}
-      <div className="pointer-events-none absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur" style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}>
-        {isEs ? "Antes" : "Before"}
-      </div>
-      <div className="pointer-events-none absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-medium backdrop-blur" style={{ backgroundColor: "rgba(42,30,26,0.28)", color: "#fff" }}>
-        {isEs ? "Después" : "After"}
-      </div>
-
-      {/* Accessible range */}
+      {/* Accessible slider (invisible) */}
       <input
         type="range"
         min={0}
@@ -337,7 +480,8 @@ function BeforeAfterSlider({
         style={{
           backgroundColor: "rgba(255,252,248,0.72)",
           border: "1px solid rgba(42,30,26,0.12)",
-          color: "rgba(107,90,82,0.92)",
+          color: textColor,
+          opacity: 0.78,
         }}
       >
         {isEs ? "Arrastra para comparar" : "Drag to compare"}
