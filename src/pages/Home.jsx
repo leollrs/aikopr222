@@ -20,6 +20,19 @@ export default function Home() {
   
   // Cart state
   const [cart, setCart] = useState([]);
+
+  // Define signature service for Hero
+  const signatureService = {
+    id: 999, // unique ID for signature service
+    nameEs: "Láser Rejuvenation",
+    nameEn: "Laser Rejuvenation",
+    descEs: "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
+    descEn: "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin.",
+    duration: "60-75 min",
+    price: 150, // placeholder price
+    benefits: [],
+    caseStudy: null
+  };
   
   // Modal states
   const [selectedService, setSelectedService] = useState(null);
@@ -40,6 +53,14 @@ export default function Home() {
 
   // Handlers
   const handleAddService = (service) => {
+    // Check if service already in cart (avoid duplicates)
+    const alreadyInCart = cart.some(item => item.id === service.id);
+    if (alreadyInCart) {
+      // Just scroll to booking if already added
+      scrollToBooking();
+      return;
+    }
+    
     setCart([...cart, service]);
     setLastAddedService(service);
     setShowAddedModal(true);
@@ -108,7 +129,9 @@ export default function Home() {
       <Hero 
         lang={lang}
         onBookClick={scrollToBooking}
-        onServicesClick={scrollToServices}
+        onViewServices={scrollToServices}
+        onAddService={handleAddService}
+        signatureService={signatureService}
       />
 
       {/* Services */}
