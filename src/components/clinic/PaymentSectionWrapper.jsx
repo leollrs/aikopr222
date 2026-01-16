@@ -18,52 +18,57 @@ export default function PaymentSectionWrapper({
   const COCOA = "#6B5A52";
   const ROSE = "#C39A8B";
 
-  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-
-  // ✅ DEBUG: Confirm env var injection at build time
-  console.log("Stripe key present?", Boolean(stripeKey), stripeKey ? stripeKey.slice(0, 8) + "…" : "MISSING");
-
-  if (!bookingData) return null;
-
-  // ✅ Frontend publishable key guard
-  if (!stripeKey) {
-    return (
-      <section
-        ref={sectionRef}
-        className="py-16 md:py-20 lg:py-28"
-        style={{ backgroundColor: LINEN }}
-      >
-        <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
-          <div
-            className="rounded-2xl border p-6 text-center"
-            style={{
-              backgroundColor: "rgba(195,154,139,0.10)",
-              borderColor: "rgba(195,154,139,0.35)",
-              color: ESPRESSO,
-            }}
-          >
-            <p className="mb-2 font-medium">
-              {lang === "es" ? "Configuración pendiente" : "Configuration required"}
-            </p>
-            <p className="text-sm" style={{ color: COCOA }}>
-              {lang === "es"
-                ? "Falta VITE_STRIPE_PUBLISHABLE_KEY en el frontend. Configúrala y redeploy."
-                : "Missing VITE_STRIPE_PUBLISHABLE_KEY in the frontend. Set it and redeploy."}
-            </p>
-            <p className="mt-2 text-xs" style={{ color: COCOA, opacity: 0.7 }}>
-              Detected: {Boolean(stripeKey) ? "YES" : "NO"}
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const stripePromise = useMemo(() => loadStripe(stripeKey), [stripeKey]);
+  const [stripeKey, setStripeKey] = useState("");
+  const [isLoadingKey, setIsLoadingKey] = useState(true);
+  const [keyError, setKeyError] = useState("");
 
   const [clientSecret, setClientSecret] = useState("");
   const [isCreatingIntent, setIsCreatingIntent] = useState(false);
   const [intentError, setIntentError] = useState("");
+
+  // Fetch Stripe publishable key from backend
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchKey() {
+      setIsLoadingKey(true);
+      setKeyError("");
+
+      try {
+        const res = await base44.functions.invoke("getPublicConfig");
+        if (cancelled) return;
+
+        const data = res?.data || res;
+        if (!data.ok) {
+          throw new Error(data.error || "Failed to load configuration");
+        }
+
+        const pk = data.stripePublishableKey;
+        if (!pk) {
+          throw new Error("Missing stripePublishableKey in response");
+        }
+
+        setStripeKey(pk);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("getPublicConfig failed:", err);
+        setKeyError(err?.message || "Failed to load Stripe configuration");
+      } finally {
+        if (!cancelled) setIsLoadingKey(false);
+      }
+    }
+
+    fetchKey();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const stripePromise = useMemo(() => {
+    if (!stripeKey) return null;
+    return loadStripe(stripeKey);
+  }, [stripeKey]);
 
   // Compute total in cents
   const totalCents = useMemo(() => {
@@ -99,7 +104,6 @@ export default function PaymentSectionWrapper({
       setClientSecret("");
 
       try {
-        // ✅ IMPORTANT: send JSON directly (no { body: ... })
         const res = await base44.functions.invoke("createPaymentIntent", {
           amountCents: totalCents,
           currency: "usd",
@@ -108,7 +112,6 @@ export default function PaymentSectionWrapper({
 
         if (cancelled) return;
 
-        // Base44 returns the function JSON under res.data
         const secret = res?.data?.clientSecret;
         if (!secret) {
           const errMsg =
@@ -145,6 +148,57 @@ export default function PaymentSectionWrapper({
       cancelled = true;
     };
   }, [cart, totalCents, metadata]);
+
+  if (!bookingData) return null;
+
+  // Loading Stripe key
+  if (isLoadingKey) {
+    return (
+      <section
+        ref={sectionRef}
+        className="py-16 md:py-20 lg:py-28"
+        style={{ backgroundColor: LINEN }}
+      >
+        <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
+          <div className="text-center" style={{ color: COCOA }}>
+            {lang === "es" ? "Cargando configuración..." : "Loading configuration..."}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error loading Stripe key
+  if (keyError) {
+    return (
+      <section
+        ref={sectionRef}
+        className="py-16 md:py-20 lg:py-28"
+        style={{ backgroundColor: LINEN }}
+      >
+        <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
+          <div
+            className="rounded-2xl border p-6 text-center"
+            style={{
+              backgroundColor: "rgba(195,154,139,0.10)",
+              borderColor: "rgba(195,154,139,0.35)",
+              color: ESPRESSO,
+            }}
+          >
+            <p className="mb-4">{keyError}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-sm underline"
+              style={{ color: ROSE }}
+              type="button"
+            >
+              {lang === "es" ? "Reintentar" : "Retry"}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (isCreatingIntent) {
     return (
@@ -193,7 +247,7 @@ export default function PaymentSectionWrapper({
     );
   }
 
-  if (!clientSecret) return null;
+  if (!clientSecret || !stripePromise) return null;
 
   const options = {
     clientSecret,
