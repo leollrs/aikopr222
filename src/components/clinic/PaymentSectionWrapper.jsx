@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import PaymentSection from "./PaymentSection";
 import { base44 } from "@/api/base44Client";
 
-// Load Stripe (replace with your actual publishable key)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
+// IMPORTANT:
+// 1) Set VITE_STRIPE_PUBLISHABLE_KEY in your Base44 env to your real Stripe publishable key.
+// 2) Do NOT leave the pk_test_placeholder in production.
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 export default function PaymentSectionWrapper({
   lang,
@@ -20,79 +22,107 @@ export default function PaymentSectionWrapper({
   const [isCreatingIntent, setIsCreatingIntent] = useState(false);
   const [intentError, setIntentError] = useState("");
 
-  // Calculate total in cents
+  // Compute total in cents (Stripe requires integer cents)
   const totalCents = useMemo(() => {
-    const totalDollars = (cart || []).reduce((sum, s) => sum + (Number(s?.price) || 0), 0);
-    return Math.round(totalDollars * 100);
+    const totalDollars = (cart || []).reduce(
+      (sum, s) => sum + (Number(s?.price) || 0),
+      0
+    );
+    const cents = Math.round(Number(totalDollars) * 100);
+    return Number.isFinite(cents) ? cents : 0;
   }, [cart]);
 
-  // Create PaymentIntent when bookingData and cart are valid
-  useEffect(() => {
-    if (!bookingData || !cart || cart.length === 0 || totalCents <= 0) {
-      setClientSecret("");
-      return;
-    }
+  // Light, safe metadata (Stripe metadata values should be strings)
+  const metadata = useMemo(() => {
+    const email = String(bookingData?.email || "").toLowerCase().trim().slice(0, 120);
+    const date = String(bookingData?.date || "").trim().slice(0, 40);
+    const time = String(bookingData?.time || "").trim().slice(0, 40);
 
-    const createIntent = async () => {
+    // Keep short; avoid huge metadata payloads
+    const services = (cart || [])
+      .map((s) => String(s?.id ?? s?.nameEn ?? "").trim())
+      .filter(Boolean)
+      .slice(0, 20)
+      .join(",");
+
+    return { email, date, time, services };
+  }, [bookingData, cart]);
+
+  // Create PaymentIntent when we have bookingData + non-empty cart + valid amount
+  useEffect(() => {
+    let cancelled = false;
+
+    async function createIntent() {
       setIsCreatingIntent(true);
       setIntentError("");
 
       try {
         const response = await base44.functions.invoke("createPaymentIntent", {
-          amountCents: totalCents,
-          currency: "usd",
-          metadata: {
-            email: bookingData.email || "",
-            date: bookingData.date || "",
-            time: bookingData.time || "",
-            services: cart.map(s => s.id || s.nameEn).join(","),
+          body: {
+            amountCents: totalCents,
+            currency: "usd",
+            metadata,
           },
         });
 
-        if (response?.data?.clientSecret) {
-          setClientSecret(response.data.clientSecret);
-        } else {
-          setIntentError("Failed to initialize payment");
+        if (cancelled) return;
+
+        if (response?.error) {
+          throw new Error(
+            response.error?.message || response.error || "Failed to initialize payment"
+          );
         }
-      } catch (error) {
-        console.error("Error creating payment intent:", error);
-        setIntentError(error?.message || "Failed to initialize payment");
+
+        const secret = response?.data?.clientSecret;
+        if (!secret) {
+          throw new Error("Missing clientSecret from server.");
+        }
+
+        setClientSecret(secret);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error creating payment intent:", err);
+        setClientSecret("");
+        setIntentError(err?.message || "Failed to initialize payment");
       } finally {
-        setIsCreatingIntent(false);
+        if (!cancelled) setIsCreatingIntent(false);
       }
-    };
+    }
+
+    // Reset if not ready
+    if (!bookingData || !cart?.length || totalCents <= 0) {
+      setClientSecret("");
+      setIntentError("");
+      setIsCreatingIntent(false);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     createIntent();
-  }, [bookingData, cart, totalCents]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookingData, cart, totalCents, metadata]);
 
   if (!bookingData) return null;
 
-  const options = {
-    clientSecret,
-    appearance: {
-      theme: "flat",
-      variables: {
-        colorPrimary: "#C39A8B",
-        colorBackground: "#FBF8F3",
-        colorText: "#2A1E1A",
-        colorDanger: "#C39A8B",
-        fontFamily: "system-ui, sans-serif",
-        spacingUnit: "4px",
-        borderRadius: "12px",
-      },
-    },
-  };
+  const LINEN = "#F1E8DD";
+  const ESPRESSO = "#2A1E1A";
+  const COCOA = "#6B5A52";
+  const ROSE = "#C39A8B";
 
-  // Show loading state while creating intent
+  // Loading UI while creating intent
   if (isCreatingIntent) {
     return (
       <section
         ref={sectionRef}
         className="py-16 md:py-20 lg:py-28"
-        style={{ backgroundColor: "#F1E8DD" }}
+        style={{ backgroundColor: LINEN }}
       >
         <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
-          <div className="text-center" style={{ color: "#6B5A52" }}>
+          <div className="text-center" style={{ color: COCOA }}>
             {lang === "es" ? "Preparando pago..." : "Preparing payment..."}
           </div>
         </div>
@@ -100,13 +130,13 @@ export default function PaymentSectionWrapper({
     );
   }
 
-  // Show error if intent creation failed
+  // Error UI if intent creation failed
   if (intentError) {
     return (
       <section
         ref={sectionRef}
         className="py-16 md:py-20 lg:py-28"
-        style={{ backgroundColor: "#F1E8DD" }}
+        style={{ backgroundColor: LINEN }}
       >
         <div className="mx-auto max-w-lg px-4 sm:px-6 lg:px-10">
           <div
@@ -114,14 +144,16 @@ export default function PaymentSectionWrapper({
             style={{
               backgroundColor: "rgba(195,154,139,0.10)",
               borderColor: "rgba(195,154,139,0.35)",
-              color: "#2A1E1A",
+              color: ESPRESSO,
             }}
           >
             <p className="mb-4">{intentError}</p>
+
             <button
               onClick={() => window.location.reload()}
               className="text-sm underline"
-              style={{ color: "#6B5A52" }}
+              style={{ color: ROSE }}
+              type="button"
             >
               {lang === "es" ? "Reintentar" : "Retry"}
             </button>
@@ -131,10 +163,26 @@ export default function PaymentSectionWrapper({
     );
   }
 
-  // Render PaymentSection with Stripe Elements
-  if (!clientSecret) {
-    return null;
-  }
+  // If we still don't have a clientSecret, don't render Elements.
+  // (This prevents Stripe Element initialization errors.)
+  if (!clientSecret) return null;
+
+  // Stripe Elements appearance (optional)
+  const options = {
+    clientSecret,
+    appearance: {
+      theme: "flat",
+      variables: {
+        colorPrimary: ROSE,
+        colorBackground: "#FBF8F3",
+        colorText: ESPRESSO,
+        colorDanger: ROSE,
+        fontFamily: "system-ui, sans-serif",
+        spacingUnit: "4px",
+        borderRadius: "12px",
+      },
+    },
+  };
 
   return (
     <Elements stripe={stripePromise} options={options}>
