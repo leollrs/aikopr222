@@ -17,6 +17,20 @@ const PALETTE = {
   rose: "#C39A8B",
 };
 
+// ✅ Robust unwrap for Base44 invoke responses
+const unwrap = (res) => res?.data ?? res?.result ?? res ?? {};
+
+// ✅ Local-safe YYYY-MM-DD (no UTC shift like toISOString)
+const toLocalYYYYMMDD = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+// ✅ Local-safe DateTime from YYYY-MM-DD + HH:mm
+const makeLocalDateTime = (dateStr, timeStr) => new Date(`${dateStr}T${timeStr}:00`);
+
 export default function BookingSection({
   lang,
   cart,
@@ -59,12 +73,14 @@ export default function BookingSection({
     const blockedSet = new Set();
 
     busySlots.forEach((slot) => {
+      // Expecting slot.start/slot.end in ISO or parseable date strings
       const start = new Date(slot.start);
       const end = new Date(slot.end);
 
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+
       timeSlots.forEach((time) => {
-        // ✅ consistent parsing (avoid new Date(dateStr) which can be UTC)
-        const slotTime = new Date(`${dateStr}T${time}:00`);
+        const slotTime = makeLocalDateTime(dateStr, time);
         if (slotTime >= start && slotTime < end) blockedSet.add(time);
       });
     });
@@ -91,9 +107,17 @@ export default function BookingSection({
           date: selectedDate,
         });
 
-        const data = res?.data || {};
+        const data = unwrap(res);
+
         if (!data.ok) {
-          console.error("checkAvailability error:", data.error);
+          console.error("checkAvailability raw res:", res);
+          console.error("checkAvailability parsed data:", data);
+
+          setBookingError(
+            lang === "es"
+              ? `No pudimos verificar disponibilidad: ${data.error || "Unknown error"}`
+              : `Couldn't check availability: ${data.error || "Unknown error"}`
+          );
           return;
         }
 
@@ -101,13 +125,25 @@ export default function BookingSection({
         setBlockedTimes(computeBlockedTimes(busySlots, selectedDate));
       } catch (error) {
         console.error("checkAvailability invoke error:", error);
+
+        const msg =
+          error?.message ||
+          error?.response?.data?.error ||
+          error?.data?.error ||
+          "Unknown error";
+
+        setBookingError(
+          lang === "es"
+            ? `No pudimos verificar disponibilidad: ${msg}`
+            : `Couldn't check availability: ${msg}`
+        );
       } finally {
         setIsLoadingAvailability(false);
       }
     };
 
     fetchAvailability();
-  }, [selectedDate]);
+  }, [selectedDate, lang]);
 
   // Phone formatter
   const formatPhone = (value) => {
@@ -149,7 +185,7 @@ export default function BookingSection({
         return;
       }
 
-      const start = new Date(`${selectedDate}T${selectedTime}:00`);
+      const start = makeLocalDateTime(selectedDate, selectedTime);
       if (Number.isNaN(start.getTime())) {
         setBookingError(lang === "es" ? "Fecha u hora inválida." : "Invalid date or time.");
         return;
@@ -169,8 +205,12 @@ export default function BookingSection({
         clientPhone: formData.phone,
       });
 
-      const data = res?.data || {};
+      const data = unwrap(res);
+
       if (!data.ok) {
+        console.error("createEvent raw res:", res);
+        console.error("createEvent parsed data:", data);
+
         setBookingError(
           lang === "es"
             ? `Error al procesar tu solicitud: ${data.error || "Unknown error"}`
@@ -195,7 +235,7 @@ export default function BookingSection({
           action: "checkAvailability",
           date: selectedDate,
         });
-        const refreshData = refresh?.data || {};
+        const refreshData = unwrap(refresh);
         if (refreshData.ok) {
           setBlockedTimes(computeBlockedTimes(refreshData.busySlots || [], selectedDate));
         }
@@ -330,7 +370,10 @@ export default function BookingSection({
                       }}
                     >
                       <div className="min-w-0">
-                        <div className="text-sm font-medium truncate" style={{ color: PALETTE.espresso }}>
+                        <div
+                          className="text-sm font-medium truncate"
+                          style={{ color: PALETTE.espresso }}
+                        >
                           {lang === "es" ? service.nameEs : service.nameEn}
                         </div>
                         <div className="text-xs" style={{ color: PALETTE.cocoa }}>
@@ -367,7 +410,7 @@ export default function BookingSection({
 
               <div className="mx-auto flex max-w-xl flex-wrap justify-center gap-2">
                 {availableDates.map((date) => {
-                  const dateStr = date.toISOString().split("T")[0];
+                  const dateStr = toLocalYYYYMMDD(date);
                   const dayName = date.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", {
                     weekday: "short",
                   });
@@ -392,7 +435,10 @@ export default function BookingSection({
                           : "0 10px 30px rgba(42,30,26,0.08)",
                       }}
                     >
-                      <div className="text-[11px] uppercase tracking-[0.16em]" style={{ opacity: isActive ? 0.9 : 0.75 }}>
+                      <div
+                        className="text-[11px] uppercase tracking-[0.16em]"
+                        style={{ opacity: isActive ? 0.9 : 0.75 }}
+                      >
                         {dayName}
                       </div>
                       <div className="text-lg font-medium">{dayNum}</div>
