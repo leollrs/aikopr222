@@ -2,23 +2,22 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.6";
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
+    createClientFromRequest(req); // keeps your pattern; not strictly required here
 
-    // Read JSON safely
+    const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!STRIPE_SECRET_KEY) {
+      return Response.json(
+        { error: "Stripe secret key is not configured on the server." },
+        { status: 500 }
+      );
+    }
+
     let body = null;
-    try {
-      body = await req.json();
-    } catch {
-      body = null;
-    }
-
-    if (!body) {
-      return Response.json({ error: "Missing JSON body" }, { status: 400 });
-    }
+    try { body = await req.json(); } catch { body = null; }
+    if (!body) return Response.json({ error: "Missing JSON body" }, { status: 400 });
 
     const { amountCents, currency = "usd", metadata = {} } = body;
 
-    // Validate amount (integer cents > 0)
     if (
       typeof amountCents !== "number" ||
       !Number.isInteger(amountCents) ||
@@ -30,32 +29,41 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Stripe metadata values should be strings; keep small
-    const safeMetadata = {};
+    // Stripe wants URLSearchParams form encoding
+    const form = new URLSearchParams();
+    form.set("amount", String(amountCents));
+    form.set("currency", String(currency).toLowerCase());
+    form.set("automatic_payment_methods[enabled]", "true");
+
+    // metadata must be strings
     for (const [k, v] of Object.entries(metadata || {})) {
-      safeMetadata[String(k).slice(0, 40)] = String(v).slice(0, 500);
+      form.set(`metadata[${String(k).slice(0, 40)}]`, String(v).slice(0, 500));
+    }
+    form.set("metadata[created_at]", new Date().toISOString());
+
+    const stripeRes = await fetch("https://api.stripe.com/v1/payment_intents", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form,
+    });
+
+    const data = await stripeRes.json();
+
+    if (!stripeRes.ok) {
+      return Response.json(
+        { error: data?.error?.message || "Stripe error creating PaymentIntent" },
+        { status: 500 }
+      );
     }
 
-    const paymentIntent =
-      await base44.asServiceRole.integrations.Stripe.CreatePaymentIntent({
-        amount: amountCents,
-        currency: String(currency).toLowerCase(),
-
-        // Payment Element works best with this enabled
-        automatic_payment_methods: { enabled: true },
-
-        metadata: {
-          ...safeMetadata,
-          created_at: new Date().toISOString(),
-        },
-      });
-
     return Response.json({
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
+      clientSecret: data.client_secret,
+      paymentIntentId: data.id,
     });
   } catch (error) {
-    console.error("Error creating PaymentIntent:", error);
     return Response.json(
       { error: error?.message || "Failed to create payment intent" },
       { status: 500 }
