@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { CreditCard, Lock, Check, Plus } from "lucide-react";
+import { Lock, Check, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 
 export default function PaymentSection({
   lang,
@@ -13,12 +13,9 @@ export default function PaymentSection({
   sectionRef,
   webhookUrl = "https://leollrs.app.n8n.cloud/webhook/254eed6d-ac1d-4db6-81a4-8da3479bfa8a",
 }) {
-  const [cardData, setCardData] = useState({
-    number: "",
-    expiry: "",
-    cvv: "",
-    name: "",
-  });
+  const stripe = useStripe();
+  const elements = useElements();
+  
   const [confirmed, setConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -48,6 +45,7 @@ export default function PaymentSection({
       webhookMissing: "Falta configurar el webhook.",
       add: "Agregar",
       noServices: "No hay servicios seleccionados.",
+      addMore: "Agregar más servicios",
     },
     en: {
       title: "Confirm Your Appointment",
@@ -65,6 +63,7 @@ export default function PaymentSection({
       webhookMissing: "Webhook is not configured.",
       add: "Add",
       noServices: "No services selected.",
+      addMore: "Add more services",
     },
   };
 
@@ -73,27 +72,6 @@ export default function PaymentSection({
   const totalServices = useMemo(() => {
     return (cart || []).reduce((sum, s) => sum + (Number(s?.price) || 0), 0);
   }, [cart]);
-
-  const isCardValid =
-    cardData.number && cardData.expiry && cardData.cvv && cardData.name;
-
-  // ✅ INPUT FORMATTERS (ONLY VISUAL/INPUT BEHAVIOR)
-  const formatCardNumber = (value) => {
-    const digits = String(value || "").replace(/\D/g, "").slice(0, 16);
-    // group into 4s: 1111 1111 1111 1111
-    return digits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
-  };
-
-  const formatExpiry = (value) => {
-    const digits = String(value || "").replace(/\D/g, "").slice(0, 4);
-    // format: 00/00 (MM/YY)
-    if (digits.length <= 2) return digits;
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  };
-
-  const formatCVV = (value) => {
-    return String(value || "").replace(/\D/g, "").slice(0, 4);
-  };
 
   // ✅ IMPORTANT: no card data sent
   const sendConfirmationWebhook = async () => {
@@ -152,14 +130,39 @@ export default function PaymentSection({
 
   const handleConfirm = async () => {
     setErrorMsg("");
-    if (!isCardValid) return;
+    
+    if (!stripe || !elements) {
+      setErrorMsg(t.errorGeneric);
+      return;
+    }
 
     try {
       setIsSubmitting(true);
-      await sendConfirmationWebhook();
-      onClearCart?.();
-      setConfirmed(true);
-      onConfirm?.();
+
+      // Confirm payment with Stripe
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: "if_required",
+        confirmParams: {
+          return_url: window.location.href,
+        },
+      });
+
+      if (error) {
+        setErrorMsg(error.message || t.errorGeneric);
+        return;
+      }
+
+      // Only proceed if payment succeeded
+      if (paymentIntent?.status === "succeeded") {
+        // Now call webhook (no card data sent)
+        await sendConfirmationWebhook();
+        onClearCart?.();
+        setConfirmed(true);
+        onConfirm?.();
+      } else {
+        setErrorMsg(t.errorGeneric);
+      }
     } catch (err) {
       setErrorMsg(err?.message || t.errorGeneric);
     } finally {
@@ -320,87 +323,9 @@ export default function PaymentSection({
               )}
             </div>
 
-            {/* Card Form */}
-            <div className="space-y-4">
-              <div className="relative">
-                <CreditCard
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
-                  style={{ color: TAUPE }}
-                />
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="cc-number"
-                  placeholder="1111 1111 1111 1111"
-                  value={cardData.number}
-                  onChange={(e) => {
-                    const formatted = formatCardNumber(e.target.value);
-                    setCardData((prev) => ({ ...prev, number: formatted }));
-                  }}
-                  className="pl-10"
-                  style={{
-                    backgroundColor: "rgba(241,232,221,0.70)",
-                    borderColor: "rgba(42,30,26,0.12)",
-                    color: ESPRESSO,
-                    fontVariantNumeric: "tabular-nums",
-                    letterSpacing: "0.06em",
-                  }}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="cc-exp"
-                  placeholder="00/00"
-                  value={cardData.expiry}
-                  onChange={(e) => {
-                    const formatted = formatExpiry(e.target.value);
-                    setCardData((prev) => ({ ...prev, expiry: formatted }));
-                  }}
-                  style={{
-                    backgroundColor: "rgba(241,232,221,0.70)",
-                    borderColor: "rgba(42,30,26,0.12)",
-                    color: ESPRESSO,
-                    fontVariantNumeric: "tabular-nums",
-                    letterSpacing: "0.06em",
-                  }}
-                />
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="cc-csc"
-                  placeholder="000"
-                  value={cardData.cvv}
-                  onChange={(e) => {
-                    const formatted = formatCVV(e.target.value);
-                    setCardData((prev) => ({ ...prev, cvv: formatted }));
-                  }}
-                  style={{
-                    backgroundColor: "rgba(241,232,221,0.70)",
-                    borderColor: "rgba(42,30,26,0.12)",
-                    color: ESPRESSO,
-                    fontVariantNumeric: "tabular-nums",
-                    letterSpacing: "0.06em",
-                  }}
-                />
-              </div>
-
-              <Input
-                type="text"
-                autoComplete="cc-name"
-                placeholder={lang === "es" ? "Nombre en la tarjeta" : "Name on card"}
-                value={cardData.name}
-                onChange={(e) =>
-                  setCardData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                style={{
-                  backgroundColor: "rgba(241,232,221,0.70)",
-                  borderColor: "rgba(42,30,26,0.12)",
-                  color: ESPRESSO,
-                }}
-              />
+            {/* Stripe Payment Element */}
+            <div className="py-4">
+              <PaymentElement />
             </div>
 
             {errorMsg ? (
@@ -426,13 +351,13 @@ export default function PaymentSection({
 
             <Button
               onClick={handleConfirm}
-              disabled={!isCardValid || isSubmitting}
+              disabled={!stripe || !elements || isSubmitting || cart.length === 0}
               className="w-full h-12 rounded-xl text-base font-medium"
               style={{
                 backgroundColor: ROSE,
                 color: "#FFFFFF",
                 boxShadow: "0 22px 70px rgba(195,154,139,0.32)",
-                opacity: !isCardValid || isSubmitting ? 0.7 : 1,
+                opacity: !stripe || !elements || isSubmitting || cart.length === 0 ? 0.7 : 1,
               }}
             >
               {isSubmitting ? t.sending : t.confirm}

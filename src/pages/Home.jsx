@@ -8,7 +8,7 @@ import AddedModal from '@/components/clinic/AddedModal';
 import ResultsSection from '@/components/clinic/ResultsSection';
 import TestimonialsSection from '@/components/clinic/TestimonialsSection';
 import BookingSection from '@/components/clinic/BookingSection';
-import PaymentSection from '@/components/clinic/PaymentSection';
+import PaymentSectionWrapper from '@/components/clinic/PaymentSectionWrapper';
 import ContactSection from '@/components/clinic/ContactSection';
 import Footer from '@/components/clinic/Footer';
 import ServicePickerModal from '@/components/clinic/ServicePickerModal';
@@ -137,7 +137,7 @@ export default function Home() {
 
       {/* Payment */}
       {showPayment && (
-        <PaymentSection 
+        <PaymentSectionWrapper 
           lang={lang}
           bookingData={bookingData}
           cart={cart}
