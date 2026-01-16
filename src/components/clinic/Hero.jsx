@@ -28,7 +28,7 @@ const content = {
     cardDesc:
       "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
     cardMeta1: "60–75 min",
-    cardMeta2: "Desde $___",
+    cardMeta2: "Desde $99",
     cardNote: "Consulta inicial incluida",
     checkAvailability: "Consultar disponibilidad",
   },
