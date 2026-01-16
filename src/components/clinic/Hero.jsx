@@ -19,6 +19,7 @@ const content = {
     cardMeta1: "60–75 min",
     cardMeta2: "Desde $___",
     cardNote: "Consulta inicial incluida",
+    checkAvailability: "Consultar disponibilidad",
   },
   en: {
     badge: "Premium aesthetics • Mobile service in Puerto Rico",
@@ -36,10 +37,19 @@ const content = {
     cardMeta1: "60–75 min",
     cardMeta2: "From $___",
     cardNote: "Initial consult included",
+    checkAvailability: "Check availability",
   },
 };
 
-export default function Hero({ lang = "es", onBookClick, onViewServices }) {
+export default function Hero({
+  lang = "es",
+  onBookClick,
+  onViewServices,
+
+  // NEW: cart hook-in
+  onAddService,
+  signatureService,
+}) {
   const t = content[lang] || content.es;
 
   // Palette
@@ -51,9 +61,17 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
   const ROSE = "#C39A8B";
   const TAUPE = "#8B7468";
 
+  const handleCheckAvailability = () => {
+    // 1) add signature service to cart automatically
+    if (onAddService && signatureService) onAddService(signatureService);
+
+    // 2) then proceed to booking flow / open modal / scroll to cart
+    if (onBookClick) onBookClick();
+  };
+
   return (
     <section className="relative overflow-hidden">
-      {/* Background: premium depth (vignette + glow + soft grain) */}
+      {/* Background */}
       <div
         className="absolute inset-0"
         style={{
@@ -65,7 +83,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
           `,
         }}
       />
-      {/* Vignette */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -74,26 +91,17 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
           mixBlendMode: "multiply",
         }}
       />
-      {/* Grain overlay (super subtle) */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.035]"
-        style={{
-          backgroundImage:
-            "url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22160%22 height=%22160%22 filter=%22url(%23n)%22 opacity=%220.55%22/%3E%3C/svg%3E')",
-        }}
-      />
 
       <div className="relative mx-auto max-w-6xl px-6 sm:px-8 lg:px-12">
         <div className="min-h-screen flex items-center py-20 md:py-28">
           <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-            {/* Left: Copy */}
+            {/* Left */}
             <motion.div
               className="lg:col-span-7 text-center lg:text-left"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
             >
-              {/* Badge */}
               <div
                 className="inline-flex items-center gap-2.5 rounded-full border px-6 py-2.5 backdrop-blur-sm"
                 style={{
@@ -111,7 +119,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                 </span>
               </div>
 
-              {/* Title */}
               <h1
                 className="mt-7 font-display text-5xl md:text-6xl lg:text-7xl font-medium tracking-[-0.035em] leading-[1.06] text-balance"
                 style={{ color: ESPRESSO }}
@@ -119,7 +126,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                 {t.title}
               </h1>
 
-              {/* Subtitle */}
               <p
                 className="mt-6 max-w-xl mx-auto lg:mx-0 font-body text-lg md:text-xl leading-relaxed"
                 style={{ color: COCOA, opacity: 0.92 }}
@@ -127,7 +133,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                 {t.subtitle}
               </p>
 
-              {/* CTAs */}
               <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
                 <motion.button
                   onClick={onBookClick}
@@ -162,7 +167,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                 </motion.button>
               </div>
 
-              {/* Trust row */}
               <div className="mt-10 flex flex-wrap gap-3 justify-center lg:justify-start">
                 {t.trust.map((label, idx) => (
                   <div
@@ -181,19 +185,9 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                   </div>
                 ))}
               </div>
-
-              {/* Microproof */}
-              <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 justify-center lg:justify-start text-sm">
-                {t.microproof.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2" style={{ color: TAUPE }}>
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
-                    <span className="font-medium">{item}</span>
-                  </div>
-                ))}
-              </div>
             </motion.div>
 
-            {/* Right: Premium “glass” signature card */}
+            {/* Right: Signature card */}
             <motion.div
               className="lg:col-span-5"
               initial={{ opacity: 0, y: 16 }}
@@ -201,7 +195,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
               transition={{ duration: 0.75, ease: "easeOut", delay: 0.05 }}
             >
               <div className="relative mx-auto max-w-md">
-                {/* Glow halo */}
                 <div
                   className="pointer-events-none absolute -inset-6 rounded-[2rem]"
                   style={{
@@ -221,16 +214,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                     backdropFilter: "blur(18px)",
                   }}
                 >
-                  {/* Hairline highlight */}
-                  <div
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(255,255,255,0.55), transparent 45%, transparent 60%, rgba(255,255,255,0.28))",
-                      opacity: 0.6,
-                    }}
-                  />
-
                   <div className="relative z-10">
                     <div className="flex items-center justify-between">
                       <span
@@ -287,8 +270,9 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                       </span>
                     </div>
 
+                    {/* THIS is the button you asked about */}
                     <motion.button
-                      onClick={onBookClick}
+                      onClick={handleCheckAvailability}
                       whileHover={{ y: -2, scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                       className="mt-7 w-full h-14 rounded-2xl text-sm font-medium transition-all flex items-center justify-center gap-2"
@@ -298,7 +282,7 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
                         boxShadow: "0 18px 50px rgba(42,30,26,0.22)",
                       }}
                     >
-                      {lang === "es" ? "Consultar disponibilidad" : "Check availability"}
+                      {t.checkAvailability}
                       <ArrowRight className="h-4 w-4" />
                     </motion.button>
                   </div>
@@ -308,7 +292,6 @@ export default function Hero({ lang = "es", onBookClick, onViewServices }) {
           </div>
         </div>
 
-        {/* Bottom divider */}
         <div
           className="h-px w-full"
           style={{
