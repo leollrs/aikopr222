@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Lock, Check, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
+import { base44 } from "@/api/base44Client";
 
 const PALETTE = {
   cream: "#FBF8F3",
@@ -141,6 +142,22 @@ export default function PaymentSection({
     return true;
   };
 
+  const durationToMinutes = (duration) => {
+    const s = String(duration || "").toLowerCase().trim();
+    const hrMatch = s.match(/(\d+)\s*(h|hr|hrs|hour|hours)\b/);
+    const minMatch = s.match(/(\d+)\s*(m|min|mins|minute|minutes)\b/);
+    if (hrMatch || minMatch) {
+      const h = hrMatch ? parseInt(hrMatch[1], 10) : 0;
+      const m = minMatch ? parseInt(minMatch[1], 10) : 0;
+      const total = h * 60 + m;
+      return Number.isFinite(total) ? total : 0;
+    }
+    const nums = s.match(/\d+/g) || [];
+    if (nums.length === 1) return Number(nums[0]) || 0;
+    if (nums.length >= 2) return (Number(nums[0]) || 0) * 60 + (Number(nums[1]) || 0);
+    return 0;
+  };
+
   const handleConfirm = async () => {
     setErrorMsg("");
 
@@ -164,6 +181,23 @@ export default function PaymentSection({
       }
 
       if (paymentIntent?.status === "succeeded") {
+        // Create calendar event after successful payment
+        const totalMinutes = cart.reduce((sum, s) => sum + durationToMinutes(s?.duration), 0);
+        const start = new Date(`${bookingData.date}T${bookingData.time}:00`);
+        const end = new Date(start.getTime() + totalMinutes * 60 * 1000);
+        const endTime = end.toTimeString().slice(0, 5);
+
+        await base44.functions.invoke("calendarSync", {
+          action: "createEvent",
+          date: bookingData.date,
+          startTime: bookingData.time,
+          endTime,
+          services: cart,
+          clientName: bookingData.name,
+          clientEmail: bookingData.email,
+          clientPhone: bookingData.phone,
+        });
+
         await sendConfirmationWebhook();
         onClearCart?.();
         setConfirmed(true);

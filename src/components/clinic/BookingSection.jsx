@@ -46,7 +46,6 @@ export default function BookingSection({
   const [blockedTimes, setBlockedTimes] = useState([]);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [bookingError, setBookingError] = useState("");
-  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   const durationToMinutes = (duration) => {
     const s = String(duration || "").toLowerCase().trim();
@@ -145,102 +144,16 @@ export default function BookingSection({
 
   const handleContinue = async () => {
     if (!isFormValid) return;
-    setBookingError("");
-    setIsCreatingEvent(true);
-    try {
-      const totalMinutes = cart.reduce((sum, s) => sum + durationToMinutes(s?.duration), 0);
-      if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
-        setBookingError(
-          lang === "es"
-            ? "Duración inválida de servicio. Verifica los servicios seleccionados."
-            : "Invalid service duration. Please verify selected services."
-        );
-        return;
-      }
-      const start = makeLocalDateTime(selectedDate, selectedTime);
-      if (Number.isNaN(start.getTime())) {
-        setBookingError(lang === "es" ? "Fecha u hora inválida." : "Invalid date or time.");
-        return;
-      }
-      const end = new Date(start.getTime() + totalMinutes * 60 * 1000);
-      const endTime = end.toTimeString().slice(0, 5);
-      const res = await base44.functions.invoke("calendarSync", {
-        action: "createEvent",
-        date: selectedDate,
-        startTime: selectedTime,
-        endTime,
-        services: cart,
-        clientName: formData.name,
-        clientEmail: formData.email,
-        clientPhone: formData.phone,
-      });
-      const data = unwrap(res);
-      if (!data.ok) {
-        setBookingError(
-          lang === "es"
-            ? `Error al procesar tu solicitud: ${data.error || "Unknown error"}`
-            : `Error processing your request: ${data.error || "Unknown error"}`
-        );
-        return;
-      }
-      if (data.conflict) {
-        setBookingError(
-          lang === "es"
-            ? "Este horario ya no está disponible. Por favor selecciona otro."
-            : "This time slot is no longer available. Please select another."
-        );
-        setSelectedTime("");
-        return;
-      }
-      try {
-        const refresh = await base44.functions.invoke("calendarSync", {
-          action: "checkAvailability",
-          date: selectedDate,
-        });
-        const refreshData = unwrap(refresh);
-        if (refreshData.ok) {
-          setBlockedTimes(computeBlockedTimes(refreshData.busySlots || [], selectedDate));
-        }
-      } catch {
-        // ignore refresh issues
-      }
-      onContinueToPayment({
-        services: cart,
-        date: selectedDate,
-        time: selectedTime,
-        ...formData,
-        serviceType,
-        ...(serviceType === "mobile" ? { address } : {}),
-      });
-    } catch (error) {
-      const status =
-        error?.response?.status ||
-        error?.status ||
-        (typeof error?.message === "string" && error.message.match(/\b(\d{3})\b/)
-          ? Number(error.message.match(/\b(\d{3})\b/)[1])
-          : null);
-      if (status === 409) {
-        setBookingError(
-          lang === "es"
-            ? "Este horario ya no está disponible. Por favor selecciona otro."
-            : "This time slot is no longer available. Please select another."
-        );
-        setSelectedTime("");
-        return;
-      }
-      const msg =
-        error?.response?.data?.error ||
-        error?.data?.error ||
-        error?.message ||
-        "Unknown error";
-      setBookingError(
-        lang === "es"
-          ? `Error al procesar tu solicitud: ${msg}`
-          : `Error processing your request: ${msg}`
-      );
-    } finally {
-      setIsCreatingEvent(false);
-    }
+    
+    // Just pass data to payment - calendar event created after payment succeeds
+    onContinueToPayment({
+      services: cart,
+      date: selectedDate,
+      time: selectedTime,
+      ...formData,
+      serviceType,
+      ...(serviceType === "mobile" ? { address } : {}),
+    });
   };
 
   const getAvailableDates = () => {
@@ -693,21 +606,15 @@ export default function BookingSection({
             <div className="mt-12 flex justify-center">
               <Button
                 onClick={handleContinue}
-                disabled={!isFormValid || isCreatingEvent}
+                disabled={!isFormValid}
                 className="w-full max-w-xl py-4 text-base font-medium rounded-2xl transition"
                 style={{
-                  backgroundColor: isFormValid && !isCreatingEvent ? PALETTE.rose : "rgba(195,154,139,0.25)",
-                  color: isFormValid && !isCreatingEvent ? "#FFFFFF" : PALETTE.cocoa,
-                  boxShadow: isFormValid && !isCreatingEvent ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
+                  backgroundColor: isFormValid ? PALETTE.rose : "rgba(195,154,139,0.25)",
+                  color: isFormValid ? "#FFFFFF" : PALETTE.cocoa,
+                  boxShadow: isFormValid ? "0 22px 70px rgba(195,154,139,0.30)" : "none",
                 }}
               >
-                {isCreatingEvent
-                  ? lang === "es"
-                    ? "Creando cita..."
-                    : "Creating appointment..."
-                  : lang === "es"
-                  ? "Continuar"
-                  : "Continue"}
+                {lang === "es" ? "Continuar" : "Continue"}
               </Button>
             </div>
           </div>
