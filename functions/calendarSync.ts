@@ -105,6 +105,8 @@ Deno.serve(async (req) => {
       const clientName = requireString(body.clientName, "clientName");
       const clientEmail = requireString(body.clientEmail, "clientEmail");
       const clientPhone = requireString(body.clientPhone, "clientPhone");
+      const serviceType = body.serviceType || "unknown";
+      const address = body.address || null;
 
       const timeMin = localTimeInTZToUtcIso(date, `${startTime}:00`, TZ);
       const timeMax = localTimeInTZToUtcIso(date, `${endTime}:00`, TZ);
@@ -151,15 +153,25 @@ Deno.serve(async (req) => {
         })
         .join(", ");
 
+      let locationText = "";
+      if (serviceType === "mobile" && address) {
+        const parts = [address.line1, address.city, address.zip].filter(Boolean);
+        locationText = parts.join(", ");
+      } else if (serviceType === "onsite") {
+        locationText = "On-site at clinic";
+      }
+
       const event = {
         summary: servicesList ? `Appointment – ${servicesList}` : "Appointment",
         description:
           `Client: ${clientName}\n` +
           `Phone: ${clientPhone}\n` +
-          `Email: ${clientEmail}\n\n` +
+          `Email: ${clientEmail}\n` +
+          `Location: ${serviceType === "mobile" ? "Mobile (at client's home)" : "On-site (at clinic)"}\n\n` +
           (servicesList ? `Services:\n${servicesList}` : ""),
         start: { dateTime: timeMin, timeZone: TZ },
         end: { dateTime: timeMax, timeZone: TZ },
+        ...(locationText ? { location: locationText } : {}),
       };
 
       const createResponse = await fetch(

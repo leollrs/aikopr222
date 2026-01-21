@@ -196,6 +196,8 @@ export default function PaymentSection({
           clientName: bookingData.name,
           clientEmail: bookingData.email,
           clientPhone: bookingData.phone,
+          serviceType: bookingData.serviceType,
+          address: bookingData.address,
         });
 
         await sendConfirmationWebhook();
