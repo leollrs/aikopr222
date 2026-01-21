@@ -129,7 +129,7 @@ export default function PaymentSectionWrapper({
     }
 
     // reset if not ready
-    if (!cart?.length || totalCents <= 0) {
+    if (!cart?.length) {
       setClientSecret("");
       setIntentError("");
       setIsCreatingIntent(false);
