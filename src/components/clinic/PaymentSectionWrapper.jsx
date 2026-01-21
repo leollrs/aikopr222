@@ -70,10 +70,10 @@ export default function PaymentSectionWrapper({
     return loadStripe(stripeKey);
   }, [stripeKey]);
 
-  // ALWAYS charge $1 deposit only
-  const DEPOSIT_AMOUNT = 1;
+  // ALWAYS charge $0 deposit only (testing)
+  const DEPOSIT_AMOUNT = 0;
   const totalCents = useMemo(() => {
-    return DEPOSIT_AMOUNT * 100; // Always 100 cents = $1
+    return DEPOSIT_AMOUNT * 100; // Always 0 cents = $0
   }, []);
 
   // Metadata (small + strings only)
