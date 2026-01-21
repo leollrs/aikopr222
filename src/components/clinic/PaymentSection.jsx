@@ -30,7 +30,7 @@ export default function PaymentSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const DEPOSIT_AMOUNT = 30;
+  const DEPOSIT_AMOUNT = 1;
 
   if (!bookingData) return null;
 
