@@ -70,10 +70,10 @@ export default function PaymentSectionWrapper({
     return loadStripe(stripeKey);
   }, [stripeKey]);
 
-  // ALWAYS charge $0 deposit only (testing)
-  const DEPOSIT_AMOUNT = 0;
+  // ALWAYS charge $1 deposit only
+  const DEPOSIT_AMOUNT = 1;
   const totalCents = useMemo(() => {
-    return DEPOSIT_AMOUNT * 100; // Always 0 cents = $0
+    return DEPOSIT_AMOUNT * 100; // Always 100 cents = $1
   }, []);
 
   // Metadata (small + strings only)
@@ -129,7 +129,7 @@ export default function PaymentSectionWrapper({
     }
 
     // reset if not ready
-    if (!cart?.length) {
+    if (!cart?.length || totalCents <= 0) {
       setClientSecret("");
       setIntentError("");
       setIsCreatingIntent(false);
