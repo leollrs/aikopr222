@@ -1,305 +1,241 @@
 // ServicesSection.jsx
 import React, { useMemo, useState, useEffect } from "react";
-import ServiceCard from "./ServiceCard";
 
 /**
- * ✅ What this version does (based ONLY on the info you gave):
- * 1) Divides the page by categories/sections:
- *    - "Servicios de Estética Avanzada"  -> shows 1 card (CO₂)
- *    - "Servicios Exclusivos a Domicilio" -> shows 4 cards (RF, HIFU, Microagujas Manchas, Plasma)
- *    - "Depilación Láser Diodo" -> shows ALL area-items as their own services (you said 13; see note below)
- *    - "Faciales" -> shows 2 services (Limpieza facial, Hidrafacial)
+ * ✅ Correct model (per your clarification):
+ * - "Multiple prices" = MULTIPLE SERVICES (multiple cards, multiple modals).
+ * - NO multi-price options inside a single modal.
  *
- * 2) Adds a modal per item (service). Clicking "details" should call onViewDetails(service)
- *    If your ServiceCard doesn't call onViewDetails, you can still open by wiring it there.
+ * ✅ Categories:
+ * 1) Estética avanzada (CO₂ only -> 1 service)
+ * 2) Servicios exclusivos a domicilio (RF 2 + HIFU 2 + Microagujas 1 + Plasma 1 = 6 services)
+ * 3) Depilación Láser Diodo (13 services)
+ * 4) Faciales (2 services)
  *
- * 3) If a service has "pricingOptions" (areas), the modal shows the list (areas & price).
- *    If a service has a single price, modal shows a single "Precio" chip.
+ * ✅ Modal:
+ * - One modal per service item (card).
+ * - Each modal has single price + details text.
  *
- * ⚠️ IMPORTANT:
- * - From the text you pasted, Depilación has 7 unique areas, duplicated twice due to formatting.
- *   You also said "depilación has 13 services". You did NOT provide 13 unique items.
- *   So this code will:
- *     - de-duplicate exact duplicates
- *     - create individual services for each unique area found in your text (7)
- *   If you truly have 13, just add them to LASER_ITEMS below.
+ * This file is self-contained (no ServiceCard dependency).
  */
 
-// ---------------------------
-// RAW lists (as given)
-// ---------------------------
-const LASER_ITEMS = [
-  { nameEs: "Bozo", price: 35 },
-  { nameEs: "Axilas", price: 45 },
-  { nameEs: "Bikini", price: 75 },
-  { nameEs: "Brazilian", price: 95 },
-  { nameEs: "Media Pierna", price: 120 },
-  { nameEs: "Piernas Completas", price: 150 }, // cleaned "$$150" -> 150
-  { nameEs: "Espalda", price: 150 },
-  // Add the missing 6 here if you truly have 13 total:
-  // { nameEs: "Pecho", price: 0 },
-  // ...
-];
+// ==========================
+// THEME
+// ==========================
+const LINEN = "#F1E8DD";
+const ESPRESSO = "#2A1E1A";
+const COCOA = "#6B5A52";
 
-const FACIALES_ITEMS = [
-  { nameEs: "✨ Limpieza facial", price: 65 },
-  { nameEs: "💦 Limpieza profunda con Hidrafacial", price: 90 },
-];
+// ==========================
+// HELPERS
+// ==========================
+function money(n) {
+  if (typeof n !== "number") return "";
+  return `$${n}`;
+}
 
-// ---------------------------
-// SERVICES (category cards)
-// ---------------------------
-const services = [
+function slugify(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+// ==========================
+// DATA (PER SERVICE = PER MODAL)
+// ==========================
+const CATEGORIES = [
   {
-    id: "co2",
-    category: "SERVICIOS DE ESTÉTICA AVANZADA",
-    nameEs: "CO₂ Láser Fraccionado",
-    nameEn: "Fractional CO₂ Laser",
-    descEs:
-      "Tratamiento de estética avanzada que mejora visiblemente la calidad de la piel mediante microzonas térmicas controladas que estimulan renovación cutánea, colágeno y elastina.",
-    descEn:
-      "Advanced aesthetic treatment that uses controlled micro-thermal zones to stimulate skin renewal, collagen, and elastin.",
-    duration: "45–60 min",
-    price: 230,
-    image: "/services/co2-laser-fraccionado.jpg",
-    modal: {
-      badges: ["Servicios Profesionales", "Evaluación Previa", "✔️ Evaluación previa obligatoria (estética)"],
-      titleEs: "CO₂ Láser Fraccionado",
-      priceLabelEs: "Precio por sesión",
-      conceptEs:
-        "El CO₂ Láser Fraccionado es un tratamiento de estética avanzada que mejora visiblemente la calidad de la piel mediante la creación de microzonas térmicas controladas. Estas microzonas estimulan de forma natural la renovación cutánea, el colágeno y la elastina, logrando una piel más uniforme, firme y rejuvenecida.",
-      extraEs:
-        "Es uno de los tratamientos más efectivos dentro de la estética para mejorar textura, marcas visibles y signos de envejecimiento, con resultados progresivos y duraderos.",
-      scopeEs: "(Siempre dentro del alcance estético, no médico)",
-      sections: [
-        {
-          headingEs: "Afecciones estéticas que mejora",
-          bullets: [
-            "Cicatrices de acné (aspecto superficial e irregular)",
-            "Marcas y cicatrices post procedimientos estéticos",
-            "Arrugas finas y medias",
-            "Líneas de expresión",
-            "Poros dilatados",
-            "Manchas y tono desigual",
-            "Rejuvenecimiento facial global",
-            "Textura áspera o envejecida",
-            "Piel opaca o fotoenvejecida",
-          ],
-        },
-        {
-          headingEs: "Duración de la sesión",
-          textEs: "45–60 minutos",
-        },
-        {
-          headingEs: "Cantidad de sesiones",
-          textEs: "1 a 3 sesiones (intervalos de 4 a 6 semanas, según evaluación estética)",
-        },
-        {
-          headingEs: "Cliente ideal",
-          bullets: [
-            "Personas que desean rejuvenecer la piel",
-            "Clientes con marcas visibles de acné",
-            "Piel con textura irregular o envejecida",
-            "Personas que buscan un tratamiento estético de alto impacto",
-          ],
-        },
-        {
-          headingEs: "Profesional y técnica",
-          textEs:
-            "Tratamiento realizado por profesional en estética avanzada capacitado en tecnología CO₂ láser, bajo protocolos estéticos y evaluación personalizada.",
-        },
-        {
-          headingEs: "Contraindicaciones estéticas",
-          bullets: [
-            "Embarazo",
-            "Piel con infecciones activas",
-            "Exposición solar reciente",
-            "Piel extremadamente sensible",
-            "Tendencia a cicatrización anormal (evaluación previa)",
-          ],
-        },
-        {
-          headingEs: "Cuidados post",
-          bullets: [
-            "Evitar sol directo",
-            "Uso constante de protector solar",
-            "No maquillaje por varios días",
-            "Hidratación profunda",
-            "No manipular la piel tratada",
-          ],
-        },
-        {
-          headingEs: "Recomendaciones para prolongar resultados",
-          bullets: [
-            "Fotoprotección diaria",
-            "Rutina cosmética adecuada",
-            "Tratamientos de mantenimiento",
-            "Hábitos saludables de cuidado de la piel",
-          ],
-        },
-      ],
-    },
-  },
-
-  // ---------------------------
-  // DOMICILIO (as given)
-  // ---------------------------
-  {
-    id: "rf-microagujas",
-    category: "SERVICIOS EXCLUSIVOS A DOMICILIO",
-    nameEs: "Radiofrecuencia Fraccionada con Microagujas",
-    nameEn: "Fractional RF Microneedling",
-    descEs:
-      "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
-    descEn:
-      "Aesthetic treatment combining microneedles and radiofrequency to improve firmness, texture, pores and skin quality via collagen stimulation.",
-    duration: "—",
-    price: 149, // starting
-    image: "/services/rf-microagujas.jpg",
-    pricingOptions: [
-      { labelEs: "Rostro, cuello y escote", price: 149 },
-      { labelEs: "Corporal (abdomen, brazos o entrepiernas)", price: 199 },
-    ],
-    modal: {
-      badges: ["🏡 Servicio a domicilio y en cabina"],
-      conceptHeadingEs: "Concepto",
-      conceptEs:
-        "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
-      sessionsHeadingEs: "Sesiones",
-      sessionsEs: "3–4 sesiones (cada 4 semanas)",
-      pricesHeadingEs: "Zonas y precios",
-    },
-  },
-  {
-    id: "hifu",
-    category: "SERVICIOS EXCLUSIVOS A DOMICILIO",
-    nameEs: "HIFU",
-    nameEn: "HIFU",
-    descEs:
-      "Ultrasonido Focalizado de Alta Intensidad que ayuda a reafirmar, tensar y redefinir el rostro y zonas corporales.",
-    descEn:
-      "High-Intensity Focused Ultrasound to help firm, tighten and redefine face and body areas.",
-    duration: "—",
-    price: 120, // starting
-    image: "/services/hifu.jpg",
-    pricingOptions: [
-      { labelEs: "Rostro, cuello y escote", price: 120 },
-      { labelEs: "Corporal (abdomen, brazos o entrepiernas)", price: 180 },
-    ],
-    modal: {
-      badges: ["Ultrasonido Focalizado de Alta Intensidad", "🏡 Servicio a domicilio y en cabina"],
-      conceptHeadingEs: "Concepto",
-      conceptEs:
-        "Tratamiento estético no invasivo que ayuda a reafirmar, tensar y redefinir el rostro y zonas corporales.",
-      sessionsHeadingEs: "Sesiones",
-      sessionsEs: "1 sesión cada 6–12 meses",
-      pricesHeadingEs: "Zonas y precios",
-    },
-  },
-  {
-    id: "microagujas-manchas",
-    category: "SERVICIOS EXCLUSIVOS A DOMICILIO",
-    nameEs: "Microagujas para Manchas",
-    nameEn: "Microneedling for Dark Spots",
-    descEs:
-      "Tratamiento estético de inducción de colágeno con activos despigmentantes para mejorar el tono y luminosidad de la piel.",
-    descEn:
-      "Aesthetic collagen induction with brightening actives to improve tone and radiance.",
-    duration: "—",
-    price: 120,
-    image: "/services/microagujas-manchas.jpg",
-    pricingOptions: [{ labelEs: "Rostro", price: 120 }],
-    modal: {
-      badges: ["🏡 Servicio a domicilio y en cabina"],
-      conceptHeadingEs: "Concepto",
-      conceptEs:
-        "Tratamiento estético de inducción de colágeno con activos despigmentantes para mejorar el tono y luminosidad de la piel.",
-      pricesHeadingEs: "Precio",
-    },
-  },
-  {
-    id: "plasma-fibroblast",
-    category: "SERVICIOS EXCLUSIVOS A DOMICILIO",
-    nameEs: "Plasma Fibroblast",
-    nameEn: "Plasma Fibroblast",
-    descEs:
-      "Tecnología estética que trabaja de forma localizada para mejorar la apariencia de la piel y tratar lesiones superficiales.",
-    descEn:
-      "Localized aesthetic technology to improve skin appearance and address superficial lesions.",
-    duration: "—",
-    price: 60, // from
-    image: "/services/plasma-fibroblast.jpg",
-    pricingOptions: [{ labelEs: "Remoción de verrugas (desde)", price: 60 }],
-    modal: {
-      badges: ["🏡 Servicio a domicilio y en cabina"],
-      conceptHeadingEs: "Concepto",
-      conceptEs:
-        "Tecnología estética que trabaja de forma localizada para mejorar la apariencia de la piel y tratar lesiones superficiales.",
-      pricesHeadingEs: "Precio",
-    },
-  },
-];
-
-// ---------------------------
-// Expand Depilación into individual services (areas as services)
-// ---------------------------
-function buildLaserServices() {
-  const seen = new Set();
-  const out = [];
-
-  LASER_ITEMS.forEach((item, idx) => {
-    const key = `${item.nameEs}`.trim().toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-
-    out.push({
-      id: `laser-${idx}-${key.replace(/\s+/g, "-")}`,
-      category: "DEPILACIÓN LÁSER DIODO",
-      nameEs: item.nameEs,
-      nameEn: item.nameEs,
-      descEs: "Depilación láser diodo por zona.",
-      descEn: "Diode laser hair removal by area.",
-      duration: "—",
-      price: item.price,
-      image: "/services/laser-diodo.jpg",
-      modal: {
-        badges: ["💡 Depilación Láser Diodo"],
-        priceLabelEs: "Precio",
-        conceptEs:
-          "Servicio de depilación láser diodo por zona. El plan de sesiones puede variar según evaluación estética.",
+    key: "advanced",
+    titleEs: "✨ SERVICIOS DE ESTÉTICA AVANZADA",
+    items: [
+      {
+        id: "co2-laser-fraccionado",
+        nameEs: "⭐ CO₂ LÁSER FRACCIONADO",
+        price: 230,
+        duration: "45–60 minutos",
+        badges: ["Servicios Profesionales", "Evaluación Previa", "✔️ Evaluación previa obligatoria (estética)"],
+        descriptionEs:
+          "El CO₂ Láser Fraccionado es un tratamiento de estética avanzada que mejora visiblemente la calidad de la piel mediante la creación de microzonas térmicas controladas. Estas microzonas estimulan de forma natural la renovación cutánea, el colágeno y la elastina, logrando una piel más uniforme, firme y rejuvenecida.",
+        extraEs:
+          "Es uno de los tratamientos más efectivos dentro de la estética para mejorar textura, marcas visibles y signos de envejecimiento, con resultados progresivos y duraderos.",
+        sections: [
+          {
+            title: "Afecciones estéticas que mejora",
+            bullets: [
+              "Cicatrices de acné (aspecto superficial e irregular)",
+              "Marcas y cicatrices post procedimientos estéticos",
+              "Arrugas finas y medias",
+              "Líneas de expresión",
+              "Poros dilatados",
+              "Manchas y tono desigual",
+              "Rejuvenecimiento facial global",
+              "Textura áspera o envejecida",
+              "Piel opaca o fotoenvejecida",
+            ],
+          },
+          { title: "Alcance", text: "(Siempre dentro del alcance estético, no médico)" },
+          { title: "Cantidad de sesiones", text: "1 a 3 sesiones (intervalos de 4 a 6 semanas, según evaluación estética)" },
+          {
+            title: "Cliente ideal",
+            bullets: [
+              "Personas que desean rejuvenecer la piel",
+              "Clientes con marcas visibles de acné",
+              "Piel con textura irregular o envejecida",
+              "Personas que buscan un tratamiento estético de alto impacto",
+            ],
+          },
+          {
+            title: "Profesional y técnica",
+            text:
+              "Tratamiento realizado por profesional en estética avanzada capacitado en tecnología CO₂ láser, bajo protocolos estéticos y evaluación personalizada.",
+          },
+          {
+            title: "Contraindicaciones estéticas",
+            bullets: [
+              "Embarazo",
+              "Piel con infecciones activas",
+              "Exposición solar reciente",
+              "Piel extremadamente sensible",
+              "Tendencia a cicatrización anormal (evaluación previa)",
+            ],
+          },
+          {
+            title: "Cuidados post",
+            bullets: [
+              "Evitar sol directo",
+              "Uso constante de protector solar",
+              "No maquillaje por varios días",
+              "Hidratación profunda",
+              "No manipular la piel tratada",
+            ],
+          },
+          {
+            title: "Recomendaciones para prolongar resultados",
+            bullets: [
+              "Fotoprotección diaria",
+              "Rutina cosmética adecuada",
+              "Tratamientos de mantenimiento",
+              "Hábitos saludables de cuidado de la piel",
+            ],
+          },
+        ],
       },
-    });
-  });
+    ],
+  },
 
-  return out;
-}
+  {
+    key: "home",
+    titleEs: "🏡 SERVICIOS EXCLUSIVOS A DOMICILIO",
+    subtitleEs: "🏡 Servicio a domicilio y en cabina",
+    items: [
+      // RF => 2 SERVICES (2 modals)
+      {
+        id: "rf-microagujas-rostro-cuello-escote",
+        nameEs: "🔬 RADIOFRECUENCIA FRACCIONADA CON MICROAGUJAS — Rostro, cuello y escote",
+        price: 149,
+        duration: "—",
+        badges: ["🏡 Servicio a domicilio y en cabina"],
+        descriptionEs:
+          "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
+        sections: [{ title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)" }],
+      },
+      {
+        id: "rf-microagujas-corporal",
+        nameEs: "🔬 RADIOFRECUENCIA FRACCIONADA CON MICROAGUJAS — Corporal (abdomen, brazos o entrepiernas)",
+        price: 199,
+        duration: "—",
+        badges: ["🏡 Servicio a domicilio y en cabina"],
+        descriptionEs:
+          "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
+        sections: [{ title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)" }],
+      },
 
-// ---------------------------
-// Expand Faciales into 2 services
-// ---------------------------
-function buildFacialesServices() {
-  return FACIALES_ITEMS.map((item, idx) => ({
-    id: `facial-${idx}-${item.nameEs.replace(/\s+/g, "-").toLowerCase()}`,
-    category: "FACIALES",
-    nameEs: item.nameEs,
-    nameEn: item.nameEs,
-    descEs: "Servicio facial estético.",
-    descEn: "Aesthetic facial service.",
-    duration: "—",
-    price: item.price,
-    image: "/services/faciales.jpg",
-    modal: {
-      badges: ["🏡 Servicio a domicilio y en cabina"],
-      priceLabelEs: "Precio",
-      conceptEs: "Servicio facial estético disponible a domicilio y en cabina.",
-    },
-  }));
-}
+      // HIFU => 2 SERVICES
+      {
+        id: "hifu-rostro-cuello-escote",
+        nameEs: "🔊 HIFU — Rostro, cuello y escote",
+        price: 120,
+        duration: "—",
+        badges: ["Ultrasonido Focalizado de Alta Intensidad", "🏡 Servicio a domicilio y en cabina"],
+        descriptionEs:
+          "Tratamiento estético no invasivo que ayuda a reafirmar, tensar y redefinir el rostro y zonas corporales.",
+        sections: [{ title: "Sesiones", text: "1 sesión cada 6–12 meses" }],
+      },
+      {
+        id: "hifu-corporal",
+        nameEs: "🔊 HIFU — Corporal (abdomen, brazos o entrepiernas)",
+        price: 180,
+        duration: "—",
+        badges: ["Ultrasonido Focalizado de Alta Intensidad", "🏡 Servicio a domicilio y en cabina"],
+        descriptionEs:
+          "Tratamiento estético no invasivo que ayuda a reafirmar, tensar y redefinir el rostro y zonas corporales.",
+        sections: [{ title: "Sesiones", text: "1 sesión cada 6–12 meses" }],
+      },
 
-// ===========================
+      // Microagujas manchas => 1 SERVICE
+      {
+        id: "microagujas-manchas-rostro",
+        nameEs: "✒️ MICROAGUJAS PARA MANCHAS — Rostro",
+        price: 120,
+        duration: "—",
+        badges: ["🏡 Servicio a domicilio y en cabina"],
+        descriptionEs:
+          "Tratamiento estético de inducción de colágeno con activos despigmentantes para mejorar el tono y luminosidad de la piel.",
+      },
+
+      // Plasma => 1 SERVICE (from 60)
+      {
+        id: "plasma-fibroblast-verrugas-desde",
+        nameEs: "⚡ PLASMA FIBROBLAST — Remoción de verrugas (desde)",
+        price: 60,
+        duration: "—",
+        badges: ["🏡 Servicio a domicilio y en cabina"],
+        descriptionEs:
+          "Tecnología estética que trabaja de forma localizada para mejorar la apariencia de la piel y tratar lesiones superficiales.",
+      },
+    ],
+  },
+
+  {
+    key: "laser",
+    titleEs: "💡 DEPILACIÓN LÁSER DIODO",
+    items: [
+      // You said 13 services. Your text shows 7 unique, duplicated.
+      // I’m giving you 13 service cards (each = its own modal).
+      { id: "laser-bozo", nameEs: "Bozo", price: 35, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+      { id: "laser-axilas", nameEs: "Axilas", price: 45, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+      { id: "laser-bikini", nameEs: "Bikini", price: 75, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+      { id: "laser-brazilian", nameEs: "Brazilian", price: 95, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+      { id: "laser-media-pierna", nameEs: "Media Pierna", price: 120, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+      { id: "laser-piernas-completas", nameEs: "Piernas Completas", price: 150, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+      { id: "laser-espalda", nameEs: "Espalda", price: 150, duration: "—", descriptionEs: "Depilación Láser Diodo por zona." },
+
+      // 6 placeholders to reach 13 — replace with your real remaining areas/prices
+      { id: "laser-area-8", nameEs: "Área 8 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio." },
+      { id: "laser-area-9", nameEs: "Área 9 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio." },
+      { id: "laser-area-10", nameEs: "Área 10 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio." },
+      { id: "laser-area-11", nameEs: "Área 11 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio." },
+      { id: "laser-area-12", nameEs: "Área 12 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio." },
+      { id: "laser-area-13", nameEs: "Área 13 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio." },
+    ],
+  },
+
+  {
+    key: "faciales",
+    titleEs: "FACIALES",
+    subtitleEs: "🏡 Servicio a domicilio y en cabina",
+    items: [
+      { id: "facial-limpieza", nameEs: "✨ Limpieza facial", price: 65, duration: "—", descriptionEs: "Servicio facial estético." },
+      { id: "facial-hidrafacial", nameEs: "💦 Limpieza profunda con Hidrafacial", price: 90, duration: "—", descriptionEs: "Servicio facial estético." },
+    ],
+  },
+];
+
+// ==========================
 // MODAL
-// ===========================
-function ServiceModal({ open, onClose, service, lang = "es" }) {
+// ==========================
+function ServiceModal({ open, service, onClose }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -309,51 +245,36 @@ function ServiceModal({ open, onClose, service, lang = "es" }) {
 
   if (!open || !service) return null;
 
-  const LINEN = "#F1E8DD";
-  const ESPRESSO = "#2A1E1A";
-  const COCOA = "#6B5A52";
-
-  const title = lang === "es" ? service.nameEs : service.nameEn;
-  const desc = lang === "es" ? service.descEs : service.descEn;
-
-  const m = service.modal || {};
-  const badges = m.badges || [];
-  const options = service.pricingOptions || [];
-
-  const showSinglePrice = typeof service.price === "number" && options.length === 0;
-
   return (
     <div className="fixed inset-0 z-[90]">
-      {/* Backdrop */}
       <button
-        aria-label="Close modal"
-        onClick={onClose}
         className="absolute inset-0 w-full h-full"
+        aria-label="Close"
+        onClick={onClose}
         style={{ background: "rgba(0,0,0,0.60)" }}
       />
 
       <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-14 pb-10">
         <div
-          className="relative overflow-hidden rounded-3xl border shadow-2xl"
-          style={{
-            backgroundColor: LINEN,
-            borderColor: "rgba(42,30,26,0.14)",
-          }}
+          className="rounded-3xl border shadow-2xl overflow-hidden"
+          style={{ backgroundColor: LINEN, borderColor: "rgba(42,30,26,0.14)" }}
         >
-          {/* Header */}
           <div className="p-6 sm:p-8 border-b" style={{ borderColor: "rgba(42,30,26,0.12)" }}>
             <div className="flex items-start justify-between gap-6">
               <div className="min-w-0">
                 <h3 className="font-display text-2xl sm:text-3xl font-medium tracking-tight" style={{ color: ESPRESSO }}>
-                  {title}
+                  {service.nameEs}
                 </h3>
-                <p className="mt-2 text-base sm:text-lg leading-relaxed" style={{ color: COCOA, opacity: 0.9 }}>
-                  {desc}
-                </p>
 
-                {badges.length > 0 && (
+                {service.descriptionEs && (
+                  <p className="mt-2 text-base sm:text-lg leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                    {service.descriptionEs}
+                  </p>
+                )}
+
+                {!!service.badges?.length && (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {badges.map((b, idx) => (
+                    {service.badges.map((b, idx) => (
                       <span
                         key={`${b}-${idx}`}
                         className="px-3 py-1 rounded-full text-sm border"
@@ -369,10 +290,9 @@ function ServiceModal({ open, onClose, service, lang = "es" }) {
                   </div>
                 )}
 
-                {/* Price Chip */}
-                {(showSinglePrice || options.length > 0) && (
-                  <div className="mt-5">
-                    <div
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {typeof service.price === "number" && (
+                    <span
                       className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm border"
                       style={{
                         background: "rgba(255,255,255,0.50)",
@@ -380,15 +300,25 @@ function ServiceModal({ open, onClose, service, lang = "es" }) {
                         color: ESPRESSO,
                       }}
                     >
-                      <span className="font-semibold">
-                        {m.priceLabelEs ? `${m.priceLabelEs}:` : "Precio:"}
-                      </span>
-                      <span className="font-semibold">
-                        {options.length > 0 ? `desde $${service.price}` : `$${service.price}`}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                      <span className="font-semibold">Precio:</span>
+                      <span className="font-semibold">{service.price === 0 ? "Editar" : money(service.price)}</span>
+                    </span>
+                  )}
+
+                  {service.duration && service.duration !== "—" && (
+                    <span
+                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm border"
+                      style={{
+                        background: "rgba(255,255,255,0.50)",
+                        borderColor: "rgba(42,30,26,0.12)",
+                        color: ESPRESSO,
+                      }}
+                    >
+                      <span className="font-semibold">Duración:</span>
+                      <span className="font-semibold">{service.duration}</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               <button
@@ -405,73 +335,35 @@ function ServiceModal({ open, onClose, service, lang = "es" }) {
             </div>
           </div>
 
-          {/* Body */}
-          <div className="p-6 sm:p-8 space-y-8">
-            {/* Concept */}
-            {m.conceptEs && (
-              <section>
-                <h4 className="text-base font-semibold" style={{ color: ESPRESSO }}>
-                  {m.conceptHeadingEs || "Concepto"}
-                </h4>
-                <p className="mt-2 leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
-                  {m.conceptEs}
-                </p>
-                {m.extraEs && (
-                  <p className="mt-3 leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
-                    {m.extraEs}
-                  </p>
-                )}
-                {m.scopeEs && (
-                  <p className="mt-3 text-sm" style={{ color: COCOA, opacity: 0.75 }}>
-                    {m.scopeEs}
-                  </p>
-                )}
-              </section>
+          <div className="p-6 sm:p-8 space-y-6">
+            {!!service.extraEs && (
+              <p className="leading-relaxed" style={{ color: COCOA, opacity: 0.9 }}>
+                {service.extraEs}
+              </p>
             )}
 
-            {/* Options table (areas/prices) */}
-            {options.length > 0 && (
-              <section>
-                <h4 className="text-base font-semibold" style={{ color: ESPRESSO }}>
-                  {m.pricesHeadingEs || "Zonas y precios"}
-                </h4>
-
-                <div className="mt-3 overflow-hidden rounded-2xl border" style={{ borderColor: "rgba(42,30,26,0.12)" }}>
-                  <div className="divide-y" style={{ borderColor: "rgba(42,30,26,0.10)" }}>
-                    {options.map((opt) => (
-                      <div
-                        key={`${opt.labelEs}-${opt.price}`}
-                        className="flex items-center justify-between gap-4 px-4 py-3"
-                        style={{ background: "rgba(255,255,255,0.48)" }}
-                      >
-                        <div className="text-sm" style={{ color: ESPRESSO }}>
-                          {opt.labelEs}
-                        </div>
-                        <div className="text-sm font-semibold" style={{ color: ESPRESSO }}>
-                          ${opt.price}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
+            {!!service.modal?.paragraphs?.length && (
+              <div className="space-y-4">
+                {service.modal.paragraphs.map((p, i) => (
+                  <p key={i} className="leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                    {p}
+                  </p>
+                ))}
+              </div>
             )}
 
-            {/* Long-form sections */}
-            {Array.isArray(m.sections) &&
-              m.sections.map((sec, idx) => (
-                <section key={`${sec.headingEs}-${idx}`}>
-                  {sec.headingEs && (
-                    <h4 className="text-base font-semibold" style={{ color: ESPRESSO }}>
-                      {sec.headingEs}
-                    </h4>
-                  )}
-                  {sec.textEs && (
+            {!!service.modal?.sections?.length &&
+              service.modal.sections.map((sec, idx) => (
+                <section key={`${sec.title}-${idx}`}>
+                  <h4 className="text-base font-semibold" style={{ color: ESPRESSO }}>
+                    {sec.title}
+                  </h4>
+                  {!!sec.text && (
                     <p className="mt-2 leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
-                      {sec.textEs}
+                      {sec.text}
                     </p>
                   )}
-                  {Array.isArray(sec.bullets) && sec.bullets.length > 0 && (
+                  {!!sec.bullets?.length && (
                     <ul className="mt-3 space-y-2">
                       {sec.bullets.map((b) => (
                         <li key={b} className="flex gap-3">
@@ -490,38 +382,80 @@ function ServiceModal({ open, onClose, service, lang = "es" }) {
   );
 }
 
-// ===========================
-// MAIN SECTION
-// ===========================
-export default function ServicesSection({ lang = "es", onAddService, onViewDetails, sectionRef }) {
-  const LINEN = "#F1E8DD";
-  const ESPRESSO = "#2A1E1A";
-  const COCOA = "#6B5A52";
+// ==========================
+// CARD
+// ==========================
+function ServiceCard({ item, onOpen }) {
+  return (
+    <button
+      onClick={() => onOpen(item)}
+      className="text-left rounded-3xl border p-5 sm:p-6 hover:opacity-[0.98] active:opacity-100 transition"
+      style={{
+        background: "rgba(255,255,255,0.45)",
+        borderColor: "rgba(42,30,26,0.12)",
+      }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h4 className="font-display text-lg sm:text-xl font-medium leading-snug" style={{ color: ESPRESSO }}>
+            {item.nameEs}
+          </h4>
+          {item.descriptionEs && (
+            <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA, opacity: 0.9 }}>
+              {item.descriptionEs}
+            </p>
+          )}
+        </div>
 
-  const [selected, setSelected] = useState(null);
-  const [open, setOpen] = useState(false);
+        {typeof item.price === "number" && (
+          <div
+            className="shrink-0 rounded-2xl px-3 py-2 text-sm border"
+            style={{
+              background: "rgba(201,174,126,0.18)",
+              borderColor: "rgba(42,30,26,0.10)",
+              color: ESPRESSO,
+            }}
+          >
+            {item.price === 0 ? "Editar" : money(item.price)}
+          </div>
+        )}
+      </div>
 
-  const allServices = useMemo(() => {
-    const laser = buildLaserServices();
-    const faciales = buildFacialesServices();
-    return [...services, ...laser, ...faciales];
+      {!!item.badges?.length && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {item.badges.slice(0, 2).map((b, idx) => (
+            <span
+              key={`${b}-${idx}`}
+              className="px-3 py-1 rounded-full text-xs border"
+              style={{
+                background: "rgba(255,255,255,0.55)",
+                borderColor: "rgba(42,30,26,0.10)",
+                color: ESPRESSO,
+              }}
+            >
+              {b}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-5 text-sm font-semibold" style={{ color: ESPRESSO }}>
+        Ver detalles →
+      </div>
+    </button>
+  );
+}
+
+// ==========================
+// MAIN
+// ==========================
+export default function ServicesSection({ sectionRef }) {
+  const flat = useMemo(() => {
+    return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
 
-  const grouped = useMemo(() => {
-    const map = new Map();
-    allServices.forEach((s) => {
-      const key = s.category || "Servicios";
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(s);
-    });
-    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
-  }, [allServices]);
-
-  const handleViewDetails = (service) => {
-    onViewDetails?.(service);
-    setSelected(service);
-    setOpen(true);
-  };
+  const [selectedId, setSelectedId] = useState(null);
+  const selected = useMemo(() => flat.find((x) => x.id === selectedId) || null, [flat, selectedId]);
 
   return (
     <section
@@ -542,42 +476,38 @@ export default function ServicesSection({ lang = "es", onAddService, onViewDetai
 
       <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
         <div className="mx-auto mb-16 max-w-2xl text-center">
-          <h2
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6"
-            style={{ color: ESPRESSO }}
-          >
-            {lang === "es" ? "Nuestros Servicios" : "Our Services"}
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6" style={{ color: ESPRESSO }}>
+            Nuestros Servicios
           </h2>
-
           <p className="font-body text-lg md:text-xl leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
-            {lang === "es"
-              ? "Servicios organizados por categoría. Abre cualquier servicio para ver detalles y precios."
-              : "Services organized by category. Open any service to see details and pricing."}
+            Servicios organizados por categoría. Toca cualquier servicio para ver su modal.
           </p>
         </div>
 
         <div className="space-y-16">
-          {grouped.map(({ category, items }) => (
-            <div key={category}>
-              <div className="mb-7 flex items-end justify-between gap-6">
+          {CATEGORIES.map((cat) => (
+            <div key={cat.key}>
+              <div className="mb-6">
                 <h3 className="font-display text-2xl md:text-3xl font-medium tracking-tight" style={{ color: ESPRESSO }}>
-                  {category}
+                  {cat.titleEs}
                 </h3>
-
-                <div className="hidden sm:block text-sm" style={{ color: COCOA, opacity: 0.8 }}>
-                  {lang === "es" ? `${items.length} servicios` : `${items.length} services`}
-                </div>
+                {(cat.subtitleEs || cat.items?.length >= 0) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    {cat.subtitleEs && (
+                      <span className="text-sm" style={{ color: COCOA, opacity: 0.9 }}>
+                        {cat.subtitleEs}
+                      </span>
+                    )}
+                    <span className="text-sm" style={{ color: COCOA, opacity: 0.75 }}>
+                      • {cat.items.length} servicios
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {items.map((service) => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    lang={lang}
-                    onAddService={onAddService}
-                    onViewDetails={handleViewDetails}
-                  />
+                {cat.items.map((item) => (
+                  <ServiceCard key={item.id} item={item} onOpen={(svc) => setSelectedId(svc.id)} />
                 ))}
               </div>
             </div>
@@ -585,7 +515,7 @@ export default function ServicesSection({ lang = "es", onAddService, onViewDetai
         </div>
       </div>
 
-      <ServiceModal open={open} onClose={() => setOpen(false)} service={selected} lang={lang} />
+      <ServiceModal open={!!selected} service={selected} onClose={() => setSelectedId(null)} />
     </section>
   );
 }
