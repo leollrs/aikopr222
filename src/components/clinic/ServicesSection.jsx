@@ -59,67 +59,69 @@ const CATEGORIES = [
           "El CO₂ Láser Fraccionado es un tratamiento de estética avanzada que mejora visiblemente la calidad de la piel mediante la creación de microzonas térmicas controladas. Estas microzonas estimulan de forma natural la renovación cutánea, el colágeno y la elastina, logrando una piel más uniforme, firme y rejuvenecida.",
         extraEs:
           "Es uno de los tratamientos más efectivos dentro de la estética para mejorar textura, marcas visibles y signos de envejecimiento, con resultados progresivos y duraderos.",
-        sections: [
-          {
-            title: "Afecciones estéticas que mejora",
-            bullets: [
-              "Cicatrices de acné (aspecto superficial e irregular)",
-              "Marcas y cicatrices post procedimientos estéticos",
-              "Arrugas finas y medias",
-              "Líneas de expresión",
-              "Poros dilatados",
-              "Manchas y tono desigual",
-              "Rejuvenecimiento facial global",
-              "Textura áspera o envejecida",
-              "Piel opaca o fotoenvejecida",
-            ],
-          },
-          { title: "Alcance", text: "(Siempre dentro del alcance estético, no médico)" },
-          { title: "Cantidad de sesiones", text: "1 a 3 sesiones (intervalos de 4 a 6 semanas, según evaluación estética)" },
-          {
-            title: "Cliente ideal",
-            bullets: [
-              "Personas que desean rejuvenecer la piel",
-              "Clientes con marcas visibles de acné",
-              "Piel con textura irregular o envejecida",
-              "Personas que buscan un tratamiento estético de alto impacto",
-            ],
-          },
-          {
-            title: "Profesional y técnica",
-            text:
-              "Tratamiento realizado por profesional en estética avanzada capacitado en tecnología CO₂ láser, bajo protocolos estéticos y evaluación personalizada.",
-          },
-          {
-            title: "Contraindicaciones estéticas",
-            bullets: [
-              "Embarazo",
-              "Piel con infecciones activas",
-              "Exposición solar reciente",
-              "Piel extremadamente sensible",
-              "Tendencia a cicatrización anormal (evaluación previa)",
-            ],
-          },
-          {
-            title: "Cuidados post",
-            bullets: [
-              "Evitar sol directo",
-              "Uso constante de protector solar",
-              "No maquillaje por varios días",
-              "Hidratación profunda",
-              "No manipular la piel tratada",
-            ],
-          },
-          {
-            title: "Recomendaciones para prolongar resultados",
-            bullets: [
-              "Fotoprotección diaria",
-              "Rutina cosmética adecuada",
-              "Tratamientos de mantenimiento",
-              "Hábitos saludables de cuidado de la piel",
-            ],
-          },
-        ],
+        modal: {
+          sections: [
+            {
+              title: "Afecciones estéticas que mejora",
+              bullets: [
+                "Cicatrices de acné (aspecto superficial e irregular)",
+                "Marcas y cicatrices post procedimientos estéticos",
+                "Arrugas finas y medias",
+                "Líneas de expresión",
+                "Poros dilatados",
+                "Manchas y tono desigual",
+                "Rejuvenecimiento facial global",
+                "Textura áspera o envejecida",
+                "Piel opaca o fotoenvejecida",
+              ],
+            },
+            { title: "Alcance", text: "(Siempre dentro del alcance estético, no médico)" },
+            { title: "Cantidad de sesiones", text: "1 a 3 sesiones (intervalos de 4 a 6 semanas, según evaluación estética)" },
+            {
+              title: "Cliente ideal",
+              bullets: [
+                "Personas que desean rejuvenecer la piel",
+                "Clientes con marcas visibles de acné",
+                "Piel con textura irregular o envejecida",
+                "Personas que buscan un tratamiento estético de alto impacto",
+              ],
+            },
+            {
+              title: "Profesional y técnica",
+              text:
+                "Tratamiento realizado por profesional en estética avanzada capacitado en tecnología CO₂ láser, bajo protocolos estéticos y evaluación personalizada.",
+            },
+            {
+              title: "Contraindicaciones estéticas",
+              bullets: [
+                "Embarazo",
+                "Piel con infecciones activas",
+                "Exposición solar reciente",
+                "Piel extremadamente sensible",
+                "Tendencia a cicatrización anormal (evaluación previa)",
+              ],
+            },
+            {
+              title: "Cuidados post",
+              bullets: [
+                "Evitar sol directo",
+                "Uso constante de protector solar",
+                "No maquillaje por varios días",
+                "Hidratación profunda",
+                "No manipular la piel tratada",
+              ],
+            },
+            {
+              title: "Recomendaciones para prolongar resultados",
+              bullets: [
+                "Fotoprotección diaria",
+                "Rutina cosmética adecuada",
+                "Tratamientos de mantenimiento",
+                "Hábitos saludables de cuidado de la piel",
+              ],
+            },
+          ],
+        },
       },
     ],
   },
@@ -138,7 +140,9 @@ const CATEGORIES = [
         badges: ["🏡 Servicio a domicilio y en cabina"],
         descriptionEs:
           "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
-        sections: [{ title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)" }],
+        modal: {
+          sections: [{ title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)" }],
+        },
       },
       {
         id: "rf-microagujas-corporal",
@@ -148,7 +152,9 @@ const CATEGORIES = [
         badges: ["🏡 Servicio a domicilio y en cabina"],
         descriptionEs:
           "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
-        sections: [{ title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)" }],
+        modal: {
+          sections: [{ title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)" }],
+        },
       },
 
       // HIFU => 2 SERVICES
@@ -160,7 +166,9 @@ const CATEGORIES = [
         badges: ["Ultrasonido Focalizado de Alta Intensidad", "🏡 Servicio a domicilio y en cabina"],
         descriptionEs:
           "Tratamiento estético no invasivo que ayuda a reafirmar, tensar y redefinir el rostro y zonas corporales.",
-        sections: [{ title: "Sesiones", text: "1 sesión cada 6–12 meses" }],
+        modal: {
+          sections: [{ title: "Sesiones", text: "1 sesión cada 6–12 meses" }],
+        },
       },
       {
         id: "hifu-corporal",
@@ -170,7 +178,9 @@ const CATEGORIES = [
         badges: ["Ultrasonido Focalizado de Alta Intensidad", "🏡 Servicio a domicilio y en cabina"],
         descriptionEs:
           "Tratamiento estético no invasivo que ayuda a reafirmar, tensar y redefinir el rostro y zonas corporales.",
-        sections: [{ title: "Sesiones", text: "1 sesión cada 6–12 meses" }],
+        modal: {
+          sections: [{ title: "Sesiones", text: "1 sesión cada 6–12 meses" }],
+        },
       },
 
       // Microagujas manchas => 1 SERVICE
@@ -238,9 +248,13 @@ const CATEGORIES = [
 function ServiceModal({ open, service, onClose }) {
   useEffect(() => {
     if (!open) return;
+    document.body.style.overflow = "hidden";
     const onKey = (e) => e.key === "Escape" && onClose?.();
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open, onClose]);
 
   if (!open || !service) return null;
@@ -300,8 +314,8 @@ function ServiceModal({ open, service, onClose }) {
                         color: ESPRESSO,
                       }}
                     >
-                      <span className="font-semibold">Precio:</span>
-                      <span className="font-semibold">{service.price === 0 ? "Editar" : money(service.price)}</span>
+                      <span className="font-semibold">Precio por sesión:</span>
+                      <span className="font-semibold">{money(service.price)}</span>
                     </span>
                   )}
 
