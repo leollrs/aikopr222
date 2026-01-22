@@ -467,6 +467,13 @@ function ServiceCard({ item, onOpen }) {
 }
 
 // ==========================
+// EXPORT FOR OTHER COMPONENTS
+// ==========================
+export function getAllServices() {
+  return CATEGORIES.flatMap((c) => c.items);
+}
+
+// ==========================
 // MAIN
 // ==========================
 export default function ServicesSection({ sectionRef }) {

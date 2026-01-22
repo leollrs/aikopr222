@@ -1,7 +1,7 @@
 import React from "react";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { services } from "./ServicesSection";
+import { getAllServices } from "./ServicesSection";
 
 export default function ServicePickerModal({
   isOpen,
@@ -10,6 +10,8 @@ export default function ServicePickerModal({
   onAddService,
 }) {
   if (!isOpen) return null;
+
+  const services = getAllServices();
 
   // PALETTE
   const ESPRESSO = "#2A1E1A";
@@ -94,16 +96,12 @@ export default function ServicePickerModal({
                       className="truncate text-sm font-medium"
                       style={{ color: ESPRESSO }}
                     >
-                      {lang === "es"
-                        ? service.nameEs
-                        : service.nameEn}
+                      {service.nameEs}
                     </h4>
 
                     <p className="mt-1 text-xs" style={{ color: TAUPE }}>
-                      {service.duration} ·{" "}
-                      {lang === "es"
-                        ? "Servicio profesional"
-                        : "Professional service"}
+                      ${service.price}
+                      {service.duration && service.duration !== "—" && ` · ${service.duration}`}
                     </p>
                   </div>
 
