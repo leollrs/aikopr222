@@ -2,9 +2,12 @@
 import React, { useRef, useState } from "react";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getAllServices } from "@/components/clinic/ServicesSection";
 
 export default function ServiceModal({ service, lang, isOpen, onClose, onAddService }) {
   if (!isOpen || !service) return null;
+
+  const services = getAllServices();
 
   // NEW PALETTE (shared)
   const ESPRESSO = "#2A1E1A";
