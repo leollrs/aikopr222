@@ -423,6 +423,7 @@ export default function ChatDrawer({
                 key={idx}
                 message={msg}
                 lang={lang}
+                services={services}
                 onAddService={handleAddService}
                 onBookNow={handleBookNow}
               />
@@ -503,7 +504,7 @@ export default function ChatDrawer({
   );
 }
 
-function MessageBubble({ message, lang, onAddService, onBookNow }) {
+function MessageBubble({ message, lang, services, onAddService, onBookNow }) {
   const isUser = message.role === "user";
   const isEs = lang === "es";
 
