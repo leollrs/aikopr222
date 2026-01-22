@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, Plus, Calendar, RotateCcw } from "lucide-react";
-import { services } from "@/components/clinic/ServicesSection";
+import { getAllServices } from "@/components/clinic/ServicesSection";
 
 // ===== PERSISTENT CHAT IDENTITY (ROBUST) =====
 // - SSR-safe (won't crash if window undefined)
