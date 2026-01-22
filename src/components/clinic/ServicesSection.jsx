@@ -192,9 +192,12 @@ const CATEGORIES = [
         badges: ["🏡 Servicio a domicilio y en cabina"],
         descriptionEs:
           "Tratamiento estético de inducción de colágeno con activos despigmentantes para mejorar el tono y luminosidad de la piel.",
+        modal: {
+          sections: [{ title: "Concepto", text: "Tratamiento estético de inducción de colágeno con activos despigmentantes para mejorar el tono y luminosidad de la piel." }],
+        },
       },
 
-      // Plasma => 1 SERVICE (from 60)
+      // Plasma => 1 SERVICE
       {
         id: "plasma-fibroblast-verrugas-desde",
         nameEs: "⚡ PLASMA FIBROBLAST — Remoción de verrugas (desde)",
@@ -203,6 +206,9 @@ const CATEGORIES = [
         badges: ["🏡 Servicio a domicilio y en cabina"],
         descriptionEs:
           "Tecnología estética que trabaja de forma localizada para mejorar la apariencia de la piel y tratar lesiones superficiales.",
+        modal: {
+          sections: [{ title: "Concepto", text: "Tecnología estética que trabaja de forma localizada para mejorar la apariencia de la piel y tratar lesiones superficiales." }],
+        },
       },
     ],
   },
