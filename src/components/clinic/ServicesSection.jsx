@@ -2,196 +2,322 @@
 import React from "react";
 import ServiceCard from "./ServiceCard";
 
+/**
+ * Updated services to match your latest menu.
+ * Notes:
+ * - Kept your original field names (nameEs/nameEn/descEs/descEn/duration/price/ideal/benefits/image/caseStudy)
+ *   so your existing <ServiceCard /> doesn’t break.
+ * - For services with multiple zones/options, I added `pricingOptions` (array). Your ServiceCard can ignore it,
+ *   or you can enhance the UI later to show options in the modal/details view.
+ * - Prices: `price` is the “starting / main” number for quick display on the card.
+ */
+
 const services = [
+  // =========================================================
+  // ⭐ CO2 LASER FRACCIONADO
+  // =========================================================
   {
     id: 1,
-    nameEs: "Depilación Láser",
-    nameEn: "Laser Hair Removal",
+    nameEs: "CO₂ Láser Fraccionado",
+    nameEn: "Fractional CO₂ Laser",
     descEs:
-      "Eliminación permanente del vello con tecnología láser de última generación para todo tipo de piel.",
+      "Tratamiento de estética avanzada que mejora visiblemente la calidad de la piel creando microzonas térmicas controladas para estimular renovación cutánea, colágeno y elastina.",
     descEn:
-      "Permanent hair removal with state-of-the-art laser technology for all skin types.",
-    duration: "30-60 min",
-    price: 99,
-    idealEs: "Ideal para quienes buscan una solución permanente al vello no deseado.",
-    idealEn: "Ideal for those seeking a permanent solution to unwanted hair.",
-    benefitsEs: ["Resultados duraderos", "Sin dolor significativo", "Apto para todo tipo de piel"],
-    benefitsEn: ["Long-lasting results", "Minimal discomfort", "Suitable for all skin types"],
-    image: "/services/depilacion-laser.jpg",
-    caseStudy: {
-      sessions: 6,
-      months: 8,
-      improvement: "85%",
-      beforeImage: "/results/depilacion-laser-before.jpg",
-      afterImage: "/results/depilacion-laser-after.jpg",
+      "Advanced aesthetic treatment that improves skin quality by creating controlled micro-thermal zones to stimulate renewal, collagen, and elastin.",
+    duration: "45–60 min",
+    price: 230,
+    idealEs:
+      "Personas que desean rejuvenecer la piel, mejorar textura, poros, marcas visibles y signos de envejecimiento (dentro del alcance estético, no médico).",
+    idealEn:
+      "Ideal for those seeking aesthetic skin rejuvenation: texture, pores, visible marks, and signs of aging (aesthetic scope, not medical).",
+    benefitsEs: [
+      "Estimula colágeno y elastina",
+      "Mejora textura y poros",
+      "Resultados progresivos y duraderos",
+      "Uniforma tono y luminosidad",
+    ],
+    benefitsEn: [
+      "Stimulates collagen and elastin",
+      "Improves texture and pores",
+      "Progressive, long-lasting results",
+      "More even tone and glow",
+    ],
+    image: "/services/co2-laser-fraccionado.jpg",
+    // Keep as structured detail for your modal/details view
+    details: {
+      evaluationRequired: true,
+      sessions: "1 a 3 sesiones",
+      interval: "Cada 4 a 6 semanas (según evaluación estética)",
+      improves: [
+        "Cicatrices de acné (superficial e irregular)",
+        "Marcas y cicatrices post procedimientos estéticos",
+        "Arrugas finas y medias",
+        "Líneas de expresión",
+        "Poros dilatados",
+        "Manchas y tono desigual",
+        "Rejuvenecimiento facial global",
+        "Textura áspera o envejecida",
+        "Piel opaca o fotoenvejecida",
+      ],
+      contraindications: [
+        "Embarazo",
+        "Infecciones activas en la piel",
+        "Exposición solar reciente",
+        "Piel extremadamente sensible",
+        "Tendencia a cicatrización anormal (evaluación previa)",
+      ],
+      postCare: [
+        "Evitar sol directo",
+        "Uso constante de protector solar",
+        "No maquillaje por varios días",
+        "Hidratación profunda",
+        "No manipular la piel tratada",
+      ],
+      recommendations: [
+        "Fotoprotección diaria",
+        "Rutina cosmética adecuada",
+        "Tratamientos de mantenimiento",
+        "Hábitos saludables de cuidado de la piel",
+      ],
     },
+    caseStudy: {
+      sessions: 2,
+      months: 3,
+      improvement: "—",
+      beforeImage: "/results/co2-laser-before.jpg",
+      afterImage: "/results/co2-laser-after.jpg",
+    },
+    tags: ["Servicios Profesionales", "Evaluación Previa", "Estética Avanzada"],
   },
+
+  // =========================================================
+  // 🔬 RF FRACCIONADA CON MICROAGUJAS
+  // =========================================================
   {
     id: 2,
-    nameEs: "Carbon Peel (Hollywood Peel)",
-    nameEn: "Carbon Peel (Hollywood Peel)",
+    nameEs: "Radiofrecuencia Fraccionada con Microagujas",
+    nameEn: "Fractional RF Microneedling",
     descEs:
-      "Tratamiento facial rejuvenecedor que utiliza carbón y láser para una piel radiante al instante.",
+      "Tratamiento estético que combina microagujas con radiofrecuencia para mejorar firmeza, textura, poros y calidad de la piel mediante estimulación de colágeno.",
     descEn:
-      "Rejuvenating facial treatment using carbon and laser for instantly radiant skin.",
-    duration: "45 min",
-    price: 149,
-    idealEs: "Perfecto para eventos especiales o mantenimiento regular de la piel.",
-    idealEn: "Perfect for special events or regular skin maintenance.",
-    benefitsEs: ["Piel luminosa inmediata", "Reduce poros", "Sin tiempo de recuperación"],
-    benefitsEn: ["Immediate glowing skin", "Reduces pores", "No downtime"],
-    image: "/services/carbon-peel.jpg",
-    caseStudy: {
-      sessions: 4,
-      months: 3,
-      improvement: "90%",
-      beforeImage: "/results/carbon-peel-before.jpg",
-      afterImage: "/results/carbon-peel-after.jpg",
+      "Aesthetic treatment combining microneedles with radiofrequency to improve firmness, texture, pores, and overall skin quality through collagen stimulation.",
+    duration: "—",
+    price: 149, // starting price (face/neck/chest)
+    idealEs:
+      "Ideal para quienes buscan mejorar firmeza, poros y textura con estimulación de colágeno.",
+    idealEn:
+      "Ideal for improving firmness, pores, and texture via collagen stimulation.",
+    benefitsEs: ["Mejora firmeza", "Mejora poros", "Mejora textura", "Estimula colágeno"],
+    benefitsEn: ["Improves firmness", "Refines pores", "Improves texture", "Stimulates collagen"],
+    image: "/services/rf-microagujas.jpg",
+    pricingOptions: [
+      { labelEs: "Rostro, cuello y escote", labelEn: "Face, neck & chest", price: 149 },
+      { labelEs: "Corporal (abdomen, brazos o entrepiernas)", labelEn: "Body (abdomen, arms, or bikini area)", price: 199 },
+    ],
+    details: {
+      sessions: "3–4 sesiones",
+      interval: "Cada 4 semanas",
+      availability: ["A domicilio", "En cabina"],
     },
+    caseStudy: {
+      sessions: 3,
+      months: 3,
+      improvement: "—",
+      beforeImage: "/results/rf-microagujas-before.jpg",
+      afterImage: "/results/rf-microagujas-after.jpg",
+    },
+    tags: ["A domicilio", "En cabina"],
   },
+
+  // =========================================================
+  // 🔊 HIFU
+  // =========================================================
   {
     id: 3,
-    nameEs: "Eliminación de Tatuajes",
-    nameEn: "Tattoo Removal",
+    nameEs: "HIFU",
+    nameEn: "HIFU",
     descEs:
-      "Borrado seguro y efectivo de tatuajes con tecnología láser Q-Switch avanzada.",
+      "Ultrasonido focalizado de alta intensidad (HIFU) para ayudar a reafirmar, tensar y redefinir el rostro y zonas corporales sin cirugía.",
     descEn:
-      "Safe and effective tattoo removal with advanced Q-Switch laser technology.",
-    duration: "30-45 min",
-    price: 199,
-    idealEs: "Para quienes desean eliminar o aclarar tatuajes no deseados.",
-    idealEn: "For those wanting to remove or lighten unwanted tattoos.",
-    benefitsEs: ["Elimina todos los colores", "Tratamiento progresivo", "Mínima cicatrización"],
-    benefitsEn: ["Removes all colors", "Progressive treatment", "Minimal scarring"],
-    image: "/services/eliminacion-tatuajes.jpg",
-    caseStudy: {
-      sessions: 8,
-      months: 12,
-      improvement: "95%",
-      beforeImage: "/results/eliminacion-tatuajes-before.jpg",
-      afterImage: "/results/eliminacion-tatuajes-after.jpg",
-    },
-  },
-  {
-    id: 4,
-    nameEs: "Eliminación de Micropigmentación",
-    nameEn: "Micropigmentation Removal",
-    descEs:
-      "Corrección y eliminación de micropigmentación en cejas, labios y delineado.",
-    descEn:
-      "Correction and removal of micropigmentation on eyebrows, lips, and eyeliner.",
-    duration: "30 min",
-    price: 149,
-    idealEs: "Ideal para corregir micropigmentación decolorada o mal realizada.",
-    idealEn: "Ideal for correcting faded or poorly done micropigmentation.",
-    benefitsEs: ["Resultados precisos", "Recuperación rápida", "Técnica especializada"],
-    benefitsEn: ["Precise results", "Quick recovery", "Specialized technique"],
-    image: "/services/eliminacion-micropigmentacion.jpg",
-    caseStudy: {
-      sessions: 4,
-      months: 4,
-      improvement: "88%",
-      beforeImage: "/results/eliminacion-micropigmentacion-before.jpg",
-      afterImage: "/results/eliminacion-micropigmentacion-after.jpg",
-    },
-  },
-  {
-    id: 5,
-    nameEs: "Eliminación de Verrugas",
-    nameEn: "Wart Removal",
-    descEs:
-      "Tratamiento láser preciso para eliminar verrugas de forma segura y sin cicatrices.",
-    descEn:
-      "Precise laser treatment to safely remove warts without scarring.",
-    duration: "15-30 min",
-    price: 79,
-    idealEs: "Para eliminar verrugas en cualquier parte del cuerpo.",
-    idealEn: "For removing warts anywhere on the body.",
-    benefitsEs: ["Procedimiento rápido", "Sin suturas", "Recuperación inmediata"],
-    benefitsEn: ["Quick procedure", "No stitches", "Immediate recovery"],
-    image: "/services/eliminacion-verrugas.jpg",
-    caseStudy: {
-      sessions: 2,
-      months: 1,
-      improvement: "100%",
-      beforeImage: "/results/eliminacion-verrugas-before.jpg",
-      afterImage: "/results/eliminacion-verrugas-after.jpg",
-    },
-  },
-  {
-    id: 6,
-    nameEs: "Plasma Fibroblast",
-    nameEn: "Plasma Fibroblast",
-    descEs:
-      "Rejuvenecimiento no quirúrgico que tensa la piel y reduce arrugas con tecnología de plasma.",
-    descEn:
-      "Non-surgical rejuvenation that tightens skin and reduces wrinkles with plasma technology.",
-    duration: "60-90 min",
-    price: 299,
-    idealEs: "Para quienes buscan lifting sin cirugía.",
-    idealEn: "For those seeking a lift without surgery.",
-    benefitsEs: ["Efecto lifting natural", "Estimula colágeno", "Resultados duraderos"],
-    benefitsEn: ["Natural lifting effect", "Stimulates collagen", "Long-lasting results"],
-    image: "/services/plasma-fibroblast.jpg",
-    caseStudy: {
-      sessions: 2,
-      months: 6,
-      improvement: "80%",
-      beforeImage: "/results/plasma-fibroblast-before.jpg",
-      afterImage: "/results/plasma-fibroblast-after.jpg",
-    },
-  },
-  {
-    id: 7,
-    nameEs: "Microneedling",
-    nameEn: "Microneedling",
-    descEs:
-      "Estimulación de colágeno mediante microagujas para mejorar textura y cicatrices.",
-    descEn:
-      "Collagen stimulation through microneedles to improve texture and scars.",
-    duration: "45-60 min",
-    price: 179,
-    idealEs: "Ideal para cicatrices de acné, arrugas finas y mejora de textura.",
-    idealEn: "Ideal for acne scars, fine lines, and texture improvement.",
-    benefitsEs: ["Regenera la piel", "Reduce cicatrices", "Mejora absorción de productos"],
-    benefitsEn: ["Regenerates skin", "Reduces scars", "Improves product absorption"],
-    image: "/services/microneedling.jpg",
-    caseStudy: {
-      sessions: 4,
-      months: 4,
-      improvement: "75%",
-      beforeImage: "/results/microneedling-before.jpg",
-      afterImage: "/results/microneedling-after.jpg",
-    },
-  },
-  {
-    id: 8,
-    nameEs: "Rejuvenecimiento HIFU",
-    nameEn: "HIFU Rejuvenation",
-    descEs:
-      "Ultrasonido focalizado de alta intensidad para lifting facial profundo sin cirugía.",
-    descEn:
-      "High-intensity focused ultrasound for deep facial lifting without surgery.",
-    duration: "60-90 min",
-    price: 399,
-    idealEs: "Para quienes desean un lifting profundo sin tiempo de recuperación.",
-    idealEn: "For those wanting a deep lift with no recovery time.",
-    benefitsEs: ["Lifting profundo", "Sin anestesia", "Resultados progresivos"],
-    benefitsEn: ["Deep lifting", "No anesthesia", "Progressive results"],
+      "High-intensity focused ultrasound (HIFU) to help firm, tighten, and redefine facial and body areas without surgery.",
+    duration: "—",
+    price: 120, // starting price (face/neck/chest)
+    idealEs:
+      "Para quienes desean reafirmar y tensar con un tratamiento no invasivo.",
+    idealEn:
+      "For those seeking firmness and tightening with a non-invasive treatment.",
+    benefitsEs: ["No invasivo", "Reafirma y tensa", "Definición visible", "Mantenimiento 6–12 meses"],
+    benefitsEn: ["Non-invasive", "Firms & tightens", "Visible definition", "Maintenance every 6–12 months"],
     image: "/services/hifu.jpg",
+    pricingOptions: [
+      { labelEs: "Rostro, cuello y escote", labelEn: "Face, neck & chest", price: 120 },
+      { labelEs: "Corporal (abdomen, brazos o entrepiernas)", labelEn: "Body (abdomen, arms, or bikini area)", price: 180 },
+    ],
+    details: {
+      sessions: "1 sesión",
+      interval: "Cada 6–12 meses",
+      availability: ["A domicilio", "En cabina"],
+    },
     caseStudy: {
       sessions: 1,
       months: 6,
-      improvement: "70%",
+      improvement: "—",
       beforeImage: "/results/hifu-before.jpg",
       afterImage: "/results/hifu-after.jpg",
     },
+    tags: ["A domicilio", "En cabina"],
+  },
+
+  // =========================================================
+  // ✒️ MICROAGUJAS PARA MANCHAS
+  // =========================================================
+  {
+    id: 4,
+    nameEs: "Microagujas para Manchas",
+    nameEn: "Microneedling for Dark Spots",
+    descEs:
+      "Tratamiento estético de inducción de colágeno con activos despigmentantes para mejorar el tono, la luminosidad y la apariencia de manchas.",
+    descEn:
+      "Aesthetic collagen induction treatment with brightening actives to improve tone, glow, and the appearance of dark spots.",
+    duration: "—",
+    price: 120,
+    idealEs:
+      "Ideal para quienes buscan mejorar manchas y unificar el tono con un protocolo estético.",
+    idealEn:
+      "Ideal for improving dark spots and evening tone with an aesthetic protocol.",
+    benefitsEs: ["Mejora tono", "Aumenta luminosidad", "Estimula colágeno", "Mejora textura"],
+    benefitsEn: ["Improves tone", "Boosts glow", "Stimulates collagen", "Improves texture"],
+    image: "/services/microagujas-manchas.jpg",
+    pricingOptions: [{ labelEs: "Rostro", labelEn: "Face", price: 120 }],
+    details: { availability: ["A domicilio", "En cabina"] },
+    caseStudy: {
+      sessions: 3,
+      months: 3,
+      improvement: "—",
+      beforeImage: "/results/microagujas-manchas-before.jpg",
+      afterImage: "/results/microagujas-manchas-after.jpg",
+    },
+    tags: ["A domicilio", "En cabina"],
+  },
+
+  // =========================================================
+  // ⚡ PLASMA FIBROBLAST (incluye remoción de verrugas desde $60)
+  // =========================================================
+  {
+    id: 5,
+    nameEs: "Plasma Fibroblast",
+    nameEn: "Plasma Fibroblast",
+    descEs:
+      "Tecnología estética localizada para mejorar la apariencia de la piel y tratar lesiones superficiales dentro del alcance estético.",
+    descEn:
+      "Localized aesthetic technology to improve the appearance of skin and address superficial lesions within aesthetic scope.",
+    duration: "—",
+    price: 60, // from
+    idealEs:
+      "Ideal para quienes buscan un tratamiento localizado estético de alta precisión.",
+    idealEn:
+      "Ideal for those seeking a precise, localized aesthetic treatment.",
+    benefitsEs: ["Trabajo localizado", "Precisión", "Mejora apariencia", "Opciones según evaluación"],
+    benefitsEn: ["Targeted approach", "Precision", "Improves appearance", "Options based on evaluation"],
+    image: "/services/plasma-fibroblast.jpg",
+    pricingOptions: [
+      { labelEs: "Remoción de verrugas (desde)", labelEn: "Wart removal (from)", price: 60 },
+    ],
+    details: { availability: ["A domicilio", "En cabina"] },
+    caseStudy: {
+      sessions: 1,
+      months: 1,
+      improvement: "—",
+      beforeImage: "/results/plasma-before.jpg",
+      afterImage: "/results/plasma-after.jpg",
+    },
+    tags: ["A domicilio", "En cabina"],
+  },
+
+  // =========================================================
+  // 💡 DEPILACIÓN LÁSER DIODO (por zonas)
+  // =========================================================
+  {
+    id: 6,
+    nameEs: "Depilación Láser Diodo",
+    nameEn: "Diode Laser Hair Removal",
+    descEs:
+      "Depilación láser por zonas con tecnología diodo para reducir el vello no deseado de forma progresiva.",
+    descEn:
+      "Zone-based diode laser hair removal for progressive reduction of unwanted hair.",
+    duration: "—",
+    price: 35, // lowest zone price
+    idealEs:
+      "Ideal para quienes buscan reducir el vello por zonas con un plan de sesiones personalizado.",
+    idealEn:
+      "Ideal for those looking to reduce hair by area with a personalized session plan.",
+    benefitsEs: ["Tratamiento por zonas", "Resultados progresivos", "Plan personalizado", "Tecnología diodo"],
+    benefitsEn: ["Area-based treatment", "Progressive results", "Personalized plan", "Diode technology"],
+    image: "/services/laser-diodo.jpg",
+    pricingOptions: [
+      { labelEs: "Bozo", labelEn: "Upper lip", price: 35 },
+      { labelEs: "Axilas", labelEn: "Underarms", price: 45 },
+      { labelEs: "Bikini", labelEn: "Bikini", price: 75 },
+      { labelEs: "Brazilian", labelEn: "Brazilian", price: 95 },
+      { labelEs: "Media pierna", labelEn: "Half legs", price: 120 },
+      { labelEs: "Piernas completas", labelEn: "Full legs", price: 150 },
+      { labelEs: "Espalda", labelEn: "Back", price: 150 },
+    ],
+    details: { availability: ["A domicilio", "En cabina"] },
+    caseStudy: {
+      sessions: 6,
+      months: 8,
+      improvement: "—",
+      beforeImage: "/results/laser-diodo-before.jpg",
+      afterImage: "/results/laser-diodo-after.jpg",
+    },
+    tags: ["A domicilio", "En cabina"],
+  },
+
+  // =========================================================
+  // ✨ FACIALES (2 opciones)
+  // =========================================================
+  {
+    id: 7,
+    nameEs: "Faciales",
+    nameEn: "Facials",
+    descEs:
+      "Protocolos de limpieza y cuidado facial para mejorar apariencia, luminosidad y salud estética de la piel.",
+    descEn:
+      "Cleansing and skincare protocols to improve appearance, glow, and aesthetic skin health.",
+    duration: "—",
+    price: 65, // starting
+    idealEs:
+      "Ideal para mantenimiento regular de la piel y mejora de luminosidad.",
+    idealEn:
+      "Ideal for regular skin maintenance and improved glow.",
+    benefitsEs: ["Piel más limpia", "Mejora luminosidad", "Mantenimiento estético", "Opciones según necesidad"],
+    benefitsEn: ["Cleaner skin", "Improved glow", "Aesthetic maintenance", "Options based on needs"],
+    image: "/services/faciales.jpg",
+    pricingOptions: [
+      { labelEs: "Limpieza facial", labelEn: "Facial cleansing", price: 65 },
+      { labelEs: "Limpieza profunda con Hidrafacial", labelEn: "Deep cleansing with Hydrafacial", price: 90 },
+    ],
+    details: { availability: ["A domicilio", "En cabina"] },
+    caseStudy: {
+      sessions: 1,
+      months: 0,
+      improvement: "—",
+      beforeImage: "/results/facial-before.jpg",
+      afterImage: "/results/facial-after.jpg",
+    },
+    tags: ["A domicilio", "En cabina"],
   },
 ];
 
 export { services };
 
-export default function ServicesSection({ lang = "es", onAddService, onViewDetails, sectionRef }) {
+export default function ServicesSection({
+  lang = "es",
+  onAddService,
+  onViewDetails,
+  sectionRef,
+}) {
   const LINEN = "#F1E8DD";
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
@@ -222,10 +348,13 @@ export default function ServicesSection({ lang = "es", onAddService, onViewDetai
             {lang === "es" ? "Nuestros Servicios" : "Our Services"}
           </h2>
 
-          <p className="font-body text-lg md:text-xl leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
+          <p
+            className="font-body text-lg md:text-xl leading-relaxed"
+            style={{ color: COCOA, opacity: 0.88 }}
+          >
             {lang === "es"
-              ? "Tratamientos estéticos de última generación realizados por profesionales certificados."
-              : "State-of-the-art aesthetic treatments performed by certified professionals."}
+              ? "Estética avanzada y faciales — con evaluación previa cuando aplique."
+              : "Advanced aesthetics and facials — with prior evaluation when applicable."}
           </p>
         </div>
 
