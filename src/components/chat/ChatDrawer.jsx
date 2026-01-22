@@ -94,6 +94,7 @@ export default function ChatDrawer({
   onAddToCart,
   scrollToBooking,
 }) {
+  const services = getAllServices();
   const isEs = lang === "es";
 
   // ✅ Start with correct language on mount
