@@ -477,6 +477,8 @@ export function getAllServices() {
 // MAIN
 // ==========================
 export default function ServicesSection({ sectionRef }) {
+  console.log("🔥 RENDERING NEW ServicesSection VERSION v2-categories", Date.now(), "Categories:", CATEGORIES.length);
+  
   const flat = useMemo(() => {
     return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
