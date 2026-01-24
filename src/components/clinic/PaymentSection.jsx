@@ -361,7 +361,7 @@ export default function PaymentSection({
             </div>
           </div>
         </div>
-      </section>
+        </section>
       </>
     );
   }
