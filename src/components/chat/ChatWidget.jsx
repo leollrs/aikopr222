@@ -12,14 +12,19 @@ const PALETTE = {
   taupe: "#8B7468",
 };
 
-export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function ChatWidget({ lang, onAddToCart, scrollToBooking, isOpen: externalIsOpen, onClose: externalOnClose, initialMessage }) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  
+  // Use external state if provided, otherwise use internal
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const handleClose = externalOnClose || (() => setInternalIsOpen(false));
+  const handleToggle = externalIsOpen !== undefined ? externalOnClose : () => setInternalIsOpen(!internalIsOpen);
 
   return (
     <>
       {/* Floating Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-full border px-4 py-3 shadow-[0_24px_80px_rgba(195,154,139,0.35)] transition-all hover:scale-105 hover:shadow-[0_32px_100px_rgba(195,154,139,0.45)]"
         style={{
           backgroundColor: PALETTE.rose,
@@ -42,10 +47,11 @@ export default function ChatWidget({ lang, onAddToCart, scrollToBooking }) {
 
       <ChatDrawer
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={handleClose}
         lang={lang}
         onAddToCart={onAddToCart}
         scrollToBooking={scrollToBooking}
+        initialMessage={initialMessage}
       />
     </>
   );

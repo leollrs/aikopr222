@@ -316,6 +316,18 @@ export default function ChatDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialMessage]);
 
+  // ✅ Send initial message if provided
+  useEffect(() => {
+    if (!isOpen || !initialMessage) return;
+    
+    const timer = setTimeout(() => {
+      handleSend(initialMessage);
+    }, 300);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialMessage]);
+
   if (!isOpen) return null;
 
   return (
