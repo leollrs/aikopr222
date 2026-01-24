@@ -24,7 +24,6 @@ export default function PaymentSection({
   onClearCart,
   onOpenServicePicker,
   sectionRef,
-  webhookUrl = "https://leollrs.app.n8n.cloud/webhook/254eed6d-ac1d-4db6-81a4-8da3479bfa8a",
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -55,7 +54,6 @@ export default function PaymentSection({
       time: "Hora",
       sending: "Confirmando...",
       errorGeneric: "Ocurrió un error. Intenta nuevamente.",
-      webhookMissing: "Falta configurar el webhook.",
       add: "Agregar",
       noServices: "No hay servicios seleccionados.",
       addMore: "Agregar más servicios",
@@ -78,7 +76,6 @@ export default function PaymentSection({
       time: "Time",
       sending: "Confirming...",
       errorGeneric: "Something went wrong. Please try again.",
-      webhookMissing: "Webhook is not configured.",
       add: "Add",
       noServices: "No services selected.",
       addMore: "Add more services",
@@ -92,58 +89,6 @@ export default function PaymentSection({
   const totalServices = useMemo(() => {
     return (cart || []).reduce((sum, s) => sum + (Number(s?.price) || 0), 0);
   }, [cart]);
-
-  const sendConfirmationWebhook = async () => {
-    if (!webhookUrl) throw new Error(t.webhookMissing);
-
-    const sanitizedBooking = {
-      fullName: String(bookingData?.fullName || "").trim().slice(0, 100),
-      email: String(bookingData?.email || "").toLowerCase().trim().slice(0, 120),
-      phone: String(bookingData?.phone || "")
-        .replace(/[^\d\s+\-()]/g, "")
-        .trim()
-        .slice(0, 20),
-      date: String(bookingData?.date || "").trim(),
-      time: String(bookingData?.time || "").trim(),
-    };
-
-    const validServiceIds = [1, 2, 3, 4, 5, 6, 7, 8];
-    const sanitizedServices = (cart || [])
-      .filter((s) => validServiceIds.includes(Number(s?.id)))
-      .map((s) => ({
-        id: Number(s.id),
-        nameEs: String(s.nameEs || "").slice(0, 100),
-        nameEn: String(s.nameEn || "").slice(0, 100),
-        duration: String(s.duration || "").slice(0, 20),
-        price: Number(s.price) || 0,
-      }));
-
-    const payload = {
-      type: "appointment_confirmed",
-      status: "paid",
-      createdAt: new Date().toISOString(),
-      payment: {
-        deposit: DEPOSIT_AMOUNT,
-        total: Number(totalServices) || 0,
-        remaining: Math.max(0, (Number(totalServices) || 0) - DEPOSIT_AMOUNT),
-      },
-      serviceType: bookingData?.serviceType || "unknown",
-      ...(bookingData?.serviceType === "mobile" && bookingData?.address ? { address: bookingData.address } : {}),
-      booking: { ...sanitizedBooking, services: sanitizedServices },
-    };
-
-    const res = await fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) throw new Error(t.errorGeneric);
-    return true;
-  };
 
   const durationToMinutes = (duration) => {
     const s = String(duration || "").toLowerCase().trim();
@@ -208,7 +153,6 @@ export default function PaymentSection({
           await base44.functions.invoke("submitIntake", { formData: intakeData, lang });
         }
 
-        await sendConfirmationWebhook();
         onClearCart?.();
         
         // Payment successful - trigger confetti
