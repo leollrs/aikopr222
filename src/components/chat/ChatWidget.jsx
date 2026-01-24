@@ -18,7 +18,18 @@ export default function ChatWidget({ lang, onAddToCart, scrollToBooking, isOpen:
   // Use external state if provided, otherwise use internal
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const handleClose = externalOnClose || (() => setInternalIsOpen(false));
-  const handleToggle = externalIsOpen !== undefined ? externalOnClose : () => setInternalIsOpen(!internalIsOpen);
+  const handleToggle = () => {
+    if (externalIsOpen !== undefined) {
+      // If controlled externally, toggle via external handler
+      if (isOpen) {
+        externalOnClose?.();
+      } else {
+        // Can't open when externally controlled - parent manages this
+      }
+    } else {
+      setInternalIsOpen(!internalIsOpen);
+    }
+  };
 
   return (
     <>

@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { X, Send, Loader2, Plus, Calendar, RotateCcw } from "lucide-react";
 import { getAllServices } from "@/components/clinic/ServicesSection";
 
+// Track last sent initial message to prevent duplicates
+const lastInitialMessageRef = { current: '' };
+
 // ===== PERSISTENT CHAT IDENTITY (ROBUST) =====
 // - SSR-safe (won't crash if window undefined)
 // - Falls back to sessionStorage if localStorage is blocked (Safari/iframes/private mode)
@@ -295,30 +298,28 @@ export default function ChatDrawer({
     getSessionId();
 
     setMessages([getWelcomeMessage(lang)]);
+    lastInitialMessageRef.current = '';
   };
 
   // ✅ If drawer opens and there are no messages (edge), restore correct welcome
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Clear last sent message when closing
+      lastInitialMessageRef.current = '';
+      return;
+    }
     setMessages((prev) => (prev?.length ? prev : [getWelcomeMessage(lang)]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  // ✅ Send initial message if provided
+  // ✅ Send initial message if provided (with duplicate prevention)
   useEffect(() => {
     if (!isOpen || !initialMessage) return;
     
-    const timer = setTimeout(() => {
-      handleSend(initialMessage);
-    }, 300);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, initialMessage]);
-
-  // ✅ Send initial message if provided
-  useEffect(() => {
-    if (!isOpen || !initialMessage) return;
+    // Prevent sending the same message twice
+    if (initialMessage === lastInitialMessageRef.current) return;
+    
+    lastInitialMessageRef.current = initialMessage;
     
     const timer = setTimeout(() => {
       handleSend(initialMessage);
