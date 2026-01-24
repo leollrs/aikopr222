@@ -296,10 +296,10 @@ export default function BookingSection({
                     >
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate" style={{ color: PALETTE.espresso }}>
-                          {lang === "es" ? service.nameEs : service.nameEn}
+                          {typeof service.name === 'string' ? service.name : (lang === "es" ? service.name?.es : service.name?.en) || ''}
                         </div>
                         <div className="text-xs" style={{ color: PALETTE.cocoa }}>
-                          {service.duration}
+                          {typeof service.duration === 'string' ? service.duration : (lang === "es" ? service.duration?.es : service.duration?.en) || ''}
                         </div>
                       </div>
 
