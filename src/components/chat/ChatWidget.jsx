@@ -12,7 +12,7 @@ const PALETTE = {
   taupe: "#8B7468",
 };
 
-export default function ChatWidget({ lang, onAddToCart, scrollToBooking, isOpen: externalIsOpen, onClose: externalOnClose, initialMessage }) {
+export default function ChatWidget({ lang, onAddToCart, scrollToBooking, isOpen: externalIsOpen, onClose: externalOnClose, onOpen, initialMessage }) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   
   // Use external state if provided, otherwise use internal
@@ -20,11 +20,11 @@ export default function ChatWidget({ lang, onAddToCart, scrollToBooking, isOpen:
   const handleClose = externalOnClose || (() => setInternalIsOpen(false));
   const handleToggle = () => {
     if (externalIsOpen !== undefined) {
-      // If controlled externally, toggle via external handler
+      // If controlled externally, use onOpen/onClose handlers
       if (isOpen) {
         externalOnClose?.();
       } else {
-        // Can't open when externally controlled - parent manages this
+        onOpen?.();
       }
     } else {
       setInternalIsOpen(!internalIsOpen);

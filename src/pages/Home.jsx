@@ -238,6 +238,7 @@ export default function Home() {
         onAddToCart={handleAddService}
         scrollToBooking={scrollToBooking}
         isOpen={chatOpen}
+        onOpen={() => setChatOpen(true)}
         onClose={() => {
           setChatOpen(false);
           setChatInitialMessage('');
