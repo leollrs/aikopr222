@@ -154,9 +154,9 @@ export default function Home() {
         sectionRef={servicesRef}
       />
       
-      {/*// Cuando me Manden las fotos lo vuelvo a añadir. 
+      /*// Cuando me Manden las fotos lo vuelvo a añadir. 
       ///* Real Results */
-      //<ResultsSection lang={lang} /> */}
+      //<ResultsSection lang={lang} /> */
 
       {/* Testimonials */}
       <TestimonialsSection lang={lang} />
