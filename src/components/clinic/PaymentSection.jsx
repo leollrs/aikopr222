@@ -28,6 +28,8 @@ export default function PaymentSection({
   const elements = useElements();
 
   const [confirmed, setConfirmed] = useState(false);
+  const [showIntakeModal, setShowIntakeModal] = useState(false);
+  const [paymentSessionId, setPaymentSessionId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -534,6 +536,7 @@ export default function PaymentSection({
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
