@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     }
 
     // ENV VARS in Base44 Settings → Environment
-    // N8N_INTAKE_WEBHOOK_URL = https://xxxx.app.n8n.cloud/webhook/intake
+    // N8N_INTAKE_WEBHOOK_URL = https://leollrs.app.n8n.cloud/webhook-test/intake
     // (Optional) N8N_INTAKE_SECRET = long-random-string
     const webhookUrl = Deno.env.get("N8N_INTAKE_WEBHOOK_URL");
     const secret = Deno.env.get("N8N_INTAKE_SECRET") || "";
