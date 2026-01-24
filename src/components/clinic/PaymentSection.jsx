@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Lock, Check, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import { base44 } from "@/api/base44Client";
+import confetti from "canvas-confetti";
+import IntakeModal from "./IntakeModal";
 
 const PALETTE = {
   cream: "#FBF8F3",
@@ -204,7 +206,22 @@ export default function PaymentSection({
 
         await sendConfirmationWebhook();
         onClearCart?.();
+        
+        // Payment successful - trigger confetti
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+
         setConfirmed(true);
+        setPaymentSessionId(paymentIntent.id);
+        
+        // Open intake modal after a short delay
+        setTimeout(() => {
+          setShowIntakeModal(true);
+        }, 2000);
+        
         onConfirm?.();
       } else {
         setErrorMsg(t.errorGeneric);
@@ -216,13 +233,42 @@ export default function PaymentSection({
     }
   };
 
+  // Check URL for session_id on mount (in case user refreshes after payment)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    
+    if (sessionId && !showIntakeModal && !confirmed) {
+      base44.functions.invoke("verifyPayment", { sessionId })
+        .then(({ data }) => {
+          if (data.isPaid) {
+            setConfirmed(true);
+            setPaymentSessionId(sessionId);
+            setTimeout(() => {
+              setShowIntakeModal(true);
+            }, 500);
+          }
+        })
+        .catch(err => console.error("Error verifying payment on mount:", err));
+    }
+  }, []);
+
   if (confirmed) {
     return (
-      <section
-        ref={sectionRef}
-        className="relative overflow-hidden py-20 md:py-24 lg:py-28"
-        style={{ backgroundColor: PALETTE.linen }}
-      >
+      <>
+        <IntakeModal
+          isOpen={showIntakeModal}
+          onClose={() => setShowIntakeModal(false)}
+          lang={lang}
+          bookingData={bookingData}
+          serviceName={cart[0]?.nameEs || ""}
+        />
+
+        <section
+          ref={sectionRef}
+          className="relative overflow-hidden py-20 md:py-24 lg:py-28"
+          style={{ backgroundColor: PALETTE.linen }}
+        >
         {/* Subtle premium backdrop */}
         <div
           className="absolute inset-0"
@@ -316,15 +362,25 @@ export default function PaymentSection({
           </div>
         </div>
       </section>
+      </>
     );
   }
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative overflow-hidden py-20 md:py-24 lg:py-28"
-      style={{ backgroundColor: PALETTE.linen }}
-    >
+    <>
+      <IntakeModal
+        isOpen={showIntakeModal}
+        onClose={() => setShowIntakeModal(false)}
+        lang={lang}
+        bookingData={bookingData}
+        serviceName={cart[0]?.nameEs || ""}
+      />
+
+      <section
+        ref={sectionRef}
+        className="relative overflow-hidden py-20 md:py-24 lg:py-28"
+        style={{ backgroundColor: PALETTE.linen }}
+      >
       {/* Premium backdrop consistent with other sections */}
       <div
         className="absolute inset-0"
