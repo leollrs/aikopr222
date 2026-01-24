@@ -348,9 +348,9 @@ function ServiceModal({ open, service, onClose, onAdd }) {
         style={{ background: "rgba(0,0,0,0.64)" }}
       />
 
-      <div className="relative mx-auto w-full max-w-3xl px-3 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-6 sm:pb-10">
+      <div className="relative mx-auto w-full max-w-3xl px-3 sm:px-6 lg:px-8 py-6 sm:py-10 overflow-y-auto" style={{ maxHeight: "95vh" }}>
         <div
-          className="rounded-3xl border overflow-hidden"
+          className="rounded-3xl border"
           style={{
             background: "linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.44))",
             borderColor: BORDER,
@@ -445,8 +445,7 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             </div>
           </div>
 
-          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 320px)" }}>
-            <div className="p-5 sm:p-7 space-y-7">
+          <div className="p-5 sm:p-7 space-y-7">
               {!!service.extraEs && (
                 <p className="leading-relaxed text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
                   {service.extraEs}
@@ -488,7 +487,6 @@ function ServiceModal({ open, service, onClose, onAdd }) {
                     )}
                   </section>
                 ))}
-            </div>
           </div>
 
           <div
