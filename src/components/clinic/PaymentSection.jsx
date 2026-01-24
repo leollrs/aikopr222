@@ -18,6 +18,7 @@ const PALETTE = {
 export default function PaymentSection({
   lang,
   bookingData,
+  intakeData,
   cart = [],
   onConfirm,
   onClearCart,

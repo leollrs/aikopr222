@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 export default function PaymentSectionWrapper({
   lang,
   bookingData,
+  intakeData,
   cart = [],
   onConfirm,
   onClearCart,
@@ -266,6 +267,7 @@ export default function PaymentSectionWrapper({
       <PaymentSection
         lang={lang}
         bookingData={bookingData}
+        intakeData={intakeData}
         cart={cart}
         onConfirm={onConfirm}
         onClearCart={onClearCart}

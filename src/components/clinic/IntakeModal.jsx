@@ -101,22 +101,13 @@ export default function IntakeModal({
       return;
     }
 
-    setSubmitting(true);
-    setError("");
-
-    try {
-      await base44.functions.invoke("submitIntake", { formData, lang });
-      setSubmitted(true);
-      
-      // Call onSubmitComplete after a brief delay
-      setTimeout(() => {
-        onSubmitComplete?.();
-      }, 2000);
-    } catch (err) {
-      setError(isEs ? "Error al enviar formulario" : "Error submitting form");
-    } finally {
-      setSubmitting(false);
-    }
+    // Don't submit to webhook yet - just pass data to parent and show success
+    setSubmitted(true);
+    
+    // Call onSubmitComplete with form data after a brief delay
+    setTimeout(() => {
+      onSubmitComplete?.(formData);
+    }, 1500);
   };
 
   if (!isOpen) return null;

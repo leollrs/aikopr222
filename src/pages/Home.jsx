@@ -46,6 +46,7 @@ export default function Home() {
   
   // Booking state
   const [bookingData, setBookingData] = useState(null);
+  const [intakeData, setIntakeData] = useState(null);
   const [showIntakeModal, setShowIntakeModal] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   
@@ -113,8 +114,9 @@ export default function Home() {
     setShowIntakeModal(true);
   };
 
-  const handleIntakeComplete = () => {
-    // After intake is complete, show payment
+  const handleIntakeComplete = (data) => {
+    // Store intake data and show payment
+    setIntakeData(data);
     setShowIntakeModal(false);
     setShowPayment(true);
     setTimeout(() => {
@@ -189,6 +191,7 @@ export default function Home() {
         <PaymentSectionWrapper 
           lang={lang}
           bookingData={bookingData}
+          intakeData={intakeData}
           cart={cart}
           onConfirm={handleConfirmPayment}
           onClearCart={() => setCart([])}
