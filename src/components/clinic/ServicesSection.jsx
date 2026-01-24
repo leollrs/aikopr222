@@ -1,6 +1,5 @@
 // ServicesSection.jsx
 import React, { useMemo, useState, useEffect } from "react";
-import { useCart } from "./CartProvider";
 
 /**
  * FIXES IN THIS VERSION:
@@ -8,7 +7,6 @@ import { useCart } from "./CartProvider";
  * ✅ Aesthetic: cleaner premium cards, consistent spacing, stronger hierarchy, better tap targets
  * ✅ Card actions: "Ver detalles" + "Añadir" behave correctly on mobile
  * ✅ Modal: full-height scroll on mobile, sticky footer CTA, safer spacing
- * ✅ Cart integration preserved (adapter tries common APIs)
  */
 
 // ==========================
@@ -31,49 +29,6 @@ function money(n) {
   if (typeof n !== "number") return "";
   if (n <= 0) return "";
   return `$${n}`;
-}
-
-function addServiceToCart(cart, svc) {
-  if (!cart) {
-    console.warn("[ServicesSection] Cart not available. Check CartProvider wiring.");
-    return false;
-  }
-
-  const lineItem = {
-    id: svc.id,
-    type: "service",
-    name: svc.nameEs,
-    price: typeof svc.price === "number" ? svc.price : 0,
-    qty: 1,
-    meta: {
-      categoryKey: svc._categoryKey,
-      duration: svc.duration || "",
-    },
-  };
-
-  const candidates = [
-    cart.addItem,
-    cart.addToCart,
-    cart.addLineItem,
-    cart.add,
-    cart.addProduct,
-    cart.addOrder,
-  ].filter(Boolean);
-
-  for (const fn of candidates) {
-    try {
-      fn(lineItem);
-      return true;
-    } catch (e) {
-      // keep trying
-    }
-  }
-
-  console.warn(
-    "[ServicesSection] Could not add to cart. CartProvider API not recognized. Available keys:",
-    Object.keys(cart || {})
-  );
-  return false;
 }
 
 // ==========================
@@ -748,8 +703,6 @@ export function getAllServices() {
 // MAIN
 // ==========================
 export default function ServicesSection({ sectionRef }) {
-  const cart = useCart();
-
   const flat = useMemo(() => {
     return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
@@ -757,7 +710,10 @@ export default function ServicesSection({ sectionRef }) {
   const [selectedId, setSelectedId] = useState(null);
   const selected = useMemo(() => flat.find((x) => x.id === selectedId) || null, [flat, selectedId]);
 
-  const handleAdd = (svc) => addServiceToCart(cart, svc);
+  const handleAdd = (svc) => {
+    console.log("Service selected:", svc.nameEs);
+    // Cart functionality can be added later
+  };
 
   return (
     <section
