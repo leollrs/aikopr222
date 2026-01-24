@@ -7,6 +7,8 @@ import React, { useMemo, useState, useEffect } from "react";
  * ✅ Aesthetic: cleaner premium cards, consistent spacing, stronger hierarchy, better tap targets
  * ✅ Card actions: "Ver detalles" + "Añadir" behave correctly on mobile
  * ✅ Modal: full-height scroll on mobile, sticky footer CTA, safer spacing
+ * ✅ Removed placeholder laser areas (Área 8–13)
+ * ✅ Better modal readability: tighter copy layout + optional "Incluye" for multi-price services (RF/HIFU)
  */
 
 // ==========================
@@ -15,7 +17,6 @@ import React, { useMemo, useState, useEffect } from "react";
 const LINEN = "#F1E8DD";
 const ESPRESSO = "#2A1E1A";
 const COCOA = "#6B5A52";
-const GOLD = "#C9AE7E";
 
 const BORDER = "rgba(42,30,26,0.14)";
 const BORDER_SOFT = "rgba(42,30,26,0.10)";
@@ -61,30 +62,29 @@ const CATEGORIES = [
         nameEs: "CO₂ LÁSER FRACCIONADO",
         price: 230,
         duration: "45–60 minutos",
-        badges: ["Servicios Profesionales", "Evaluación previa obligatoria (estética)"],
+        badges: ["Servicios profesionales", "Evaluación previa obligatoria (estética)"],
         descriptionEs:
-          "Piel más lisa, poros más finos y un look más rejuvenecido desde las primeras semanas. Ideal si sientes la textura irregular, marcas visibles o tu piel se ve cansada.",
+          "Piel más lisa, poros más finos y una apariencia más rejuvenecida. Diseñado para mejorar textura, tono y marcas visibles dentro del alcance estético.",
         extraEs:
-          "Trabajamos con microzonas controladas para estimular renovación y colágeno de forma progresiva. Resultados que se ven mejor con el tiempo — y se sienten como un upgrade real en tu piel.",
+          "Trabaja con microzonas térmicas controladas que estimulan renovación cutánea y colágeno de forma progresiva. El resultado se vuelve más evidente con el paso de las semanas.",
         modal: {
           sections: [
             {
-              title: "Lo que vas a notar",
+              title: "Lo que puedes notar",
               bullets: [
                 "Textura más suave y uniforme",
                 "Poros visualmente más finos",
-                "Piel con más firmeza y glow",
-                "Líneas finas menos marcadas",
-                "Marcas visibles de acné más difuminadas (según evaluación estética)",
+                "Piel con mejor firmeza y apariencia general",
                 "Tono más parejo y piel menos apagada",
+                "Marcas visibles más difuminadas (según evaluación estética)",
               ],
             },
             {
               title: "Ideal para ti si…",
               bullets: [
-                "Sientes tu piel con textura irregular o poros marcados",
+                "Sientes textura irregular o poros marcados",
                 "Tienes marcas visibles (acné / procedimientos estéticos previos)",
-                "Quieres un rejuvenecimiento de alto impacto (sin cirugía)",
+                "Quieres un cambio notable sin cirugía",
                 "Tu piel se ve cansada, opaca o fotoenvejecida",
               ],
             },
@@ -93,25 +93,21 @@ const CATEGORIES = [
               text: "1 a 3 sesiones. Intervalos de 4 a 6 semanas (según evaluación estética).",
             },
             {
-              title: "Resultados",
-              bullets: [
-                "Muchos clientes notan cambios desde las primeras semanas",
-                "El resultado se vuelve más evidente de forma progresiva",
-                "La consistencia + cuidados post = resultados más duraderos",
-              ],
+              title: "Duración",
+              text: "45–60 minutos.",
             },
             {
-              title: "Tiempo & cuidados post",
+              title: "Cuidados post",
               bullets: [
-                "Evita sol directo y usa protector solar todos los días",
+                "Evitar sol directo y usar protector solar diariamente",
                 "Hidratación profunda",
-                "No maquillaje por varios días (según tu caso)",
-                "No manipular costritas o piel en recuperación",
+                "Evitar maquillaje por varios días (según tu caso)",
+                "No manipular la piel durante la recuperación",
               ],
             },
             {
               title: "Importante",
-              text: "Servicio dentro del alcance estético. Evaluación previa obligatoria para asegurar que este tratamiento sea el indicado para tu piel.",
+              text: "Evaluación previa obligatoria (estética). Servicio dentro del alcance estético, no médico.",
             },
           ],
         },
@@ -131,27 +127,17 @@ const CATEGORIES = [
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
         descriptionEs:
-          "Un tightening real: ayuda a mejorar firmeza, textura y poros. Si quieres piel más smooth sin procedimientos invasivos, este es de los favoritos.",
+          "Para mejorar firmeza, textura y poros. Ideal si buscas una piel más uniforme y con mejor calidad sin procedimientos invasivos.",
+        extraEs:
+          "Combina microagujas + radiofrecuencia para estimular colágeno de forma progresiva. Los cambios suelen mejorar con la constancia.",
         modal: {
           sections: [
             {
-              title: "Lo que este tratamiento mejora",
-              bullets: [
-                "Firmeza y elasticidad (look más tenso)",
-                "Textura irregular",
-                "Poros visibles",
-                "Apariencia general de la piel (más uniforme)",
-              ],
+              title: "Lo que ayuda a mejorar",
+              bullets: ["Firmeza y elasticidad", "Textura irregular", "Poros visibles", "Apariencia general más uniforme"],
             },
             { title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)." },
-            {
-              title: "Por qué les encanta",
-              bullets: [
-                "Se siente como un reset de la piel",
-                "Resultados progresivos (mejoran con el tiempo)",
-                "Perfecto para mantenimiento y skin upgrade",
-              ],
-            },
+            { title: "Importante", text: "Recomendación final según evaluación estética y condición de la piel." },
           ],
         },
       },
@@ -162,23 +148,17 @@ const CATEGORIES = [
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
         descriptionEs:
-          "Un tightening real: ayuda a mejorar firmeza y textura. Ideal si buscas una piel más firme y uniforme en zonas específicas.",
+          "Enfocado en zonas específicas para mejorar firmeza y textura. Ideal si buscas una apariencia más uniforme en la zona tratada.",
+        extraEs:
+          "Estimula colágeno de manera progresiva y se trabaja por zona. Perfecto como tratamiento puntual o mantenimiento estético.",
         modal: {
           sections: [
             {
-              title: "Lo que este tratamiento mejora",
-              bullets: [
-                "Firmeza y elasticidad (look más tenso)",
-                "Textura irregular",
-                "Apariencia más uniforme en la zona",
-                "Mejor aspecto general de la piel",
-              ],
+              title: "Lo que ayuda a mejorar",
+              bullets: ["Firmeza y elasticidad", "Textura irregular", "Apariencia más uniforme en la zona", "Mejor aspecto general de la piel"],
             },
             { title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)." },
-            {
-              title: "Por qué les encanta",
-              bullets: ["Resultados progresivos", "Excelente para mantenimiento", "Upgrade corporal real"],
-            },
+            { title: "Importante", text: "El plan exacto depende de la zona y la evaluación estética." },
           ],
         },
       },
@@ -190,15 +170,14 @@ const CATEGORIES = [
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
         descriptionEs:
-          "Lift sin cirugía. Ayuda a tensar y redefinir la zona — ideal si quieres verte más firme y definida con un tratamiento no invasivo.",
+          "Tratamiento estético no invasivo para ayudar a tensar y redefinir. Ideal si buscas una apariencia más firme sin cirugía.",
+        extraEs:
+          "Los resultados se desarrollan de manera progresiva. Muchas personas lo usan como mantenimiento estético 1–2 veces al año.",
         modal: {
           sections: [
-            {
-              title: "Lo que vas a buscar con HIFU",
-              bullets: ["Más firmeza", "Mejor definición", "Apariencia más lifted"],
-            },
+            { title: "Lo que vas a buscar con HIFU", bullets: ["Más firmeza", "Mejor definición", "Apariencia más lifted"] },
             { title: "Sesiones", text: "1 sesión cada 6–12 meses (según evaluación estética)." },
-            { title: "Resultados", text: "Progresivos con el paso de las semanas. Ideal como mantenimiento 1–2 veces al año." },
+            { title: "Resultados", text: "Progresivos con el paso de las semanas. Ideal como mantenimiento." },
           ],
         },
       },
@@ -209,15 +188,14 @@ const CATEGORIES = [
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
         descriptionEs:
-          "Lift sin cirugía. Ayuda a tensar y redefinir la zona — ideal si quieres verte más firme y definida con un tratamiento no invasivo.",
+          "Ayuda a tensar y redefinir zonas corporales. Ideal si quieres verte más firme y definida con un tratamiento no invasivo.",
+        extraEs:
+          "Se trabaja por zona, y el resultado se aprecia de forma progresiva. Perfecto para mantenimiento estético.",
         modal: {
           sections: [
-            {
-              title: "Lo que vas a buscar con HIFU",
-              bullets: ["Más firmeza", "Mejor definición en la zona", "Apariencia más lifted"],
-            },
+            { title: "Lo que vas a buscar con HIFU", bullets: ["Más firmeza", "Mejor definición en la zona", "Apariencia más lifted"] },
             { title: "Sesiones", text: "1 sesión cada 6–12 meses (según evaluación estética)." },
-            { title: "Resultados", text: "Progresivos con el paso de las semanas. Ideal como mantenimiento 1–2 veces al año." },
+            { title: "Resultados", text: "Progresivos con el paso de las semanas. Ideal como mantenimiento." },
           ],
         },
       },
@@ -229,20 +207,18 @@ const CATEGORIES = [
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
         descriptionEs:
-          "Para un tono más parejo y piel más luminosa. Excelente si sientes manchas visibles, piel opaca o quieres un glow más uniforme.",
+          "Para mejorar tono y luminosidad. Ideal si tienes manchas visibles, tono desigual o piel opaca y quieres un look más uniforme.",
+        extraEs:
+          "Inducción de colágeno con activos despigmentantes (dentro del alcance estético). Perfecto para un upgrade constante en tu piel.",
         modal: {
           sections: [
             {
               title: "Beneficios principales",
-              bullets: ["Ayuda a uniformar el tono", "Mejora luminosidad", "Textura más suave", "Se integra perfecto con tu rutina"],
+              bullets: ["Ayuda a uniformar el tono", "Mejora luminosidad", "Textura más suave", "Apariencia más fresca y pareja"],
             },
             {
               title: "Ideal para ti si…",
-              bullets: [
-                "Quieres mejorar manchas visibles (según evaluación estética)",
-                "Quieres verte más glowy y pareja",
-                "Buscas un upgrade constante sin algo agresivo",
-              ],
+              bullets: ["Quieres mejorar manchas visibles (según evaluación estética)", "Buscas una piel más glowy y uniforme", "Quieres un tratamiento constante sin algo agresivo"],
             },
           ],
         },
@@ -255,14 +231,12 @@ const CATEGORIES = [
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
         descriptionEs:
-          "Remoción estética localizada (desde $60). Perfecto para tratar áreas pequeñas que te molestan visualmente y quieres mejorar de forma precisa.",
+          "Trabajo estético localizado para mejorar áreas específicas. Ideal para tratar zonas pequeñas que te molestan visualmente.",
+        extraEs: "Se evalúa el tamaño y la cantidad de áreas para definir el alcance y el costo final.",
         modal: {
           sections: [
-            {
-              title: "Qué puedes esperar",
-              bullets: ["Trabajo localizado por zona", "Evaluación previa para determinar costo final", "Ideal para áreas pequeñas y específicas"],
-            },
-            { title: "Precio", text: "Desde $60. El costo final depende del tamaño y la cantidad de áreas (se confirma en evaluación)." },
+            { title: "Qué puedes esperar", bullets: ["Trabajo localizado por zona", "Evaluación previa para definir costo final", "Ideal para áreas pequeñas y específicas"] },
+            { title: "Precio", text: "Desde $60. El costo final depende del tamaño y la cantidad de áreas." },
           ],
         },
       },
@@ -273,20 +247,13 @@ const CATEGORIES = [
     key: "laser",
     titleEs: "DEPILACIÓN LÁSER DIODO",
     items: [
-      { id: "laser-bozo", nameEs: "Bozo", price: 35, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-      { id: "laser-axilas", nameEs: "Axilas", price: 45, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-      { id: "laser-bikini", nameEs: "Bikini", price: 75, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-      { id: "laser-brazilian", nameEs: "Brazilian", price: 95, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-      { id: "laser-media-pierna", nameEs: "Media Pierna", price: 120, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-      { id: "laser-piernas-completas", nameEs: "Piernas Completas", price: 150, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-      { id: "laser-espalda", nameEs: "Espalda", price: 150, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
-
-      { id: "laser-area-8", nameEs: "Área 8 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
-      { id: "laser-area-9", nameEs: "Área 9 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
-      { id: "laser-area-10", nameEs: "Área 10 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
-      { id: "laser-area-11", nameEs: "Área 11 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
-      { id: "laser-area-12", nameEs: "Área 12 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
-      { id: "laser-area-13", nameEs: "Área 13 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
+      { id: "laser-bozo", nameEs: "Bozo", price: 35, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
+      { id: "laser-axilas", nameEs: "Axilas", price: 45, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
+      { id: "laser-bikini", nameEs: "Bikini", price: 75, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
+      { id: "laser-brazilian", nameEs: "Brazilian", price: 95, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
+      { id: "laser-media-pierna", nameEs: "Media Pierna", price: 120, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
+      { id: "laser-piernas-completas", nameEs: "Piernas Completas", price: 150, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
+      { id: "laser-espalda", nameEs: "Espalda", price: 150, duration: "—", descriptionEs: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", extraEs: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", modal: LASER_MODAL },
     ],
   },
 
@@ -301,11 +268,11 @@ const CATEGORIES = [
         price: 65,
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
-        descriptionEs:
-          "El reset clásico: limpieza + extracción suave (según piel) + hidratación para que salgas con la piel fresh y cómoda.",
+        descriptionEs: "El reset clásico para sentir la piel limpia, fresca y cómoda. Ideal como mantenimiento regular.",
+        extraEs: "Enfocado en limpieza profunda, remoción de impurezas e hidratación para mejorar la apariencia general de la piel.",
         modal: {
           sections: [
-            { title: "Ideal si…", bullets: ["Te sientes cargada/o", "Quieres mantenimiento mensual", "Buscas piel más limpia y uniforme"] },
+            { title: "Ideal si…", bullets: ["Te sientes cargada/o o con la piel pesada", "Quieres mantenimiento mensual", "Buscas piel más limpia y uniforme"] },
             { title: "Frecuencia", text: "Cada 4–6 semanas (ideal para mantenimiento)." },
           ],
         },
@@ -316,12 +283,12 @@ const CATEGORIES = [
         price: 90,
         duration: "—",
         badges: ["Servicio a domicilio y en cabina"],
-        descriptionEs:
-          "Glow inmediato. Limpieza profunda con hidratación para un look más luminoso y uniforme desde el mismo día.",
+        descriptionEs: "Glow inmediato. Limpieza profunda + hidratación para una piel más luminosa y uniforme desde el mismo día.",
+        extraEs: "Perfecto antes de eventos o cuando quieres verte on point con una piel más fresca y revitalizada.",
         modal: {
           sections: [
             { title: "Lo que vas a notar", bullets: ["Glow", "Piel más hidratada", "Textura más smooth", "Poros menos visibles"] },
-            { title: "Perfecto antes de", text: "Eventos, fotos, vacaciones o cuando quieras verte on point." },
+            { title: "Perfecto antes de", text: "Eventos, fotos, vacaciones o cuando quieras un reset visible." },
           ],
         },
       },
@@ -503,7 +470,7 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             </div>
           </div>
 
-          {/* Sticky footer CTA (best UX on mobile) */}
+          {/* Sticky footer CTA */}
           <div
             className="border-t p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
             style={{
@@ -575,7 +542,6 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
         WebkitBackdropFilter: "blur(12px)",
       }}
     >
-      {/* top sheen */}
       <div
         className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition"
         style={{
@@ -583,12 +549,7 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
         }}
       />
 
-      {/* CONTENT CLICK AREA */}
-      <button
-        onClick={() => onOpen(item)}
-        className="relative w-full text-left p-5 sm:p-6"
-      >
-        {/* ✅ Mobile fix: stack price under title on small screens */}
+      <button onClick={() => onOpen(item)} className="relative w-full text-left p-5 sm:p-6">
         <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
             <h4
@@ -605,7 +566,6 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
             )}
           </div>
 
-          {/* Price badge: fixed width + no overlap */}
           <div className="sm:shrink-0 sm:self-start">
             <div
               className="inline-flex max-w-full items-center rounded-2xl px-3.5 py-2 text-sm border"
@@ -617,9 +577,7 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
                 color: ESPRESSO,
               }}
             >
-              <span className="font-semibold whitespace-nowrap">
-                {showPrice ? money(item.price) : "Ver"}
-              </span>
+              <span className="font-semibold whitespace-nowrap">{showPrice ? money(item.price) : "Ver"}</span>
             </div>
           </div>
         </div>
@@ -643,10 +601,7 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
         )}
       </button>
 
-      {/* ACTIONS ROW */}
-      <div
-        className="relative px-5 sm:px-6 pb-5 sm:pb-6 -mt-1 flex items-center justify-between gap-2"
-      >
+      <div className="relative px-5 sm:px-6 pb-5 sm:pb-6 -mt-1 flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={(e) => {
@@ -684,7 +639,6 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
         </button>
       </div>
 
-      {/* bottom accent line */}
       <div
         className="h-px w-full"
         style={{
@@ -729,7 +683,6 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
       className="relative overflow-hidden py-24 sm:py-28 md:py-36 lg:py-44"
       style={{ backgroundColor: LINEN }}
     >
-      {/* background depth */}
       <div
         className="absolute inset-0"
         style={{
@@ -742,10 +695,8 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
         }}
       />
 
-      {/* vignette */}
       <div className="absolute inset-0 pointer-events-none" style={{ boxShadow: "inset 0 0 120px rgba(42,30,26,0.10)" }} />
 
-      {/* subtle noise */}
       <div
         className="absolute inset-0 opacity-[0.06] mix-blend-multiply pointer-events-none"
         style={{
@@ -827,12 +778,7 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
         </div>
       </div>
 
-      <ServiceModal
-        open={!!selected}
-        service={selected}
-        onClose={() => setSelectedId(null)}
-        onAdd={handleAdd}
-      />
+      <ServiceModal open={!!selected} service={selected} onClose={() => setSelectedId(null)} onAdd={handleAdd} />
     </section>
   );
 }
