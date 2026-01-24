@@ -203,6 +203,11 @@ export default function PaymentSection({
           address: bookingData.address,
         });
 
+        // Submit intake form data to webhook AFTER successful payment
+        if (intakeData) {
+          await base44.functions.invoke("submitIntake", { formData: intakeData, lang });
+        }
+
         await sendConfirmationWebhook();
         onClearCart?.();
         
