@@ -15,7 +15,8 @@ export default function IntakeModal({
   onClose, 
   lang,
   bookingData,
-  serviceName 
+  serviceName,
+  onSubmitComplete
 }) {
   const isEs = lang === "es";
   
@@ -106,6 +107,11 @@ export default function IntakeModal({
     try {
       await base44.functions.invoke("submitIntake", { formData, lang });
       setSubmitted(true);
+      
+      // Call onSubmitComplete after a brief delay
+      setTimeout(() => {
+        onSubmitComplete?.();
+      }, 2000);
     } catch (err) {
       setError(isEs ? "Error al enviar formulario" : "Error submitting form");
     } finally {

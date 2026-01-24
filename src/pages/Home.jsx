@@ -12,6 +12,7 @@ import PaymentSectionWrapper from '@/components/clinic/PaymentSectionWrapper';
 import ContactSection from '@/components/clinic/ContactSection';
 import Footer from '@/components/clinic/Footer';
 import ServicePickerModal from '@/components/clinic/ServicePickerModal';
+import IntakeModal from '@/components/clinic/IntakeModal';
 import ChatWidget from '@/components/chat/ChatWidget';
 
 export default function Home() {
@@ -45,6 +46,7 @@ export default function Home() {
   
   // Booking state
   const [bookingData, setBookingData] = useState(null);
+  const [showIntakeModal, setShowIntakeModal] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   
   // Refs for scrolling
@@ -105,9 +107,15 @@ export default function Home() {
   };
 
   const handleContinueToPayment = (data) => {
-    // Store only booking details (date/time/contact) - cart is the source of truth for services
+    // Store booking details and show intake modal first
     const { services, ...bookingDetails } = data;
     setBookingData(bookingDetails);
+    setShowIntakeModal(true);
+  };
+
+  const handleIntakeComplete = () => {
+    // After intake is complete, show payment
+    setShowIntakeModal(false);
     setShowPayment(true);
     setTimeout(() => {
       paymentRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -234,6 +242,15 @@ export default function Home() {
           handleAddService(service);
           setShowPickerModal(false);
         }}
+      />
+
+      <IntakeModal
+        isOpen={showIntakeModal}
+        onClose={() => setShowIntakeModal(false)}
+        lang={lang}
+        bookingData={bookingData}
+        serviceName={cart[0] ? (typeof cart[0].name === 'string' ? cart[0].name : (lang === 'es' ? cart[0].name?.es : cart[0].name?.en) || '') : ''}
+        onSubmitComplete={handleIntakeComplete}
       />
 
       {/* AI Chat Widget */}

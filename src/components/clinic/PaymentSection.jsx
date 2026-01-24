@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import { base44 } from "@/api/base44Client";
 import confetti from "canvas-confetti";
-import IntakeModal from "./IntakeModal";
 
 const PALETTE = {
   cream: "#FBF8F3",
@@ -30,7 +29,6 @@ export default function PaymentSection({
   const elements = useElements();
 
   const [confirmed, setConfirmed] = useState(false);
-  const [showIntakeModal, setShowIntakeModal] = useState(false);
   const [paymentSessionId, setPaymentSessionId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -217,11 +215,6 @@ export default function PaymentSection({
         setConfirmed(true);
         setPaymentSessionId(paymentIntent.id);
         
-        // Open intake modal after a short delay
-        setTimeout(() => {
-          setShowIntakeModal(true);
-        }, 2000);
-        
         onConfirm?.();
       } else {
         setErrorMsg(t.errorGeneric);
@@ -238,33 +231,21 @@ export default function PaymentSection({
     const urlParams = new URLSearchParams(window.location.search);
     const sessionId = urlParams.get('session_id');
     
-    if (sessionId && !showIntakeModal && !confirmed) {
+    if (sessionId && !confirmed) {
       base44.functions.invoke("verifyPayment", { sessionId })
         .then(({ data }) => {
           if (data.isPaid) {
             setConfirmed(true);
             setPaymentSessionId(sessionId);
-            setTimeout(() => {
-              setShowIntakeModal(true);
-            }, 500);
           }
         })
         .catch(err => console.error("Error verifying payment on mount:", err));
     }
-  }, []);
+  }, [confirmed]);
 
   if (confirmed) {
     return (
-      <>
-        <IntakeModal
-          isOpen={showIntakeModal}
-          onClose={() => setShowIntakeModal(false)}
-          lang={lang}
-          bookingData={bookingData}
-          serviceName={cart[0]?.nameEs || ""}
-        />
-
-        <section
+      <section
           ref={sectionRef}
           className="relative overflow-hidden py-20 md:py-24 lg:py-28"
           style={{ backgroundColor: PALETTE.linen }}
@@ -362,20 +343,10 @@ export default function PaymentSection({
           </div>
         </div>
         </section>
-      </>
     );
   }
 
   return (
-    <>
-      <IntakeModal
-        isOpen={showIntakeModal}
-        onClose={() => setShowIntakeModal(false)}
-        lang={lang}
-        bookingData={bookingData}
-        serviceName={cart[0]?.nameEs || ""}
-      />
-
       <section
         ref={sectionRef}
         className="relative overflow-hidden py-20 md:py-24 lg:py-28"
@@ -593,6 +564,5 @@ export default function PaymentSection({
         </div>
       </div>
       </section>
-    </>
   );
 }
