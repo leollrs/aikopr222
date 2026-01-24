@@ -561,7 +561,7 @@ function ServiceModal({ open, service, onClose, onAdd }) {
 // ==========================
 // CARD
 // ==========================
-function ServiceCard({ item, onOpen, onAdd }) {
+function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
   const showPrice = typeof item.price === "number" && item.price > 0;
 
   return (
@@ -645,19 +645,23 @@ function ServiceCard({ item, onOpen, onAdd }) {
 
       {/* ACTIONS ROW */}
       <div
-        className="relative px-5 sm:px-6 pb-5 sm:pb-6 -mt-1 flex items-center justify-between gap-3"
+        className="relative px-5 sm:px-6 pb-5 sm:pb-6 -mt-1 flex items-center justify-between gap-2"
       >
         <button
           type="button"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onOpen(item);
+            onAskInfo?.(item);
           }}
-          className="text-sm font-semibold hover:opacity-90"
-          style={{ color: ESPRESSO, opacity: 0.92 }}
+          className="flex-1 rounded-2xl px-3 py-2 text-xs sm:text-sm font-semibold border hover:opacity-90 transition"
+          style={{
+            background: "rgba(255,255,255,0.70)",
+            borderColor: BORDER_SOFT,
+            color: ESPRESSO,
+          }}
         >
-          Ver detalles <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+          Preguntar
         </button>
 
         <button
@@ -668,10 +672,10 @@ function ServiceCard({ item, onOpen, onAdd }) {
             onAdd?.(item);
           }}
           disabled={!showPrice}
-          className="rounded-2xl px-3.5 py-2 text-xs sm:text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
+          className="flex-1 rounded-2xl px-3 py-2 text-xs sm:text-sm font-semibold border hover:opacity-90 disabled:opacity-40 transition"
           style={{
-            background: "rgba(255,255,255,0.70)",
-            borderColor: BORDER_SOFT,
+            background: showPrice ? "rgba(195,154,139,0.20)" : "rgba(255,255,255,0.70)",
+            borderColor: showPrice ? "rgba(195,154,139,0.35)" : BORDER_SOFT,
             color: ESPRESSO,
           }}
           title={!showPrice ? "Edita el precio para habilitar" : "Añadir al carrito"}
@@ -702,7 +706,7 @@ export function getAllServices() {
 // ==========================
 // MAIN
 // ==========================
-export default function ServicesSection({ sectionRef }) {
+export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutService }) {
   const flat = useMemo(() => {
     return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
@@ -711,8 +715,11 @@ export default function ServicesSection({ sectionRef }) {
   const selected = useMemo(() => flat.find((x) => x.id === selectedId) || null, [flat, selectedId]);
 
   const handleAdd = (svc) => {
-    console.log("Service selected:", svc.nameEs);
-    // Cart functionality can be added later
+    onAddToCart?.(svc);
+  };
+
+  const handleAskInfo = (svc) => {
+    onAskAboutService?.(svc);
   };
 
   return (
@@ -811,6 +818,7 @@ export default function ServicesSection({ sectionRef }) {
                     item={item}
                     onOpen={(svc) => setSelectedId(svc.id)}
                     onAdd={handleAdd}
+                    onAskInfo={handleAskInfo}
                   />
                 ))}
               </div>

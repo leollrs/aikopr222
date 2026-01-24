@@ -93,6 +93,7 @@ export default function ChatDrawer({
   lang,
   onAddToCart,
   scrollToBooking,
+  initialMessage,
 }) {
   const services = getAllServices();
   const isEs = lang === "es";
@@ -302,6 +303,18 @@ export default function ChatDrawer({
     setMessages((prev) => (prev?.length ? prev : [getWelcomeMessage(lang)]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // ✅ Send initial message if provided
+  useEffect(() => {
+    if (!isOpen || !initialMessage) return;
+    
+    const timer = setTimeout(() => {
+      handleSend(initialMessage);
+    }, 300);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialMessage]);
 
   if (!isOpen) return null;
 
