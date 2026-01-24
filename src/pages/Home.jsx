@@ -51,6 +51,10 @@ export default function Home() {
   const bookingRef = useRef(null);
   const paymentRef = useRef(null);
 
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState('');
+
   // Handlers
   const handleAddService = (service) => {
     // Check if service already in cart (avoid duplicates)
@@ -64,6 +68,14 @@ export default function Home() {
     setCart([...cart, service]);
     setLastAddedService(service);
     setShowAddedModal(true);
+  };
+
+  const handleAskAboutService = (service) => {
+    const question = lang === 'es' 
+      ? `Cuéntame más sobre el servicio: ${service.nameEs}`
+      : `Tell me more about the service: ${service.nameEn || service.nameEs}`;
+    setChatInitialMessage(question);
+    setChatOpen(true);
   };
 
   const handleViewDetails = (service) => {
@@ -137,8 +149,8 @@ export default function Home() {
       {/* Services */}
       <ServicesSection 
         lang={lang}
-        onAddService={handleAddService}
-        onViewDetails={handleViewDetails}
+        onAddToCart={handleAddService}
+        onAskAboutService={handleAskAboutService}
         sectionRef={servicesRef}
       />
 
@@ -223,6 +235,12 @@ export default function Home() {
         lang={lang}
         onAddToCart={handleAddService}
         scrollToBooking={scrollToBooking}
+        isOpen={chatOpen}
+        onClose={() => {
+          setChatOpen(false);
+          setChatInitialMessage('');
+        }}
+        initialMessage={chatInitialMessage}
       />
     </div>
   );
