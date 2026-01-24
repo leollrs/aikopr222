@@ -1,6 +1,5 @@
 // ServicesSection.jsx
 import React, { useMemo, useState, useEffect } from "react";
-import { useCart } from "./CartProvider"; // ✅ make sure this path matches your project
 
 /**
  * ✅ Model:
@@ -11,9 +10,6 @@ import { useCart } from "./CartProvider"; // ✅ make sure this path matches you
  * ✅ Fixes included:
  * 1) Aesthetic upgrade (luxury glass, depth, noise, vignette, better hover, better modal)
  * 2) Content upgrade (outcome-first copy that sells better, still within "estética" scope)
- * 3) Cart integration:
- *    - Each service can be added to cart from the card and from the modal
- *    - Robust add-to-cart adapter (works with addItem/addToCart/add/etc.)
  */
 
 // ==========================
@@ -36,54 +32,6 @@ function money(n) {
   if (typeof n !== "number") return "";
   if (n <= 0) return "";
   return `$${n}`;
-}
-
-/**
- * ✅ Cart adapter:
- * Tries common method names used by CartProvider patterns.
- * Update ONE place if your CartProvider uses a different API.
- */
-function addServiceToCart(cart, svc) {
-  if (!cart) {
-    console.warn("[ServicesSection] Cart not available. Check CartProvider wiring.");
-    return false;
-  }
-
-  const lineItem = {
-    id: svc.id,
-    type: "service",
-    name: svc.nameEs,
-    price: typeof svc.price === "number" ? svc.price : 0,
-    qty: 1,
-    meta: {
-      categoryKey: svc._categoryKey,
-      duration: svc.duration || "",
-    },
-  };
-
-  const candidates = [
-    cart.addItem,
-    cart.addToCart,
-    cart.addLineItem,
-    cart.add,
-    cart.addProduct,
-    cart.addOrder,
-  ].filter(Boolean);
-
-  for (const fn of candidates) {
-    try {
-      fn(lineItem);
-      return true;
-    } catch (e) {
-      // keep trying
-    }
-  }
-
-  console.warn(
-    "[ServicesSection] Could not add to cart. CartProvider API not recognized. Available keys:",
-    Object.keys(cart || {})
-  );
-  return false;
 }
 
 // ==========================
@@ -715,8 +663,6 @@ export function getAllServices() {
 // MAIN
 // ==========================
 export default function ServicesSection({ sectionRef }) {
-  const cart = useCart(); // ✅ requires CartProvider higher up
-
   const flat = useMemo(() => {
     return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
@@ -725,11 +671,8 @@ export default function ServicesSection({ sectionRef }) {
   const selected = useMemo(() => flat.find((x) => x.id === selectedId) || null, [flat, selectedId]);
 
   const handleAdd = (svc) => {
-    const ok = addServiceToCart(cart, svc);
-    if (ok) {
-      // optional: quick UX feedback
-      // console.log("Added to cart:", svc.id);
-    }
+    // Cart functionality can be added here if needed
+    console.log("Service selected:", svc.nameEs);
   };
 
   return (
