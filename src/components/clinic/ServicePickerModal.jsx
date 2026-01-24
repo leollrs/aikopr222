@@ -3,6 +3,13 @@ import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAllServices } from "./ServicesSection";
 
+// Pick localized string from { es, en } object
+function pick(obj, lang = "es", fallback = "") {
+  if (!obj) return fallback;
+  if (typeof obj === "string") return obj;
+  return lang === "en" ? obj.en ?? obj.es ?? fallback : obj.es ?? obj.en ?? fallback;
+}
+
 export default function ServicePickerModal({
   isOpen,
   onClose,
@@ -96,12 +103,12 @@ export default function ServicePickerModal({
                       className="truncate text-sm font-medium"
                       style={{ color: ESPRESSO }}
                     >
-                      {service.nameEs}
+                      {pick(service.name, lang)}
                     </h4>
 
                     <p className="mt-1 text-xs" style={{ color: TAUPE }}>
                       ${service.price}
-                      {service.duration && service.duration !== "—" && ` · ${service.duration}`}
+                      {service.duration && pick(service.duration, lang) !== "—" && ` · ${pick(service.duration, lang)}`}
                     </p>
                   </div>
 

@@ -5,6 +5,13 @@ import { getAllServices } from "@/components/clinic/ServicesSection";
 // Track last sent initial message to prevent duplicates
 const lastInitialMessageRef = { current: '' };
 
+// Pick localized string from { es, en } object
+function pick(obj, lang = "es", fallback = "") {
+  if (!obj) return fallback;
+  if (typeof obj === "string") return obj;
+  return lang === "en" ? obj.en ?? obj.es ?? fallback : obj.es ?? obj.en ?? fallback;
+}
+
 // ===== PERSISTENT CHAT IDENTITY (ROBUST) =====
 // - SSR-safe (won't crash if window undefined)
 // - Falls back to sessionStorage if localStorage is blocked (Safari/iframes/private mode)
@@ -538,7 +545,7 @@ function MessageBubble({ message, lang, services, onAddService, onBookNow }) {
 
   const mentionedServices = !isUser
     ? services.filter((s) => {
-        const name = isEs ? s.nameEs : s.nameEn;
+        const name = pick(s.name, lang);
         return content.toLowerCase().includes(String(name || "").toLowerCase());
       })
     : [];
@@ -573,7 +580,7 @@ function MessageBubble({ message, lang, services, onAddService, onBookNow }) {
                 type="button"
               >
                 <Plus className="h-3 w-3" />
-                {isEs ? "Agregar" : "Add"} {isEs ? service.nameEs : service.nameEn}
+                {isEs ? "Agregar" : "Add"} {pick(service.name, lang)}
               </button>
             ))}
 

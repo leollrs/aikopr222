@@ -24,12 +24,13 @@ export default function Home() {
   // Define signature service for Hero
   const signatureService = {
     id: 999, // unique ID for signature service
-    nameEs: "Láser Rejuvenation",
-    nameEn: "Laser Rejuvenation",
-    descEs: "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
-    descEn: "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin.",
-    duration: "60-75 min",
-    price: 150, // placeholder price
+    name: { es: "Láser Rejuvenation", en: "Laser Rejuvenation" },
+    description: { 
+      es: "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
+      en: "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin."
+    },
+    duration: { es: "60-75 min", en: "60-75 min" },
+    price: 150,
     benefits: [],
     caseStudy: null
   };
@@ -71,9 +72,12 @@ export default function Home() {
   };
 
   const handleAskAboutService = (service) => {
+    const serviceName = typeof service.name === 'string' 
+      ? service.name 
+      : (lang === 'es' ? service.name?.es : service.name?.en) || service.name?.es || '';
     const question = lang === 'es' 
-      ? `Cuéntame más sobre el servicio: ${service.nameEs}`
-      : `Tell me more about the service: ${service.nameEn || service.nameEs}`;
+      ? `Cuéntame más sobre el servicio: ${serviceName}`
+      : `Tell me more about the service: ${serviceName}`;
     setChatInitialMessage(question);
     setChatOpen(true);
   };
@@ -219,7 +223,7 @@ export default function Home() {
         }}
         onContinue={handleContinueToBooking}
         lang={lang}
-        serviceName={lastAddedService ? (lang === 'es' ? lastAddedService.nameEs : lastAddedService.nameEn) : ''}
+        serviceName={lastAddedService ? (typeof lastAddedService.name === 'string' ? lastAddedService.name : (lang === 'es' ? lastAddedService.name?.es : lastAddedService.name?.en) || '') : ''}
       />
 
       <ServicePickerModal 
