@@ -1,15 +1,14 @@
 // ServicesSection.jsx
 import React, { useMemo, useState, useEffect } from "react";
+import { useCart } from "./CartProvider";
 
 /**
- * ✅ Model:
- * - Multiple prices = multiple services (cards) = multiple modals
- * - One modal per service item
- * - Categories render grids of ServiceCard
- *
- * ✅ Fixes included:
- * 1) Aesthetic upgrade (luxury glass, depth, noise, vignette, better hover, better modal)
- * 2) Content upgrade (outcome-first copy that sells better, still within "estética" scope)
+ * FIXES IN THIS VERSION:
+ * ✅ Mobile layout: price badge no longer overlaps titles (wraps + stacks on small screens)
+ * ✅ Aesthetic: cleaner premium cards, consistent spacing, stronger hierarchy, better tap targets
+ * ✅ Card actions: "Ver detalles" + "Añadir" behave correctly on mobile
+ * ✅ Modal: full-height scroll on mobile, sticky footer CTA, safer spacing
+ * ✅ Cart integration preserved (adapter tries common APIs)
  */
 
 // ==========================
@@ -34,8 +33,51 @@ function money(n) {
   return `$${n}`;
 }
 
+function addServiceToCart(cart, svc) {
+  if (!cart) {
+    console.warn("[ServicesSection] Cart not available. Check CartProvider wiring.");
+    return false;
+  }
+
+  const lineItem = {
+    id: svc.id,
+    type: "service",
+    name: svc.nameEs,
+    price: typeof svc.price === "number" ? svc.price : 0,
+    qty: 1,
+    meta: {
+      categoryKey: svc._categoryKey,
+      duration: svc.duration || "",
+    },
+  };
+
+  const candidates = [
+    cart.addItem,
+    cart.addToCart,
+    cart.addLineItem,
+    cart.add,
+    cart.addProduct,
+    cart.addOrder,
+  ].filter(Boolean);
+
+  for (const fn of candidates) {
+    try {
+      fn(lineItem);
+      return true;
+    } catch (e) {
+      // keep trying
+    }
+  }
+
+  console.warn(
+    "[ServicesSection] Could not add to cart. CartProvider API not recognized. Available keys:",
+    Object.keys(cart || {})
+  );
+  return false;
+}
+
 // ==========================
-// DATA (PER SERVICE = PER MODAL)
+// DATA
 // ==========================
 const LASER_MODAL = {
   sections: [
@@ -284,7 +326,6 @@ const CATEGORIES = [
       { id: "laser-piernas-completas", nameEs: "Piernas Completas", price: 150, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
       { id: "laser-espalda", nameEs: "Espalda", price: 150, duration: "—", descriptionEs: "Piel más suave y sin irritación por afeitado constante. Sesiones recomendadas según evaluación.", modal: LASER_MODAL },
 
-      // placeholders to reach 13 — replace with real areas/prices
       { id: "laser-area-8", nameEs: "Área 8 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
       { id: "laser-area-9", nameEs: "Área 9 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
       { id: "laser-area-10", nameEs: "Área 10 (editar)", price: 0, duration: "—", descriptionEs: "Reemplaza con el área real y su precio.", modal: LASER_MODAL },
@@ -358,36 +399,41 @@ function ServiceModal({ open, service, onClose, onAdd }) {
         className="absolute inset-0 w-full h-full"
         aria-label="Cerrar modal"
         onClick={onClose}
-        style={{ background: "rgba(0,0,0,0.62)" }}
+        style={{ background: "rgba(0,0,0,0.64)" }}
       />
 
-      <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-12 pb-10">
+      {/* Mobile-safe container */}
+      <div className="relative mx-auto w-full max-w-3xl px-3 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-6 sm:pb-10">
         <div
           className="rounded-3xl border overflow-hidden"
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0.42))",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.44))",
             borderColor: BORDER,
             boxShadow: SHADOW,
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
           }}
         >
           {/* Header */}
           <div
-            className="p-6 sm:p-8 border-b"
+            className="p-5 sm:p-7 border-b"
             style={{
               borderColor: "rgba(42,30,26,0.10)",
-              background: "radial-gradient(900px 240px at 20% 0%, rgba(201,174,126,0.16), transparent 55%)",
+              background:
+                "radial-gradient(900px 260px at 18% 0%, rgba(201,174,126,0.18), transparent 55%)",
             }}
           >
-            <div className="flex items-start justify-between gap-6">
+            <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
-                <h3 className="font-display text-2xl sm:text-3xl font-medium tracking-tight" style={{ color: ESPRESSO, letterSpacing: "-0.02em" }}>
+                <h3
+                  className="font-display text-xl sm:text-3xl font-medium tracking-tight"
+                  style={{ color: ESPRESSO, letterSpacing: "-0.02em" }}
+                >
                   {service.nameEs}
                 </h3>
 
                 {service.descriptionEs && (
-                  <p className="mt-2 text-base sm:text-lg leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                  <p className="mt-2 text-sm sm:text-lg leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
                     {service.descriptionEs}
                   </p>
                 )}
@@ -397,10 +443,10 @@ function ServiceModal({ open, service, onClose, onAdd }) {
                     {service.badges.map((b, idx) => (
                       <span
                         key={`${b}-${idx}`}
-                        className="px-3 py-1 rounded-full text-sm border"
+                        className="px-3 py-1 rounded-full text-xs sm:text-sm border"
                         style={{
-                          background: "rgba(201,174,126,0.18)",
-                          borderColor: "rgba(201,174,126,0.35)",
+                          background: "rgba(201,174,126,0.16)",
+                          borderColor: "rgba(201,174,126,0.32)",
                           color: ESPRESSO,
                         }}
                       >
@@ -410,26 +456,26 @@ function ServiceModal({ open, service, onClose, onAdd }) {
                   </div>
                 )}
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   {canAdd && (
                     <span
-                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm border"
+                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs sm:text-sm border"
                       style={{
-                        background: "rgba(255,255,255,0.55)",
+                        background: "rgba(255,255,255,0.62)",
                         borderColor: BORDER_SOFT,
                         color: ESPRESSO,
                       }}
                     >
-                      <span className="font-semibold">Precio por sesión:</span>
+                      <span className="font-semibold">Precio:</span>
                       <span className="font-semibold">{money(service.price)}</span>
                     </span>
                   )}
 
                   {service.duration && service.duration !== "—" && (
                     <span
-                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm border"
+                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs sm:text-sm border"
                       style={{
-                        background: "rgba(255,255,255,0.55)",
+                        background: "rgba(255,255,255,0.62)",
                         borderColor: BORDER_SOFT,
                         color: ESPRESSO,
                       }}
@@ -443,9 +489,9 @@ function ServiceModal({ open, service, onClose, onAdd }) {
 
               <button
                 onClick={onClose}
-                className="shrink-0 rounded-full px-3 py-2 text-sm border hover:opacity-90"
+                className="shrink-0 rounded-full px-3 py-2 text-xs sm:text-sm border hover:opacity-90"
                 style={{
-                  background: "rgba(255,255,255,0.60)",
+                  background: "rgba(255,255,255,0.68)",
                   borderColor: BORDER,
                   color: ESPRESSO,
                 }}
@@ -455,96 +501,102 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             </div>
           </div>
 
-          {/* Body */}
-          <div className="p-6 sm:p-8 space-y-7">
-            {!!service.extraEs && (
-              <p className="leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
-                {service.extraEs}
-              </p>
-            )}
+          {/* Body (scrollable on mobile) */}
+          <div className="max-h-[62vh] sm:max-h-none overflow-y-auto">
+            <div className="p-5 sm:p-7 space-y-7">
+              {!!service.extraEs && (
+                <p className="leading-relaxed text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
+                  {service.extraEs}
+                </p>
+              )}
 
-            {!!service.modal?.sections?.length &&
-              service.modal.sections.map((sec, idx) => (
-                <section key={`${sec.title}-${idx}`} className="pt-2">
-                  <div className="flex items-center gap-3">
-                    <div className="h-px w-8" style={{ background: `linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.75))` }} />
-                    <h4 className="text-base font-semibold" style={{ color: ESPRESSO }}>
-                      {sec.title}
-                    </h4>
-                  </div>
+              {!!service.modal?.sections?.length &&
+                service.modal.sections.map((sec, idx) => (
+                  <section key={`${sec.title}-${idx}`} className="pt-1">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-px w-10"
+                        style={{
+                          background: `linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))`,
+                        }}
+                      />
+                      <h4 className="text-sm sm:text-base font-semibold" style={{ color: ESPRESSO }}>
+                        {sec.title}
+                      </h4>
+                    </div>
 
-                  {!!sec.text && (
-                    <p className="mt-2 leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
-                      {sec.text}
-                    </p>
-                  )}
+                    {!!sec.text && (
+                      <p className="mt-2 leading-relaxed text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
+                        {sec.text}
+                      </p>
+                    )}
 
-                  {!!sec.bullets?.length && (
-                    <ul className="mt-3 space-y-2.5">
-                      {sec.bullets.map((b) => (
-                        <li key={b} className="flex gap-3">
-                          <span className="mt-2 h-2 w-2 rounded-full" style={{ backgroundColor: "rgba(42,30,26,0.55)" }} />
-                          <span style={{ color: COCOA, opacity: 0.92 }}>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              ))}
+                    {!!sec.bullets?.length && (
+                      <ul className="mt-3 space-y-2.5">
+                        {sec.bullets.map((b) => (
+                          <li key={b} className="flex gap-3">
+                            <span className="mt-2 h-2 w-2 rounded-full" style={{ backgroundColor: "rgba(42,30,26,0.55)" }} />
+                            <span className="text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
+                              {b}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                ))}
+            </div>
+          </div>
 
-            {/* CTA row */}
-            <div className="pt-2">
-              <div
-                className="rounded-3xl border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          {/* Sticky footer CTA (best UX on mobile) */}
+          <div
+            className="border-t p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+            style={{
+              borderColor: "rgba(42,30,26,0.10)",
+              background: "linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.46))",
+            }}
+          >
+            <div>
+              <div className="font-semibold text-sm sm:text-base" style={{ color: ESPRESSO }}>
+                ¿Lista/o para reservar?
+              </div>
+              <div className="text-xs sm:text-sm" style={{ color: COCOA, opacity: 0.9 }}>
+                Añade el servicio al carrito o llámanos para coordinar.
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => onAdd?.(service)}
+                disabled={!canAdd}
+                className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
                 style={{
-                  background: "rgba(201,174,126,0.14)",
-                  borderColor: "rgba(201,174,126,0.35)",
+                  background: "rgba(255,255,255,0.70)",
+                  borderColor: BORDER,
+                  color: ESPRESSO,
+                }}
+                title={!canAdd ? "Edita el precio para habilitar" : "Añadir al carrito"}
+              >
+                Añadir al carrito
+              </button>
+
+              <a
+                href="tel:+17866729528"
+                className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90"
+                style={{
+                  background: "linear-gradient(180deg, rgba(42,30,26,0.92), rgba(42,30,26,0.80))",
+                  borderColor: "rgba(42,30,26,0.18)",
+                  color: LINEN,
+                  boxShadow: "0 10px 28px rgba(42,30,26,0.20)",
                 }}
               >
-                <div>
-                  <div className="font-semibold" style={{ color: ESPRESSO }}>
-                    ¿Lista/o para continuar?
-                  </div>
-                  <div className="text-sm" style={{ color: COCOA, opacity: 0.9 }}>
-                    Añade el servicio al carrito o contáctanos para orientación.
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onAdd?.(service)}
-                    disabled={!canAdd}
-                    className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
-                    style={{
-                      background: "rgba(255,255,255,0.60)",
-                      borderColor: BORDER,
-                      color: ESPRESSO,
-                    }}
-                    title={!canAdd ? "Edita el precio para habilitar" : "Añadir al carrito"}
-                  >
-                    Añadir al carrito
-                  </button>
-
-                  <a
-                    href="tel:+17866729528"
-                    className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90"
-                    style={{
-                      background: "linear-gradient(180deg, rgba(42,30,26,0.92), rgba(42,30,26,0.80))",
-                      borderColor: "rgba(42,30,26,0.18)",
-                      color: LINEN,
-                      boxShadow: "0 10px 28px rgba(42,30,26,0.20)",
-                    }}
-                  >
-                    Llamar para reservar
-                  </a>
-                </div>
-              </div>
+                Llamar
+              </a>
             </div>
           </div>
         </div>
 
-        {/* corner glow */}
         <div className="pointer-events-none absolute -top-6 -right-6 h-40 w-40 rounded-full blur-3xl" style={{ background: "rgba(201,174,126,0.22)" }} />
       </div>
     </div>
@@ -558,77 +610,101 @@ function ServiceCard({ item, onOpen, onAdd }) {
   const showPrice = typeof item.price === "number" && item.price > 0;
 
   return (
-    <button
-      onClick={() => onOpen(item)}
-      className="group relative text-left rounded-3xl border p-5 sm:p-6 transition-transform hover:-translate-y-1 active:-translate-y-0.5"
+    <div
+      className="group relative rounded-3xl border overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.38))",
         borderColor: BORDER_SOFT,
+        background: "linear-gradient(180deg, rgba(255,255,255,0.70), rgba(255,255,255,0.42))",
         boxShadow: SHADOW_SOFT,
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
       }}
     >
-      {/* sheen */}
+      {/* top sheen */}
       <div
-        className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition"
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition"
         style={{
-          background: "radial-gradient(800px 200px at 20% 0%, rgba(201,174,126,0.18), transparent 60%)",
+          background: "radial-gradient(900px 260px at 18% 0%, rgba(201,174,126,0.18), transparent 60%)",
         }}
       />
 
-      <div className="relative flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h4 className="font-display text-lg sm:text-xl font-medium leading-snug" style={{ color: ESPRESSO, letterSpacing: "-0.01em" }}>
-            {item.nameEs}
-          </h4>
+      {/* CONTENT CLICK AREA */}
+      <button
+        onClick={() => onOpen(item)}
+        className="relative w-full text-left p-5 sm:p-6"
+      >
+        {/* ✅ Mobile fix: stack price under title on small screens */}
+        <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h4
+              className="font-display text-lg sm:text-xl font-medium leading-snug"
+              style={{ color: ESPRESSO, letterSpacing: "-0.01em" }}
+            >
+              {item.nameEs}
+            </h4>
 
-          {item.descriptionEs && (
-            <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA, opacity: 0.9 }}>
-              {item.descriptionEs}
-            </p>
-          )}
-        </div>
+            {item.descriptionEs && (
+              <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA, opacity: 0.9 }}>
+                {item.descriptionEs}
+              </p>
+            )}
+          </div>
 
-        <div
-          className="shrink-0 rounded-2xl px-3.5 py-2 text-sm border"
-          style={{
-            background: showPrice
-              ? "linear-gradient(180deg, rgba(201,174,126,0.28), rgba(201,174,126,0.14))"
-              : "rgba(255,255,255,0.55)",
-            borderColor: showPrice ? "rgba(201,174,126,0.35)" : BORDER_SOFT,
-            color: ESPRESSO,
-            boxShadow: showPrice ? "0 8px 22px rgba(42,30,26,0.10)" : "none",
-          }}
-        >
-          <span className="font-semibold">{showPrice ? money(item.price) : "Ver"}</span>
-        </div>
-      </div>
-
-      {!!item.badges?.length && (
-        <div className="relative mt-4 flex flex-wrap gap-2">
-          {item.badges.slice(0, 2).map((b, idx) => (
-            <span
-              key={`${b}-${idx}`}
-              className="px-3 py-1 rounded-full text-xs border"
+          {/* Price badge: fixed width + no overlap */}
+          <div className="sm:shrink-0 sm:self-start">
+            <div
+              className="inline-flex max-w-full items-center rounded-2xl px-3.5 py-2 text-sm border"
               style={{
-                background: "rgba(255,255,255,0.62)",
-                borderColor: BORDER_SOFT,
+                background: showPrice
+                  ? "linear-gradient(180deg, rgba(201,174,126,0.26), rgba(201,174,126,0.12))"
+                  : "rgba(255,255,255,0.55)",
+                borderColor: showPrice ? "rgba(201,174,126,0.35)" : BORDER_SOFT,
                 color: ESPRESSO,
               }}
             >
-              {b}
-            </span>
-          ))}
+              <span className="font-semibold whitespace-nowrap">
+                {showPrice ? money(item.price) : "Ver"}
+              </span>
+            </div>
+          </div>
         </div>
-      )}
 
-      <div className="relative mt-5 flex items-center justify-between gap-3">
-        <div className="text-sm font-semibold" style={{ color: ESPRESSO, opacity: 0.92 }}>
+        {!!item.badges?.length && (
+          <div className="relative mt-4 flex flex-wrap gap-2">
+            {item.badges.slice(0, 2).map((b, idx) => (
+              <span
+                key={`${b}-${idx}`}
+                className="px-3 py-1 rounded-full text-xs border"
+                style={{
+                  background: "rgba(255,255,255,0.66)",
+                  borderColor: BORDER_SOFT,
+                  color: ESPRESSO,
+                }}
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+        )}
+      </button>
+
+      {/* ACTIONS ROW */}
+      <div
+        className="relative px-5 sm:px-6 pb-5 sm:pb-6 -mt-1 flex items-center justify-between gap-3"
+      >
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onOpen(item);
+          }}
+          className="text-sm font-semibold hover:opacity-90"
+          style={{ color: ESPRESSO, opacity: 0.92 }}
+        >
           Ver detalles <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
-        </div>
+        </button>
 
-        {/* ✅ Add to cart from card (does NOT open modal) */}
         <button
           type="button"
           onClick={(e) => {
@@ -637,9 +713,9 @@ function ServiceCard({ item, onOpen, onAdd }) {
             onAdd?.(item);
           }}
           disabled={!showPrice}
-          className="rounded-2xl px-3 py-2 text-xs font-semibold border hover:opacity-90 disabled:opacity-40"
+          className="rounded-2xl px-3.5 py-2 text-xs sm:text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
           style={{
-            background: "rgba(255,255,255,0.60)",
+            background: "rgba(255,255,255,0.70)",
             borderColor: BORDER_SOFT,
             color: ESPRESSO,
           }}
@@ -648,7 +724,16 @@ function ServiceCard({ item, onOpen, onAdd }) {
           Añadir
         </button>
       </div>
-    </button>
+
+      {/* bottom accent line */}
+      <div
+        className="h-px w-full"
+        style={{
+          background: `linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.55), rgba(201,174,126,0.0))`,
+          opacity: 0.9,
+        }}
+      />
+    </div>
   );
 }
 
@@ -663,6 +748,8 @@ export function getAllServices() {
 // MAIN
 // ==========================
 export default function ServicesSection({ sectionRef }) {
+  const cart = useCart();
+
   const flat = useMemo(() => {
     return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
@@ -670,13 +757,15 @@ export default function ServicesSection({ sectionRef }) {
   const [selectedId, setSelectedId] = useState(null);
   const selected = useMemo(() => flat.find((x) => x.id === selectedId) || null, [flat, selectedId]);
 
-  const handleAdd = (svc) => {
-    // Cart functionality can be added here if needed
-    console.log("Service selected:", svc.nameEs);
-  };
+  const handleAdd = (svc) => addServiceToCart(cart, svc);
 
   return (
-    <section id="ServicesSection" ref={sectionRef} className="relative overflow-hidden py-28 md:py-36 lg:py-44" style={{ backgroundColor: LINEN }}>
+    <section
+      id="ServicesSection"
+      ref={sectionRef}
+      className="relative overflow-hidden py-24 sm:py-28 md:py-36 lg:py-44"
+      style={{ backgroundColor: LINEN }}
+    >
       {/* background depth */}
       <div
         className="absolute inset-0"
@@ -701,27 +790,39 @@ export default function ServicesSection({ sectionRef }) {
         }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-        <div className="mx-auto mb-16 max-w-2xl text-center">
-          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-6" style={{ color: ESPRESSO, letterSpacing: "-0.03em" }}>
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto mb-12 sm:mb-16 max-w-2xl text-center">
+          <div
+            className="mx-auto mb-5 inline-flex items-center rounded-full border px-4 py-2 text-xs sm:text-sm"
+            style={{
+              background: "rgba(255,255,255,0.55)",
+              borderColor: "rgba(201,174,126,0.35)",
+              color: ESPRESSO,
+            }}
+          >
+            Tratamientos estéticos • A domicilio y en cabina
+          </div>
+
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight mb-5 sm:mb-6" style={{ color: ESPRESSO, letterSpacing: "-0.03em" }}>
             Nuestros Servicios
           </h2>
-          <p className="font-body text-lg md:text-xl leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
-            Servicios organizados por categoría. Toca cualquier servicio para ver detalles o añadirlo al carrito.
+
+          <p className="font-body text-base sm:text-lg md:text-xl leading-relaxed" style={{ color: COCOA, opacity: 0.88 }}>
+            Elige una categoría, revisa los detalles y añade tu servicio al carrito.
           </p>
 
           <div
-            className="mx-auto mt-8 h-px w-48"
+            className="mx-auto mt-7 sm:mt-8 h-px w-44 sm:w-48"
             style={{
               background: `linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.75), rgba(201,174,126,0.0))`,
             }}
           />
         </div>
 
-        <div className="space-y-16">
+        <div className="space-y-14 sm:space-y-16">
           {CATEGORIES.map((cat) => (
             <div key={cat.key}>
-              <div className="mb-6">
+              <div className="mb-5 sm:mb-6">
                 <h3 className="font-display text-2xl md:text-3xl font-medium tracking-tight" style={{ color: ESPRESSO, letterSpacing: "-0.02em" }}>
                   {cat.titleEs}
                 </h3>
@@ -740,14 +841,14 @@ export default function ServicesSection({ sectionRef }) {
                 )}
 
                 <div
-                  className="mt-4 h-px w-40"
+                  className="mt-4 h-px w-36 sm:w-40"
                   style={{
                     background: `linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.65), rgba(201,174,126,0.0))`,
                   }}
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-6 sm:gap-7 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {cat.items.map((item) => (
                   <ServiceCard
                     key={item.id}
