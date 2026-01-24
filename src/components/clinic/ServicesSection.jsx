@@ -505,35 +505,20 @@ function ServiceModal({ open, service, onClose, onAdd }) {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
-              <button
-                type="button"
-                onClick={() => onAdd?.(service)}
-                disabled={!canAdd}
-                className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
-                style={{
-                  background: "rgba(255,255,255,0.70)",
-                  borderColor: BORDER,
-                  color: ESPRESSO,
-                }}
-                title={!canAdd ? "Edita el precio para habilitar" : "Añadir al carrito"}
-              >
-                Añadir al carrito
-              </button>
-
-              <a
-                href="tel:+17866729528"
-                className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90"
-                style={{
-                  background: "linear-gradient(180deg, rgba(42,30,26,0.92), rgba(42,30,26,0.80))",
-                  borderColor: "rgba(42,30,26,0.18)",
-                  color: LINEN,
-                  boxShadow: "0 10px 28px rgba(42,30,26,0.20)",
-                }}
-              >
-                Llamar
-              </a>
-            </div>
+            <button
+              type="button"
+              onClick={() => onAdd?.(service)}
+              disabled={!canAdd}
+              className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
+              style={{
+                background: "rgba(255,255,255,0.70)",
+                borderColor: BORDER,
+                color: ESPRESSO,
+              }}
+              title={!canAdd ? "Edita el precio para habilitar" : "Añadir al carrito"}
+            >
+              Añadir al carrito
+            </button>
           </div>
         </div>
 
