@@ -445,7 +445,7 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             </div>
           </div>
 
-          <div className="max-h-[62vh] sm:max-h-none overflow-y-auto">
+          <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 320px)" }}>
             <div className="p-5 sm:p-7 space-y-7">
               {!!service.extraEs && (
                 <p className="leading-relaxed text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
