@@ -3,12 +3,10 @@ import React, { useMemo, useState, useEffect } from "react";
 
 /**
  * FIXES IN THIS VERSION:
- * ✅ Mobile layout: price badge no longer overlaps titles (wraps + stacks on small screens)
- * ✅ Aesthetic: cleaner premium cards, consistent spacing, stronger hierarchy, better tap targets
- * ✅ Card actions: "Ver detalles" + "Añadir" behave correctly on mobile
- * ✅ Modal: full-height scroll on mobile, sticky footer CTA, safer spacing
+ * ✅ Card header: switched to CSS GRID so price badge never overlaps long titles
+ * ✅ Title wrapping: break-words + better line height so long service names behave
  * ✅ Removed placeholder laser areas (Área 8–13)
- * ✅ Better modal readability: tighter copy layout + optional "Incluye" for multi-price services (RF/HIFU)
+ * ✅ Modal: same as before (mobile scroll + sticky footer)
  */
 
 // ==========================
@@ -134,7 +132,12 @@ const CATEGORIES = [
           sections: [
             {
               title: "Lo que ayuda a mejorar",
-              bullets: ["Firmeza y elasticidad", "Textura irregular", "Poros visibles", "Apariencia general más uniforme"],
+              bullets: [
+                "Firmeza y elasticidad",
+                "Textura irregular",
+                "Poros visibles",
+                "Apariencia general más uniforme",
+              ],
             },
             { title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)." },
             { title: "Importante", text: "Recomendación final según evaluación estética y condición de la piel." },
@@ -155,7 +158,12 @@ const CATEGORIES = [
           sections: [
             {
               title: "Lo que ayuda a mejorar",
-              bullets: ["Firmeza y elasticidad", "Textura irregular", "Apariencia más uniforme en la zona", "Mejor aspecto general de la piel"],
+              bullets: [
+                "Firmeza y elasticidad",
+                "Textura irregular",
+                "Apariencia más uniforme en la zona",
+                "Mejor aspecto general de la piel",
+              ],
             },
             { title: "Sesiones", text: "3–4 sesiones (cada 4 semanas)." },
             { title: "Importante", text: "El plan exacto depende de la zona y la evaluación estética." },
@@ -214,11 +222,20 @@ const CATEGORIES = [
           sections: [
             {
               title: "Beneficios principales",
-              bullets: ["Ayuda a uniformar el tono", "Mejora luminosidad", "Textura más suave", "Apariencia más fresca y pareja"],
+              bullets: [
+                "Ayuda a uniformar el tono",
+                "Mejora luminosidad",
+                "Textura más suave",
+                "Apariencia más fresca y pareja",
+              ],
             },
             {
               title: "Ideal para ti si…",
-              bullets: ["Quieres mejorar manchas visibles (según evaluación estética)", "Buscas una piel más glowy y uniforme", "Quieres un tratamiento constante sin algo agresivo"],
+              bullets: [
+                "Quieres mejorar manchas visibles (según evaluación estética)",
+                "Buscas una piel más glowy y uniforme",
+                "Quieres un tratamiento constante sin algo agresivo",
+              ],
             },
           ],
         },
@@ -235,7 +252,14 @@ const CATEGORIES = [
         extraEs: "Se evalúa el tamaño y la cantidad de áreas para definir el alcance y el costo final.",
         modal: {
           sections: [
-            { title: "Qué puedes esperar", bullets: ["Trabajo localizado por zona", "Evaluación previa para definir costo final", "Ideal para áreas pequeñas y específicas"] },
+            {
+              title: "Qué puedes esperar",
+              bullets: [
+                "Trabajo localizado por zona",
+                "Evaluación previa para definir costo final",
+                "Ideal para áreas pequeñas y específicas",
+              ],
+            },
             { title: "Precio", text: "Desde $60. El costo final depende del tamaño y la cantidad de áreas." },
           ],
         },
@@ -324,7 +348,6 @@ function ServiceModal({ open, service, onClose, onAdd }) {
         style={{ background: "rgba(0,0,0,0.64)" }}
       />
 
-      {/* Mobile-safe container */}
       <div className="relative mx-auto w-full max-w-3xl px-3 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-6 sm:pb-10">
         <div
           className="rounded-3xl border overflow-hidden"
@@ -336,7 +359,6 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             WebkitBackdropFilter: "blur(14px)",
           }}
         >
-          {/* Header */}
           <div
             className="p-5 sm:p-7 border-b"
             style={{
@@ -348,7 +370,7 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h3
-                  className="font-display text-xl sm:text-3xl font-medium tracking-tight"
+                  className="font-display text-xl sm:text-3xl font-medium tracking-tight break-words"
                   style={{ color: ESPRESSO, letterSpacing: "-0.02em" }}
                 >
                   {service.nameEs}
@@ -423,7 +445,6 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             </div>
           </div>
 
-          {/* Body (scrollable on mobile) */}
           <div className="max-h-[62vh] sm:max-h-none overflow-y-auto">
             <div className="p-5 sm:p-7 space-y-7">
               {!!service.extraEs && (
@@ -470,7 +491,6 @@ function ServiceModal({ open, service, onClose, onAdd }) {
             </div>
           </div>
 
-          {/* Sticky footer CTA */}
           <div
             className="border-t p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
             style={{
@@ -549,11 +569,13 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
         }}
       />
 
+      {/* CONTENT CLICK AREA */}
       <button onClick={() => onOpen(item)} className="relative w-full text-left p-5 sm:p-6">
-        <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        {/* ✅ HARD FIX: GRID prevents overlap always */}
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 sm:gap-4 items-start">
           <div className="min-w-0">
             <h4
-              className="font-display text-lg sm:text-xl font-medium leading-snug"
+              className="font-display text-lg sm:text-xl font-medium leading-snug break-words"
               style={{ color: ESPRESSO, letterSpacing: "-0.01em" }}
             >
               {item.nameEs}
@@ -566,7 +588,8 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
             )}
           </div>
 
-          <div className="sm:shrink-0 sm:self-start">
+          {/* Badge stays in its own grid column */}
+          <div className="sm:justify-self-end">
             <div
               className="inline-flex max-w-full items-center rounded-2xl px-3.5 py-2 text-sm border"
               style={{
@@ -577,7 +600,9 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
                 color: ESPRESSO,
               }}
             >
-              <span className="font-semibold whitespace-nowrap">{showPrice ? money(item.price) : "Ver"}</span>
+              <span className="font-semibold whitespace-nowrap">
+                {showPrice ? money(item.price) : "Ver"}
+              </span>
             </div>
           </div>
         </div>
@@ -601,6 +626,7 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
         )}
       </button>
 
+      {/* ACTIONS ROW */}
       <div className="relative px-5 sm:px-6 pb-5 sm:pb-6 -mt-1 flex items-center justify-between gap-2">
         <button
           type="button"
@@ -651,7 +677,7 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo }) {
 }
 
 // ==========================
-// EXPORT FOR OTHER COMPONENTS
+// EXPORT
 // ==========================
 export function getAllServices() {
   return CATEGORIES.flatMap((c) => c.items);
