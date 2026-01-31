@@ -109,10 +109,7 @@ const CATEGORIES = [
                 en: "1 to 3 sessions. Spaced 4 to 6 weeks apart (based on aesthetic evaluation).",
               },
             },
-            {
-              title: { es: "Duración", en: "Duration" },
-              text: { es: "45–60 minutos.", en: "45–60 minutes." },
-            },
+            { title: { es: "Duración", en: "Duration" }, text: { es: "45–60 minutos.", en: "45–60 minutes." } },
             {
               title: { es: "Cuidados post", en: "Aftercare" },
               bullets: [
@@ -200,7 +197,6 @@ const CATEGORIES = [
           ],
         },
       },
-
       {
         id: "hifu-rostro-cuello-escote",
         name: { es: "HIFU — Rostro, cuello y escote", en: "HIFU — Face, neck & décolleté" },
@@ -259,7 +255,6 @@ const CATEGORIES = [
           ],
         },
       },
-
       {
         id: "microagujas-manchas-rostro",
         name: { es: "MICROAGUJAS PARA MANCHAS — Rostro", en: "MICRONEEDLING FOR DARK SPOTS — Face" },
@@ -296,7 +291,6 @@ const CATEGORIES = [
           ],
         },
       },
-
       {
         id: "plasma-fibroblast-verrugas-desde",
         name: { es: "PLASMA FIBROBLAST — Remoción de verrugas (desde)", en: "PLASMA FIBROBLAST — Wart removal (from)" },
@@ -321,10 +315,7 @@ const CATEGORIES = [
                 { es: "Ideal para áreas pequeñas y específicas", en: "Ideal for small, specific areas" },
               ],
             },
-            {
-              title: { es: "Precio", en: "Price" },
-              text: { es: "Desde $60. El costo final depende del tamaño y la cantidad de áreas.", en: "From $60. Final cost depends on size and number of areas." },
-            },
+            { title: { es: "Precio", en: "Price" }, text: { es: "Desde $60. El costo final depende del tamaño y la cantidad de áreas.", en: "From $60. Final cost depends on size and number of areas." } },
           ],
         },
       },
@@ -335,69 +326,13 @@ const CATEGORIES = [
     key: "laser",
     title: { es: "DEPILACIÓN LÁSER DIODO", en: "DIODE LASER HAIR REMOVAL" },
     items: [
-      {
-        id: "laser-bozo",
-        name: { es: "Bozo", en: "Upper Lip" },
-        price: 35,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
-      {
-        id: "laser-axilas",
-        name: { es: "Axilas", en: "Underarms" },
-        price: 45,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
-      {
-        id: "laser-bikini",
-        name: { es: "Bikini", en: "Bikini" },
-        price: 75,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
-      {
-        id: "laser-brazilian",
-        name: { es: "Brazilian", en: "Brazilian" },
-        price: 95,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
-      {
-        id: "laser-media-pierna",
-        name: { es: "Media Pierna", en: "Half Legs" },
-        price: 120,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
-      {
-        id: "laser-piernas-completas",
-        name: { es: "Piernas Completas", en: "Full Legs" },
-        price: 150,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
-      {
-        id: "laser-espalda",
-        name: { es: "Espalda", en: "Back" },
-        price: 150,
-        duration: { es: "—", en: "—" },
-        description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." },
-        extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." },
-        modal: LASER_MODAL,
-      },
+      { id: "laser-bozo", name: { es: "Bozo", en: "Upper Lip" }, price: 35, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
+      { id: "laser-axilas", name: { es: "Axilas", en: "Underarms" }, price: 45, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
+      { id: "laser-bikini", name: { es: "Bikini", en: "Bikini" }, price: 75, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
+      { id: "laser-brazilian", name: { es: "Brazilian", en: "Brazilian" }, price: 95, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
+      { id: "laser-media-pierna", name: { es: "Media Pierna", en: "Half Legs" }, price: 120, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
+      { id: "laser-piernas-completas", name: { es: "Piernas Completas", en: "Full Legs" }, price: 150, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
+      { id: "laser-espalda", name: { es: "Espalda", en: "Back" }, price: 150, duration: { es: "—", en: "—" }, description: { es: "Tratamiento estético para reducir progresivamente el crecimiento del vello y mantener la piel más suave.", en: "Aesthetic treatment to progressively reduce hair growth and keep skin smoother." }, extra: { es: "La cantidad de sesiones varía según la zona y el tipo de vello. Te orientamos en tu evaluación.", en: "Session count varies by area and hair type. We’ll guide you during your evaluation." }, modal: LASER_MODAL },
     ],
   },
 
@@ -494,8 +429,8 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h3
-                  className="font-display text-xl sm:text-3xl font-medium tracking-tight break-words"
-                  style={{ color: ESPRESSO, letterSpacing: "-0.02em" }}
+                  className="font-display text-xl sm:text-3xl font-medium tracking-tight whitespace-normal break-normal hyphens-none [overflow-wrap:normal] [word-break:normal]"
+                  style={{ color: ESPRESSO, letterSpacing: "-0.02em", overflowWrap: "normal", wordBreak: "normal", hyphens: "none" }}
                 >
                   {name}
                 </h3>
@@ -689,8 +624,8 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es" }) {
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 sm:gap-4 items-start">
           <div className="min-w-0">
             <h4
-              className="font-display text-lg sm:text-xl font-medium leading-snug break-words"
-              style={{ color: ESPRESSO, letterSpacing: "-0.01em" }}
+              className="font-display text-lg sm:text-xl font-medium leading-snug whitespace-normal break-normal hyphens-none [overflow-wrap:normal] [word-break:normal]"
+              style={{ color: ESPRESSO, letterSpacing: "-0.01em", overflowWrap: "normal", wordBreak: "normal", hyphens: "none" }}
             >
               {name}
             </h4>
@@ -713,7 +648,9 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es" }) {
                 color: ESPRESSO,
               }}
             >
-              <span className="font-semibold whitespace-nowrap">{showPrice ? money(item.price) : (lang === "en" ? "View" : "Ver")}</span>
+              <span className="font-semibold whitespace-nowrap">
+                {showPrice ? money(item.price) : lang === "en" ? "View" : "Ver"}
+              </span>
             </div>
           </div>
         </div>
@@ -769,7 +706,15 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es" }) {
             borderColor: showPrice ? "rgba(195,154,139,0.35)" : BORDER_SOFT,
             color: ESPRESSO,
           }}
-          title={!showPrice ? (lang === "en" ? "Set a price to enable" : "Edita el precio para habilitar") : (lang === "en" ? "Add to cart" : "Añadir al carrito")}
+          title={
+            !showPrice
+              ? lang === "en"
+                ? "Set a price to enable"
+                : "Edita el precio para habilitar"
+              : lang === "en"
+              ? "Add to cart"
+              : "Añadir al carrito"
+          }
         >
           {lang === "en" ? "Add" : "Añadir"}
         </button>
@@ -896,7 +841,8 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-6 sm:gap-7 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {/* ✅ FIX: NO 4-COLUMN LAYOUT. MAX 3 COLUMNS ON LARGE SCREENS */}
+              <div className="grid grid-cols-1 gap-6 sm:gap-7 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3">
                 {cat.items.map((item) => (
                   <ServiceCard
                     key={item.id}
@@ -908,6 +854,14 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
                   />
                 ))}
               </div>
+
+              {/*
+              // OPTIONAL (best for “never too small cards”):
+              // Swap the grid above with this if you want auto-fit:
+              <div className="grid gap-6 sm:gap-7 lg:gap-8" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))" }}>
+                ...
+              </div>
+              */}
             </div>
           ))}
         </div>
