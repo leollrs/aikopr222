@@ -24,14 +24,18 @@ export default function Home() {
 
   // Define signature service for Hero
   const signatureService = {
-    id: 999, // unique ID for signature service
-    name: { es: "Láser Rejuvenation", en: "Laser Rejuvenation" },
+    id: "co2-laser-fraccionado",
+    name: { es: "CO₂ LÁSER FRACCIONADO", en: "FRACTIONAL CO₂ LASER" },
     description: { 
-      es: "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
-      en: "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin."
+      es: "Piel más lisa, poros más finos y una apariencia más rejuvenecida. Diseñado para mejorar textura, tono y marcas visibles dentro del alcance estético.",
+      en: "Smoother skin, refined pores, and a more refreshed look. Designed to improve texture, tone, and visible marks within the aesthetic scope."
     },
-    duration: { es: "60-75 min", en: "60-75 min" },
-    price: 150,
+    duration: { es: "45–60 minutos", en: "45–60 minutes" },
+    price: 230,
+    badges: [
+      { es: "Servicios profesionales", en: "Professional service" },
+      { es: "Evaluación previa obligatoria (estética)", en: "Pre-evaluation required (aesthetic)" },
+    ],
     benefits: [],
     caseStudy: null
   };
