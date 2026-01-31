@@ -2,9 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 
 export default function ServiceCard({ service, lang, onAddService, onViewDetails }) {
-  // NEW PALETTE (shared)
-  const CREAM = "#FBF8F3";
-  const LINEN = "#F1E8DD";
+  // PALETTE
   const ESPRESSO = "#2A1E1A";
   const COCOA = "#6B5A52";
   const CHAMPAGNE = "#C9AE7E";
@@ -16,7 +14,11 @@ export default function ServiceCard({ service, lang, onAddService, onViewDetails
 
   return (
     <div
-      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border p-8 transition-all duration-500 hover:-translate-y-2"
+      className="
+        group relative flex h-full flex-col overflow-hidden rounded-3xl border
+        p-7 sm:p-8 transition-all duration-500 hover:-translate-y-2
+        min-w-[280px]
+      "
       style={{
         backgroundColor: "rgba(255,252,248,0.92)",
         borderColor: "rgba(42,30,26,0.08)",
@@ -26,49 +28,92 @@ export default function ServiceCard({ service, lang, onAddService, onViewDetails
       {/* Hover glow */}
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(600px_300px_at_50%_0%,rgba(201,174,126,0.12),transparent_70%)]" />
 
-      {/* Content */}
       <div className="relative z-10 flex h-full flex-col">
-        {/* Title */}
-        <h3 className="font-display text-xl font-medium tracking-tight mb-4" style={{ color: ESPRESSO }}>
-          {name}
-        </h3>
+        {/* Header: title + price pill */}
+        <div className="flex items-start justify-between gap-4">
+          <h3
+            className="
+              font-display text-xl sm:text-2xl font-medium tracking-tight leading-tight
+              break-keep hyphens-none
+              pr-2
+            "
+            style={{ color: ESPRESSO }}
+          >
+            {name}
+          </h3>
 
-        {/* Meta */}
-        <div className="mb-6 flex items-center gap-3 text-sm" style={{ color: TAUPE }}>
-          <span className="font-medium">{service.duration}</span>
-          <span style={{ color: CHAMPAGNE }}>•</span>
-          <span className="font-semibold" style={{ color: ESPRESSO }}>${service.price}</span>
+          <div
+            className="shrink-0 rounded-2xl px-4 py-2 text-sm font-semibold"
+            style={{
+              backgroundColor: "rgba(201,174,126,0.18)",
+              border: "1px solid rgba(42,30,26,0.10)",
+              color: ESPRESSO,
+              boxShadow: "0 10px 24px rgba(42,30,26,0.06)",
+            }}
+          >
+            ${service.price}
+          </div>
         </div>
 
+        {/* Duration (optional, subtle) */}
+        {service.duration ? (
+          <div className="mt-3 text-sm font-medium" style={{ color: TAUPE }}>
+            {service.duration}
+          </div>
+        ) : null}
+
         {/* Description */}
-        <p className="font-body flex-grow text-base leading-relaxed mb-8" style={{ color: COCOA, opacity: 0.88 }}>
+        <p
+          className="mt-4 flex-grow text-[15px] leading-relaxed"
+          style={{ color: COCOA, opacity: 0.9 }}
+        >
           {desc}
         </p>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-3">
+        {/* Tags / chips (optional) */}
+        {(service.tags?.length ?? 0) > 0 ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {service.tags.slice(0, 3).map((t) => (
+              <span
+                key={t}
+                className="rounded-full px-3 py-1 text-xs font-medium"
+                style={{
+                  backgroundColor: "rgba(42,30,26,0.04)",
+                  border: "1px solid rgba(42,30,26,0.08)",
+                  color: ESPRESSO,
+                }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Actions: side-by-side */}
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <button
+            onClick={() => onViewDetails(service)}
+            className="h-12 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+            style={{
+              backgroundColor: "rgba(42,30,26,0.04)",
+              border: "1px solid rgba(42,30,26,0.10)",
+              color: ESPRESSO,
+            }}
+          >
+            {lang === "es" ? "Preguntar" : "Ask"}
+          </button>
+
           <Button
             onClick={() => onAddService(service)}
-            className="h-12 rounded-xl text-sm font-medium transition-all hover:shadow-lg"
+            className="h-12 rounded-xl text-sm font-semibold transition-all hover:shadow-lg"
             style={{
               backgroundColor: ROSE,
               color: "#FFFFFF",
               boxShadow: "0 12px 32px rgba(195,154,139,0.24)",
             }}
           >
-            {lang === "es" ? "Agregar" : "Add"}
+            {lang === "es" ? "Añadir" : "Add"}
           </Button>
-
-          <button
-            onClick={() => onViewDetails(service)}
-            className="h-12 rounded-xl text-sm font-medium transition-all hover:bg-opacity-80"
-            style={{
-              backgroundColor: "transparent",
-              color: TAUPE,
-            }}
-          >
-            {lang === "es" ? "Ver detalles" : "View details"}
-          </button>
         </div>
       </div>
     </div>
