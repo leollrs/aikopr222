@@ -530,7 +530,7 @@ export default function BookingSection({
                 >
                   <Building2 className="mx-auto mb-2 h-6 w-6" style={{ color: serviceType === "onsite" ? "#FFFFFF" : PALETTE.champagne }} />
                   <div className="text-sm font-medium">
-                    {lang === "es" ? "En clínica" : "On-site"}
+                    {lang === "es" ? "En cabina" : "In-studio"}
                   </div>
                   <div className="text-xs mt-1" style={{ opacity: 0.85 }}>
                     {lang === "es" ? "En nuestra ubicación" : "At our location"}
