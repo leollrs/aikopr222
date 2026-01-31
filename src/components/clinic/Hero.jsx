@@ -1,13 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import {
-  Sparkles,
-  Calendar,
-  ArrowRight,
-  ShieldCheck,
-  MapPin,
-  Award,
-} from "lucide-react";
+import { Sparkles, Calendar, ArrowRight, ShieldCheck, MapPin, Award } from "lucide-react";
 
 const content = {
   es: {
@@ -20,14 +13,12 @@ const content = {
     trust: ["Tratamientos certificados", "Atención 1:1", "Equipo profesional"],
     signatureLabel: "Tratamiento Signature",
     premium: "Premium",
-    cardName: "Láser Rejuvenation",
-    cardDesc:
-      "Sesión personalizada para mejorar textura, tono y luminosidad. Plan diseñado según tu piel.",
-    cardMeta1: "60–75 min",
-    cardMeta2: "Desde $99",
     cardNote: "Consulta inicial incluida",
     checkAvailability: "Consultar disponibilidad",
     rec: "Recomendación personalizada",
+    priceLabel: "Precio:",
+    durationLabel: "Duración:",
+    fromLabel: "Desde",
   },
   en: {
     badge: "Premium aesthetics • Mobile service in Puerto Rico",
@@ -39,23 +30,44 @@ const content = {
     trust: ["Certified treatments", "1:1 care", "Pro equipment"],
     signatureLabel: "Signature Treatment",
     premium: "Premium",
-    cardName: "Laser Rejuvenation",
-    cardDesc:
-      "A tailored session to improve texture, tone, and glow. Your plan is designed around your skin.",
-    cardMeta1: "60–75 min",
-    cardMeta2: "From $99",
     cardNote: "Initial consult included",
     checkAvailability: "Check availability",
     rec: "Personalized recommendation",
+    priceLabel: "Price:",
+    durationLabel: "Duration:",
+    fromLabel: "From",
   },
 };
+
+// ---------- helpers ----------
+function clamp(n, a, b) {
+  return Math.max(a, Math.min(b, n));
+}
+function rand(a, b) {
+  return Math.random() * (b - a) + a;
+}
+function pick(obj, lang = "es", fallback = "") {
+  if (!obj) return fallback;
+  return lang === "en" ? obj.en ?? obj.es ?? fallback : obj.es ?? obj.en ?? fallback;
+}
+function money(n) {
+  if (typeof n !== "number") return "";
+  if (n <= 0) return "";
+  return `$${n}`;
+}
+// duration can be "—" or {es,en} or string
+function durationText(d, lang = "es") {
+  if (!d) return "";
+  if (typeof d === "string") return d;
+  return pick(d, lang, "");
+}
 
 export default function Hero({
   lang = "es",
   onBookClick,
   onViewServices,
   onAddService,
-  signatureService,
+  signatureService, // <-- pass the existing service object (e.g., the CO2 one from your ServicesSection data)
 }) {
   const t = content[lang] || content.es;
   const reduceMotion = useReducedMotion();
@@ -90,7 +102,15 @@ export default function Hero({
     return () => clearInterval(id);
   }, [reduceMotion]);
 
+  // Signature card fields (pulled from your existing service object)
+  const sigName = signatureService ? pick(signatureService.name, lang) : "";
+  const sigDesc = signatureService ? pick(signatureService.description, lang) : "";
+  const sigBadges = signatureService?.badges || [];
+  const sigPrice = signatureService?.price;
+  const sigDuration = durationText(signatureService?.duration, lang);
+
   const handleCheckAvailability = () => {
+    // ✅ Add the *existing* service to cart (so it’s connected to the cart system you already have)
     if (onAddService && signatureService) onAddService(signatureService);
     if (onBookClick) onBookClick();
   };
@@ -157,13 +177,7 @@ export default function Hero({
               filter: "blur(10px)",
               opacity: 0.9,
             }}
-            animate={
-              reduceMotion
-                ? {}
-                : {
-                    scale: o.s,
-                  }
-            }
+            animate={reduceMotion ? {} : { scale: o.s }}
             transition={{ duration: 2.4, ease: "easeInOut" }}
           />
         ))}
@@ -172,8 +186,7 @@ export default function Hero({
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "radial-gradient(1200px 700px at 50% 30%, transparent 55%, rgba(42,30,26,0.10) 100%)",
+            background: "radial-gradient(1200px 700px at 50% 30%, transparent 55%, rgba(42,30,26,0.10) 100%)",
             mixBlendMode: "multiply",
           }}
         />
@@ -208,10 +221,7 @@ export default function Hero({
                   }}
                 >
                   <Sparkles className="h-4 w-4" style={{ color: CHAMPAGNE }} />
-                  <span
-                    className="text-xs font-medium uppercase tracking-[0.22em]"
-                    style={{ color: COCOA }}
-                  >
+                  <span className="text-xs font-medium uppercase tracking-[0.22em]" style={{ color: COCOA }}>
                     {t.badge}
                   </span>
                 </div>
@@ -270,10 +280,7 @@ export default function Hero({
                 </motion.button>
               </motion.div>
 
-              <motion.div
-                variants={heroVariants.item}
-                className="mt-10 flex flex-wrap gap-3 justify-center lg:justify-start"
-              >
+              <motion.div variants={heroVariants.item} className="mt-10 flex flex-wrap gap-3 justify-center lg:justify-start">
                 {t.trust.map((label, idx) => (
                   <div
                     key={idx}
@@ -294,14 +301,13 @@ export default function Hero({
               </motion.div>
             </div>
 
-            {/* Right: Signature card */}
+            {/* Right: Signature card (CONNECTED to your existing service) */}
             <motion.div className="lg:col-span-5" variants={heroVariants.card}>
               <div className="relative mx-auto max-w-md">
                 <div
                   className="pointer-events-none absolute -inset-6 rounded-[2rem]"
                   style={{
-                    background:
-                      "radial-gradient(520px 300px at 50% 20%, rgba(201,174,126,0.24), transparent 70%)",
+                    background: "radial-gradient(520px 300px at 50% 20%, rgba(201,174,126,0.24), transparent 70%)",
                     filter: "blur(12px)",
                     opacity: 0.95,
                   }}
@@ -320,52 +326,85 @@ export default function Hero({
                   <motion.div
                     className="pointer-events-none absolute inset-0 opacity-40"
                     style={{
-                      background:
-                        "linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.55) 45%, transparent 65%)",
+                      background: "linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.55) 45%, transparent 65%)",
                       transform: "translateX(-60%)",
                     }}
                     animate={reduceMotion ? {} : { transform: ["translateX(-60%)", "translateX(60%)"] }}
-                    transition={reduceMotion ? {} : { duration: 2.8, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+                    transition={
+                      reduceMotion
+                        ? {}
+                        : { duration: 2.8, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }
+                    }
                   />
 
                   <div className="relative z-10">
                     <div className="flex items-center justify-between">
-                      <span
-                        className="text-xs font-medium uppercase tracking-[0.22em]"
-                        style={{ color: COCOA }}
-                      >
+                      <span className="text-xs font-medium uppercase tracking-[0.22em]" style={{ color: COCOA }}>
                         {t.signatureLabel}
                       </span>
 
                       <span
                         className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium"
-                        style={{
-                          backgroundColor: "rgba(201,174,126,0.14)",
-                          color: ESPRESSO,
-                        }}
+                        style={{ backgroundColor: "rgba(201,174,126,0.14)", color: ESPRESSO }}
                       >
                         <Sparkles className="h-3.5 w-3.5" style={{ color: CHAMPAGNE }} />
                         {t.premium}
                       </span>
                     </div>
 
-                    <h3
-                      className="mt-4 font-display text-2xl font-medium tracking-tight"
-                      style={{ color: ESPRESSO }}
-                    >
-                      {t.cardName}
+                    {/* ✅ Pull name/description from CO2 service */}
+                    <h3 className="mt-4 font-display text-2xl font-medium tracking-tight" style={{ color: ESPRESSO }}>
+                      {sigName || (lang === "en" ? "Signature Service" : "Servicio Signature")}
                     </h3>
 
-                    <p className="mt-3 text-base leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
-                      {t.cardDesc}
-                    </p>
+                    {!!sigDesc && (
+                      <p className="mt-3 text-base leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                        {sigDesc}
+                      </p>
+                    )}
 
-                    <div className="mt-6 flex items-center gap-3 text-sm" style={{ color: TAUPE }}>
-                      <span className="font-medium">{t.cardMeta1}</span>
-                      <span style={{ color: CHAMPAGNE }}>•</span>
-                      <span className="font-semibold" style={{ color: ESPRESSO }}>
-                        {t.cardMeta2}
-                      </span>
+                    {/* ✅ Show the badges exactly like in your Services modal */}
+                    {!!sigBadges.length && (
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        {sigBadges.slice(0, 2).map((b, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
+                            style={{
+                              backgroundColor: "rgba(255,252,248,0.70)",
+                              borderColor: "rgba(42,30,26,0.10)",
+                              color: ESPRESSO,
+                            }}
+                          >
+                            {typeof b === "string" ? b : pick(b, lang)}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* ✅ Price + Duration from the existing service object */}
+                    <div className="mt-6 flex flex-wrap items-center gap-3 text-sm" style={{ color: TAUPE }}>
+                      {typeof sigPrice === "number" && sigPrice > 0 && (
+                        <span className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2">
+                          <span className="font-semibold" style={{ color: ESPRESSO }}>
+                            {t.priceLabel}
+                          </span>
+                          <span className="font-semibold" style={{ color: ESPRESSO }}>
+                            {money(sigPrice)}
+                          </span>
+                        </span>
+                      )}
+
+                      {!!sigDuration && sigDuration !== "—" && (
+                        <span className="inline-flex items-center gap-2 rounded-2xl border px-4 py-2">
+                          <span className="font-semibold" style={{ color: ESPRESSO }}>
+                            {t.durationLabel}
+                          </span>
+                          <span className="font-semibold" style={{ color: ESPRESSO }}>
+                            {sigDuration}
+                          </span>
+                        </span>
+                      )}
                     </div>
 
                     <div
@@ -382,6 +421,7 @@ export default function Hero({
                       <span style={{ color: COCOA, opacity: 0.9 }}> • {t.rec}</span>
                     </div>
 
+                    {/* ✅ This button adds the CO2 service to cart AND triggers booking */}
                     <motion.button
                       onClick={handleCheckAvailability}
                       whileHover={reduceMotion ? {} : { y: -2, scale: 1.01 }}
@@ -391,7 +431,10 @@ export default function Hero({
                         backgroundColor: ESPRESSO,
                         color: CREAM,
                         boxShadow: "0 18px 55px rgba(42,30,26,0.24)",
+                        opacity: signatureService ? 1 : 0.75,
                       }}
+                      disabled={!signatureService}
+                      title={!signatureService ? (lang === "en" ? "Missing signature service" : "Falta el servicio signature") : ""}
                     >
                       {t.checkAvailability}
                       <ArrowRight className="h-4 w-4" />
@@ -401,10 +444,7 @@ export default function Hero({
                   {/* subtle bottom gradient edge */}
                   <div
                     className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
-                    style={{
-                      background:
-                        "linear-gradient(to top, rgba(201,174,126,0.10), transparent)",
-                    }}
+                    style={{ background: "linear-gradient(to top, rgba(201,174,126,0.10), transparent)" }}
                   />
                 </div>
               </div>
@@ -415,18 +455,10 @@ export default function Hero({
         <div
           className="h-px w-full"
           style={{
-            backgroundImage:
-              "linear-gradient(to right, transparent, rgba(201,174,126,0.55), transparent)",
+            backgroundImage: "linear-gradient(to right, transparent, rgba(201,174,126,0.55), transparent)",
           }}
         />
       </div>
     </section>
   );
-}
-
-function rand(a, b) {
-  return Math.random() * (b - a) + a;
-}
-function clamp(n, a, b) {
-  return Math.max(a, Math.min(b, n));
 }
