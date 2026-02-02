@@ -422,24 +422,42 @@ export default function Hero({
                       <span style={{ color: COCOA, opacity: 0.9 }}> • {t.rec}</span>
                     </div>
 
-                    {/* ✅ This button adds the CO2 service to cart AND triggers booking */}
-                    <motion.button
-                      onClick={handleCheckAvailability}
-                      whileHover={reduceMotion ? {} : { y: -2, scale: 1.01 }}
-                      whileTap={reduceMotion ? {} : { scale: 0.98 }}
-                      className="mt-7 w-full h-14 rounded-2xl text-sm font-medium transition-all flex items-center justify-center gap-2"
-                      style={{
-                        backgroundColor: ESPRESSO,
-                        color: CREAM,
-                        boxShadow: "0 18px 55px rgba(42,30,26,0.24)",
-                        opacity: signatureService ? 1 : 0.75,
-                      }}
-                      disabled={!signatureService}
-                      title={!signatureService ? (lang === "en" ? "Missing signature service" : "Falta el servicio signature") : ""}
-                    >
-                      {t.checkAvailability}
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.button>
+                    {/* ✅ Action buttons */}
+                    <div className="mt-7 flex gap-3">
+                      <motion.button
+                        onClick={() => onViewDetails?.(signatureService)}
+                        whileHover={reduceMotion ? {} : { y: -2, scale: 1.01 }}
+                        whileTap={reduceMotion ? {} : { scale: 0.98 }}
+                        className="flex-1 h-14 rounded-2xl text-sm font-medium border transition-all flex items-center justify-center gap-2"
+                        style={{
+                          backgroundColor: "rgba(255,252,248,0.70)",
+                          borderColor: "rgba(42,30,26,0.12)",
+                          color: ESPRESSO,
+                          opacity: signatureService ? 1 : 0.75,
+                        }}
+                        disabled={!signatureService}
+                      >
+                        {lang === "es" ? "Ver información" : "View info"}
+                      </motion.button>
+
+                      <motion.button
+                        onClick={handleCheckAvailability}
+                        whileHover={reduceMotion ? {} : { y: -2, scale: 1.01 }}
+                        whileTap={reduceMotion ? {} : { scale: 0.98 }}
+                        className="flex-1 h-14 rounded-2xl text-sm font-medium transition-all flex items-center justify-center gap-2"
+                        style={{
+                          backgroundColor: ESPRESSO,
+                          color: CREAM,
+                          boxShadow: "0 18px 55px rgba(42,30,26,0.24)",
+                          opacity: signatureService ? 1 : 0.75,
+                        }}
+                        disabled={!signatureService}
+                        title={!signatureService ? (lang === "en" ? "Missing signature service" : "Falta el servicio signature") : ""}
+                      >
+                        {t.checkAvailability}
+                        <ArrowRight className="h-4 w-4" />
+                      </motion.button>
+                    </div>
                   </div>
 
                   {/* subtle bottom gradient edge */}
