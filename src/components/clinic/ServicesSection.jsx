@@ -15,6 +15,9 @@ import React, { useMemo, useState, useEffect } from "react";
 const LINEN = "#F1E8DD";
 const ESPRESSO = "#2A1E1A";
 const COCOA = "#6B5A52";
+const CHAMPAGNE = "#C9AE7E";
+const ROSE = "#C39A8B";
+const TAUPE = "#8B7468";
 
 const BORDER = "rgba(42,30,26,0.14)";
 const BORDER_SOFT = "rgba(42,30,26,0.10)";
