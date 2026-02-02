@@ -250,14 +250,12 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
                     backgroundColor: "rgba(251,248,243,0.55)",
                   }}
                 >
-                  <video
-                    controls
-                    className="w-full"
-                    style={{ maxHeight: "400px" }}
-                  >
-                    <source src={service.videoUrl} type="video/mp4" />
-                    {lang === "es" ? "Tu navegador no soporta video." : "Your browser does not support video."}
-                  </video>
+                  <iframe
+                    src={service.videoUrl}
+                    className="w-full aspect-video"
+                    allow="autoplay"
+                    allowFullScreen
+                  />
                 </div>
               </div>
             )}
