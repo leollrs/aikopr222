@@ -548,39 +548,46 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
               </div>
             )}
 
-            {/* Video (if available) */}
-            {service.videoUrl && (
-              <div className="mt-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="h-px w-10"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))",
-                    }}
-                  />
-                  <h4 className="text-sm font-semibold" style={{ color: ESPRESSO }}>
-                    {lang === "es" ? "Video del tratamiento" : "Treatment video"}
-                  </h4>
-                </div>
-
+          {/* ✅ VIDEO BLOCK (clean for vertical phone videos) */}
+          {service.videoUrl && (
+            <div className="mt-8">
+              <div className="flex items-center gap-3 mb-4">
                 <div
-                  className="relative overflow-hidden rounded-xl border"
+                  className="h-px w-10"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))",
+                  }}
+                />
+                <h4 className="text-sm font-semibold" style={{ color: ESPRESSO }}>
+                  {lang === "es" ? "Video del tratamiento" : "Treatment video"}
+                </h4>
+              </div>
+
+              {/* Center + cap width so it looks premium */}
+              <div className="mx-auto w-full max-w-[360px] sm:max-w-[420px]">
+                <div
+                  className="relative overflow-hidden rounded-2xl border"
                   style={{
                     borderColor: "rgba(42,30,26,0.10)",
                     backgroundColor: "rgba(251,248,243,0.55)",
+                    boxShadow: "0 18px 55px rgba(42,30,26,0.10)",
                   }}
                 >
-                  <iframe
-                    src={service.videoUrl}
-                    className="w-full aspect-video"
-                    allow="autoplay; encrypted-media; picture-in-picture"
-                    allowFullScreen
-                    title={lang === "es" ? "Video del tratamiento" : "Treatment video"}
-                  />
+                  {/* 9:16 container for vertical videos */}
+                  <div className="w-full aspect-[9/16] bg-black/5">
+                    <iframe
+                      src={service.videoUrl}
+                      className="h-full w-full"
+                      allow="autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                      title={lang === "es" ? "Video del tratamiento" : "Treatment video"}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
             {/* Modal sections */}
             {service.modal?.sections?.length > 0 && (
