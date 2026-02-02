@@ -385,49 +385,21 @@ const CATEGORIES = [
 // VIDEO PLAYER
 // ==========================
 function VideoAutoPlayer({ src }) {
-  const ref = React.useRef(null);
-  const [paused, setPaused] = React.useState(false);
-
-  const toggle = () => {
-    const v = ref.current;
-    if (!v) return;
-
-    if (v.paused) {
-      v.play();
-      setPaused(false);
-    } else {
-      v.pause();
-      setPaused(true);
-    }
-  };
-
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border cursor-pointer group"
+      className="relative overflow-hidden rounded-2xl border"
       style={{
         borderColor: "rgba(42,30,26,0.10)",
         backgroundColor: "rgba(251,248,243,0.55)",
         boxShadow: "0 18px 55px rgba(42,30,26,0.10)",
       }}
-      onClick={toggle}
     >
-      <video
-        ref={ref}
+      <iframe
         src={src}
-        className="w-full aspect-[9/16] object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
+        className="w-full aspect-[9/16]"
+        allow="autoplay"
+        allowFullScreen
       />
-
-      {paused && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/25 backdrop-blur-sm">
-          <div className="text-white text-sm font-medium px-4 py-2 rounded-full bg-black/60">
-            ▶ Tap to play
-          </div>
-        </div>
-      )}
     </div>
   );
 }
