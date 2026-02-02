@@ -167,6 +167,7 @@ export default function Home() {
       {/* Services */}
       <ServicesSection 
         lang={lang}
+        cart={cart}
         onAddToCart={handleAddService}
         onAskAboutService={handleAskAboutService}
         sectionRef={servicesRef}
@@ -245,6 +246,7 @@ export default function Home() {
         isOpen={showPickerModal}
         onClose={() => setShowPickerModal(false)}
         lang={lang}
+        cart={cart}
         onAddService={(service) => {
           handleAddService(service);
           setShowPickerModal(false);

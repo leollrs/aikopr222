@@ -596,8 +596,9 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
 // ==========================
 // CARD
 // ==========================
-function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es" }) {
+function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es", cart = [] }) {
   const showPrice = typeof item.price === "number" && item.price > 0;
+  const isInCart = cart.some(cartItem => cartItem.id === item.id);
 
   const name = pick(item.name, lang);
   const description = pick(item.description, lang);
@@ -699,15 +700,19 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es" }) {
             e.stopPropagation();
             onAdd?.(item);
           }}
-          disabled={!showPrice}
+          disabled={!showPrice || isInCart}
           className="flex-1 rounded-2xl px-3 py-2 text-xs sm:text-sm font-semibold border hover:opacity-90 disabled:opacity-40 transition"
           style={{
-            background: showPrice ? "rgba(195,154,139,0.20)" : "rgba(255,255,255,0.70)",
-            borderColor: showPrice ? "rgba(195,154,139,0.35)" : BORDER_SOFT,
+            background: isInCart ? "rgba(76,175,80,0.15)" : showPrice ? "rgba(195,154,139,0.20)" : "rgba(255,255,255,0.70)",
+            borderColor: isInCart ? "rgba(76,175,80,0.35)" : showPrice ? "rgba(195,154,139,0.35)" : BORDER_SOFT,
             color: ESPRESSO,
           }}
           title={
-            !showPrice
+            isInCart
+              ? lang === "en"
+                ? "Already added"
+                : "Ya añadido"
+              : !showPrice
               ? lang === "en"
                 ? "Set a price to enable"
                 : "Edita el precio para habilitar"
@@ -716,7 +721,7 @@ function ServiceCard({ item, onOpen, onAdd, onAskInfo, lang = "es" }) {
               : "Añadir al carrito"
           }
         >
-          {lang === "en" ? "Add" : "Añadir"}
+          {isInCart ? (lang === "en" ? "Added ✓" : "Añadido ✓") : (lang === "en" ? "Add" : "Añadir")}
         </button>
       </div>
 
@@ -741,7 +746,7 @@ export function getAllServices() {
 // ==========================
 // MAIN
 // ==========================
-export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutService, lang = "es" }) {
+export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutService, lang = "es", cart = [] }) {
   const flat = useMemo(() => {
     return CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, _categoryKey: c.key })));
   }, []);
@@ -848,6 +853,7 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
                     key={item.id}
                     item={item}
                     lang={lang}
+                    cart={cart}
                     onOpen={(svc) => setSelectedId(svc.id)}
                     onAdd={handleAdd}
                     onAskInfo={handleAskInfo}
