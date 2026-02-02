@@ -186,6 +186,7 @@ const CATEGORIES = [
           es: "Estimula colágeno de manera progresiva y se trabaja por zona. Perfecto como tratamiento puntual o mantenimiento estético.",
           en: "Stimulates collagen progressively and is performed per area. Great for targeted improvement or aesthetic maintenance.",
         },
+        videoUrl: "https://drive.google.com/file/d/1ngOuLg55F_caEa6GUmMPWvs9gDPB5soX/preview",
         modal: {
           sections: [
             {
@@ -246,6 +247,7 @@ const CATEGORIES = [
           es: "Se trabaja por zona, y el resultado se aprecia de forma progresiva. Perfecto para mantenimiento estético.",
           en: "Performed per area, and results are progressive. Perfect for aesthetic maintenance.",
         },
+        videoUrl: "https://drive.google.com/file/d/1K7eNXxJoLISwfcHmERKDaCwa1zrpODKK/preview",
         modal: {
           sections: [
             {
