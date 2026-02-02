@@ -84,6 +84,7 @@ const CATEGORIES = [
           es: "Trabaja con microzonas térmicas controladas que estimulan renovación cutánea y colágeno de forma progresiva. El resultado se vuelve más evidente con el paso de las semanas.",
           en: "Uses controlled micro-thermal zones to stimulate skin renewal and collagen progressively. Results become more noticeable over the following weeks.",
         },
+        videoUrl: "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview",
         modal: {
           sections: [
             {
@@ -154,6 +155,7 @@ const CATEGORIES = [
           es: "Combina microagujas + radiofrecuencia para estimular colágeno de forma progresiva. Los cambios suelen mejorar con la constancia.",
           en: "Combines microneedling + radiofrequency to stimulate collagen progressively. Results typically improve with consistency.",
         },
+        videoUrl: "https://drive.google.com/file/d/1ngOuLg55F_caEa6GUmMPWvs9gDPB5soX/preview",
         modal: {
           sections: [
             {
@@ -214,6 +216,7 @@ const CATEGORIES = [
           es: "Los resultados se desarrollan de manera progresiva. Muchas personas lo usan como mantenimiento estético 1–2 veces al año.",
           en: "Results develop progressively. Many people use it as maintenance 1–2 times per year.",
         },
+        videoUrl: "https://drive.google.com/file/d/1K7eNXxJoLISwfcHmERKDaCwa1zrpODKK/preview",
         modal: {
           sections: [
             {
