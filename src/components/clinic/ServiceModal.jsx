@@ -16,10 +16,20 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
   const ROSE = "#C39A8B";
   const TAUPE = "#8B7468";
 
-  const name = lang === "es" ? service.nameEs : service.nameEn;
-  const ideal = lang === "es" ? service.idealEs : service.idealEn;
-  const benefits = lang === "es" ? service.benefitsEs : service.benefitsEn;
-  const desc = lang === "es" ? service.descEs : service.descEn;
+  // Helper to pick localized string
+  const pick = (obj, fallback = "") => {
+    if (!obj) return fallback;
+    if (typeof obj === "string") return obj;
+    return lang === "en" ? obj.en ?? obj.es ?? fallback : obj.es ?? obj.en ?? fallback;
+  };
+
+  const name = pick(service.name);
+  const desc = pick(service.description);
+  const extra = pick(service.extra);
+  const duration = typeof service.duration === "string" ? service.duration : pick(service.duration);
+  
+  // Handle modal sections if they exist
+  const modalSections = service.modal?.sections || [];
 
   // ✅ TEMP PLACEHOLDERS (mapped by service.id) — change later
   const PLACEHOLDER_BY_ID = {
@@ -145,157 +155,125 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
           <div className="relative max-h-[72vh] overflow-y-auto px-6 py-6 md:max-h-[75vh]">
             {/* Meta */}
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div
-                className="inline-flex items-center gap-2 rounded-full border px-4 py-2"
-                style={{
-                  borderColor: "rgba(42,30,26,0.10)",
-                  backgroundColor: "rgba(251,248,243,0.75)",
-                }}
-              >
-                <span className="text-xs font-medium" style={{ color: ESPRESSO }}>
-                  {service.duration}
-                </span>
-                <span style={{ color: CHAMPAGNE }}>•</span>
-                <span className="text-xs" style={{ color: TAUPE }}>
-                  {lang === "es" ? "Servicio premium" : "Premium service"}
-                </span>
-              </div>
+              {duration && duration !== "—" && (
+                <div
+                  className="inline-flex items-center gap-2 rounded-full border px-4 py-2"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(251,248,243,0.75)",
+                  }}
+                >
+                  <span className="text-xs font-medium" style={{ color: ESPRESSO }}>
+                    {duration}
+                  </span>
+                  <span style={{ color: CHAMPAGNE }}>•</span>
+                  <span className="text-xs" style={{ color: TAUPE }}>
+                    {lang === "es" ? "Servicio premium" : "Premium service"}
+                  </span>
+                </div>
+              )}
 
               {/* Price badge */}
-              <div
-                className="inline-flex items-center rounded-full border px-4 py-2"
-                style={{
-                  borderColor: "rgba(42,30,26,0.10)",
-                  backgroundColor: "rgba(255,252,248,0.55)",
-                }}
-              >
-                <span className="text-xs" style={{ color: TAUPE }}>
-                  {lang === "es" ? "Desde" : "From"}
-                </span>
-                <span className="ml-2 text-xs font-semibold" style={{ color: ESPRESSO }}>
-                  ${service.price}
-                </span>
-              </div>
+              {service.price > 0 && (
+                <div
+                  className="inline-flex items-center rounded-full border px-4 py-2"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(255,252,248,0.55)",
+                  }}
+                >
+                  <span className="text-xs" style={{ color: TAUPE }}>
+                    {lang === "es" ? "Desde" : "From"}
+                  </span>
+                  <span className="ml-2 text-xs font-semibold" style={{ color: ESPRESSO }}>
+                    ${service.price}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Description */}
-            <div className="mt-6">
-              <p className="text-[15px] leading-relaxed" style={{ color: COCOA }}>
-                {desc}
-              </p>
-            </div>
-
-            {/* Ideal for */}
-            <div
-              className="mt-7 rounded-2xl border p-5"
-              style={{
-                borderColor: "rgba(42,30,26,0.10)",
-                backgroundColor: "rgba(241,232,221,0.55)",
-              }}
-            >
-              <h4
-                className="text-xs font-semibold tracking-[0.22em] uppercase"
-                style={{ color: ESPRESSO }}
-              >
-                {lang === "es" ? "Ideal para" : "Ideal for"}
-              </h4>
-              <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA }}>
-                {ideal}
-              </p>
-            </div>
-
-            {/* Benefits */}
-            <div className="mt-7">
-              <h4
-                className="text-xs font-semibold tracking-[0.22em] uppercase"
-                style={{ color: ESPRESSO }}
-              >
-                {lang === "es" ? "Beneficios" : "Benefits"}
-              </h4>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {benefits.map((benefit, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-2 rounded-2xl border px-4 py-3"
-                    style={{
-                      borderColor: "rgba(42,30,26,0.10)",
-                      backgroundColor: "rgba(255,252,248,0.65)",
-                    }}
-                  >
-                    <span
-                      className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full"
-                      style={{ backgroundColor: "rgba(201,174,126,0.18)" }}
-                    >
-                      <Check className="h-4 w-4" style={{ color: CHAMPAGNE }} />
-                    </span>
-                    <span className="text-sm leading-relaxed" style={{ color: COCOA }}>
-                      {benefit}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Case study */}
-            <div
-              className="mt-8 overflow-hidden rounded-2xl border"
-              style={{
-                borderColor: "rgba(42,30,26,0.10)",
-                backgroundColor: "rgba(241,232,221,0.45)",
-              }}
-            >
-              <div className="flex items-center justify-between gap-3 px-5 py-4">
-                <div>
-                  <div
-                    className="text-xs font-semibold tracking-[0.22em] uppercase"
-                    style={{ color: ESPRESSO }}
-                  >
-                    {lang === "es" ? "Caso real" : "Real case"}
-                  </div>
-                  <div className="mt-1 text-sm" style={{ color: COCOA }}>
-                    {service.caseStudy.sessions} {lang === "es" ? "sesiones" : "sessions"} ·{" "}
-                    {service.caseStudy.months} {lang === "es" ? "meses" : "months"} · ~
-                    {service.caseStudy.improvement} {lang === "es" ? "mejora" : "improvement"}
-                  </div>
-                </div>
-
-                <div
-                  className="hidden sm:inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium"
-                  style={{
-                    borderColor: "rgba(42,30,26,0.12)",
-                    backgroundColor: "rgba(255,252,248,0.60)",
-                    color: ESPRESSO,
-                  }}
-                >
-                  {lang === "es" ? "Arrastra para comparar" : "Drag to compare"}
-                </div>
-              </div>
-
-              <div className="px-5 pb-5">
-                {hasBeforeAfter ? (
-                  <BeforeAfterSlider
-                    lang={lang}
-                    beforeSrc={beforeImage}
-                    afterSrc={afterImage}
-                    containerStyle={{
-                      borderColor: "rgba(42,30,26,0.10)",
-                      backgroundColor: "rgba(241,232,221,0.75)",
-                    }}
-                    accent={CHAMPAGNE}
-                    textColor={ESPRESSO}
-                  />
-                ) : (
-                  <BeforeAfterPlaceholder lang={lang} />
-                )}
-
-                <p className="mt-4 text-xs italic" style={{ color: "rgba(107,90,82,0.78)" }}>
-                  {lang === "es"
-                    ? "Los resultados pueden variar según cada paciente."
-                    : "Results may vary depending on each patient."}
+            {desc && (
+              <div className="mt-6">
+                <p className="text-[15px] leading-relaxed" style={{ color: COCOA }}>
+                  {desc}
                 </p>
               </div>
-            </div>
+            )}
+
+            {/* Extra info */}
+            {extra && (
+              <div className="mt-6">
+                <p className="text-[15px] leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                  {extra}
+                </p>
+              </div>
+            )}
+
+            {/* Badges */}
+            {service.badges?.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {service.badges.map((b, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1 rounded-full text-xs border"
+                    style={{
+                      background: "rgba(201,174,126,0.16)",
+                      borderColor: "rgba(201,174,126,0.32)",
+                      color: ESPRESSO,
+                    }}
+                  >
+                    {typeof b === "string" ? b : pick(b)}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Modal sections */}
+            {modalSections.length > 0 && (
+              <div className="mt-8 space-y-7">
+                {modalSections.map((sec, idx) => {
+                  const title = pick(sec.title);
+                  const text = pick(sec.text);
+                  const bullets = (sec.bullets || []).map((b) => (typeof b === "string" ? b : pick(b)));
+
+                  return (
+                    <div key={idx}>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="h-px w-10"
+                          style={{
+                            background: "linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))",
+                          }}
+                        />
+                        <h4 className="text-sm font-semibold" style={{ color: ESPRESSO }}>
+                          {title}
+                        </h4>
+                      </div>
+
+                      {text && (
+                        <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                          {text}
+                        </p>
+                      )}
+
+                      {bullets.length > 0 && (
+                        <div className="mt-4 space-y-2.5">
+                          {bullets.map((b, i) => (
+                            <div key={i} className="flex gap-3">
+                              <span className="mt-2 h-2 w-2 rounded-full" style={{ backgroundColor: "rgba(42,30,26,0.55)" }} />
+                              <span className="text-sm" style={{ color: COCOA, opacity: 0.92 }}>
+                                {b}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="h-6" />
           </div>
