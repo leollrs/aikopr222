@@ -86,7 +86,7 @@ const CATEGORIES = [
         },
         videoUrls: [
           "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview",
-          "https://drive.google.com/file/d/1dHrCNqXSEh_yP3gZx7f8Pqce-l6c2Vfn/preview"
+          "https://drive.google.com/file/d/173sF2qWZvhUOyMZMDn96Uk8lFDP2iqL-/preview"
         ],
         modal: {
           sections: [
