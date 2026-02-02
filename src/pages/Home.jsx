@@ -30,14 +30,63 @@ export default function Home() {
       es: "Piel más lisa, poros más finos y una apariencia más rejuvenecida. Diseñado para mejorar textura, tono y marcas visibles dentro del alcance estético.",
       en: "Smoother skin, refined pores, and a more refreshed look. Designed to improve texture, tone, and visible marks within the aesthetic scope."
     },
+    extra: {
+      es: "Trabaja con microzonas térmicas controladas que estimulan renovación cutánea y colágeno de forma progresiva. El resultado se vuelve más evidente con el paso de las semanas.",
+      en: "Uses controlled micro-thermal zones to stimulate skin renewal and collagen progressively. Results become more noticeable over the following weeks.",
+    },
     duration: { es: "45–60 minutos", en: "45–60 minutes" },
     price: 230,
     badges: [
       { es: "Servicios profesionales", en: "Professional service" },
       { es: "Evaluación previa obligatoria (estética)", en: "Pre-evaluation required (aesthetic)" },
     ],
-    benefits: [],
-    caseStudy: null
+    modal: {
+      sections: [
+        {
+          title: { es: "Lo que puedes notar", en: "What you may notice" },
+          bullets: [
+            { es: "Textura más suave y uniforme", en: "Smoother, more even texture" },
+            { es: "Poros visualmente más finos", en: "Pores look more refined" },
+            { es: "Piel con mejor firmeza y apariencia general", en: "Improved firmness and overall look" },
+            { es: "Tono más parejo y piel menos apagada", en: "More even tone and less dullness" },
+            { es: "Marcas visibles más difuminadas (según evaluación estética)", en: "Visible marks appear softer (based on evaluation)" },
+          ],
+        },
+        {
+          title: { es: "Ideal para ti si…", en: "Ideal for you if…" },
+          bullets: [
+            { es: "Sientes textura irregular o poros marcados", en: "You feel uneven texture or noticeable pores" },
+            { es: "Tienes marcas visibles (acné / procedimientos estéticos previos)", en: "You have visible marks (acne / prior aesthetic procedures)" },
+            { es: "Quieres un cambio notable sin cirugía", en: "You want a noticeable change without surgery" },
+            { es: "Tu piel se ve cansada, opaca o fotoenvejecida", en: "Your skin looks tired, dull, or sun-aged" },
+          ],
+        },
+        {
+          title: { es: "Sesiones recomendadas", en: "Recommended sessions" },
+          text: {
+            es: "1 a 3 sesiones. Intervalos de 4 a 6 semanas (según evaluación estética).",
+            en: "1 to 3 sessions. Spaced 4 to 6 weeks apart (based on aesthetic evaluation).",
+          },
+        },
+        { title: { es: "Duración", en: "Duration" }, text: { es: "45–60 minutos.", en: "45–60 minutes." } },
+        {
+          title: { es: "Cuidados post", en: "Aftercare" },
+          bullets: [
+            { es: "Evitar sol directo y usar protector solar diariamente", en: "Avoid direct sun and use sunscreen daily" },
+            { es: "Hidratación profunda", en: "Deep hydration" },
+            { es: "Evitar maquillaje por varios días (según tu caso)", en: "Avoid makeup for a few days (case-dependent)" },
+            { es: "No manipular la piel durante la recuperación", en: "Do not pick or manipulate healing skin" },
+          ],
+        },
+        {
+          title: { es: "Importante", en: "Important" },
+          text: {
+            es: "Evaluación previa obligatoria (estética). Servicio dentro del alcance estético, no médico.",
+            en: "Pre-evaluation required (aesthetic). Service within the aesthetic scope, not medical.",
+          },
+        },
+      ],
+    },
   };
   
   // Modal states
