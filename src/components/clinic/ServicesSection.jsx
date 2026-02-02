@@ -548,7 +548,7 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
               </div>
             )}
 
-          {/* ✅ VIDEO BLOCK (clean for vertical phone videos) */}
+          {/* ✅ AUTO-PLAY VIDEO (tap to pause/play) */}
           {service.videoUrl && (
             <div className="mt-8">
               <div className="flex items-center gap-3 mb-4">
@@ -564,27 +564,8 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
                 </h4>
               </div>
 
-              {/* Center + cap width so it looks premium */}
-              <div className="mx-auto w-full max-w-[360px] sm:max-w-[420px]">
-                <div
-                  className="relative overflow-hidden rounded-2xl border"
-                  style={{
-                    borderColor: "rgba(42,30,26,0.10)",
-                    backgroundColor: "rgba(251,248,243,0.55)",
-                    boxShadow: "0 18px 55px rgba(42,30,26,0.10)",
-                  }}
-                >
-                  {/* 9:16 container for vertical videos */}
-                  <div className="w-full aspect-[9/16] bg-black/5">
-                    <iframe
-                      src={service.videoUrl}
-                      className="h-full w-full"
-                      allow="autoplay; encrypted-media; picture-in-picture"
-                      allowFullScreen
-                      title={lang === "es" ? "Video del tratamiento" : "Treatment video"}
-                    />
-                  </div>
-                </div>
+              <div className="mx-auto w-full max-w-[380px]">
+                <VideoAutoPlayer src={service.videoUrl} />
               </div>
             </div>
           )}
@@ -832,7 +813,55 @@ export default function ServicesSection({ sectionRef, onAddToCart, onAskAboutSer
   const handleAdd = (svc) => {
     onAddToCart?.(svc);
   };
+  function VideoAutoPlayer({ src }) {
+  const ref = React.useRef(null);
+  const [paused, setPaused] = React.useState(false);
 
+  const toggle = () => {
+    const v = ref.current;
+    if (!v) return;
+
+    if (v.paused) {
+      v.play();
+      setPaused(false);
+    } else {
+      v.pause();
+      setPaused(true);
+    }
+  };
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border cursor-pointer group"
+      style={{
+        borderColor: "rgba(42,30,26,0.10)",
+        backgroundColor: "rgba(251,248,243,0.55)",
+        boxShadow: "0 18px 55px rgba(42,30,26,0.10)",
+      }}
+      onClick={toggle}
+    >
+      {/* 9:16 vertical layout */}
+      <video
+        ref={ref}
+        src={src}
+        className="w-full aspect-[9/16] object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+      />
+
+      {/* subtle pause/play overlay */}
+      {paused && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/25 backdrop-blur-sm">
+          <div className="text-white text-sm font-medium px-4 py-2 rounded-full bg-black/60">
+            ▶ Tap to play
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
   const handleAskInfo = (svc) => {
     onAskAboutService?.(svc);
   };
