@@ -67,6 +67,7 @@ export default function Hero({
   onBookClick,
   onViewServices,
   onAddService,
+  onViewDetails,
   signatureService, // <-- pass the existing service object (e.g., the CO2 one from your ServicesSection data)
 }) {
   const t = content[lang] || content.es;

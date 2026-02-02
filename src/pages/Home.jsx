@@ -161,6 +161,7 @@ export default function Home() {
         onBookClick={scrollToBooking}
         onViewServices={scrollToServices}
         onAddService={handleAddService}
+        onViewDetails={handleViewDetails}
         signatureService={signatureService}
       />
 
