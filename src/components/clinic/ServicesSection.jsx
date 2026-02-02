@@ -400,196 +400,224 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
   const duration = typeof service.duration === "string" ? service.duration : pick(service.duration, lang);
 
   return (
-    <div className="fixed inset-0 z-[90]">
-      <button
-        className="absolute inset-0 w-full h-full"
-        aria-label={lang === "en" ? "Close modal" : "Cerrar modal"}
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-50 backdrop-blur-sm"
+        style={{ backgroundColor: "rgba(42,30,26,0.28)" }}
         onClick={onClose}
-        style={{ background: "rgba(0,0,0,0.64)" }}
       />
 
-      <div className="relative mx-auto w-full max-w-3xl px-3 sm:px-6 lg:px-8 py-6 sm:py-10 overflow-y-auto" style={{ maxHeight: "95vh" }}>
+      {/* Modal wrapper */}
+      <div className="fixed inset-x-0 bottom-0 z-50 p-4 md:inset-0 md:flex md:items-center md:justify-center md:p-6">
+        {/* Modal shell */}
         <div
-          className="rounded-3xl border"
+          className="relative w-full max-w-xl overflow-hidden rounded-t-[26px] border shadow-[0_40px_120px_rgba(42,30,26,0.22)] md:rounded-[28px]"
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.44))",
-            borderColor: BORDER,
-            boxShadow: SHADOW,
+            backgroundColor: "rgba(255,252,248,0.92)",
+            borderColor: "rgba(42,30,26,0.12)",
             backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
           }}
         >
+          {/* Glow */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1100px_620px_at_20%_0%,rgba(201,174,126,0.22),transparent_62%),radial-gradient(900px_520px_at_90%_10%,rgba(195,154,139,0.16),transparent_62%)]" />
+
+          {/* Header */}
           <div
-            className="p-5 sm:p-7 border-b"
+            className="sticky top-0 z-10 flex items-center justify-between border-b px-6 py-4 backdrop-blur"
             style={{
+              backgroundColor: "rgba(251,248,243,0.80)",
               borderColor: "rgba(42,30,26,0.10)",
-              background: "radial-gradient(900px 260px at 18% 0%, rgba(201,174,126,0.18), transparent 55%)",
             }}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <h3
-                  className="font-display text-xl sm:text-3xl font-medium tracking-tight whitespace-normal break-normal hyphens-none [overflow-wrap:normal] [word-break:normal]"
-                  style={{ color: ESPRESSO, letterSpacing: "-0.02em", overflowWrap: "normal", wordBreak: "normal", hyphens: "none" }}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CHAMPAGNE }} />
+                <span
+                  className="text-[11px] font-semibold tracking-[0.28em] uppercase"
+                  style={{ color: TAUPE }}
                 >
-                  {name}
-                </h3>
-
-                {description && (
-                  <p className="mt-2 text-sm sm:text-lg leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
-                    {description}
-                  </p>
-                )}
-
-                {!!service.badges?.length && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {service.badges.map((b, idx) => (
-                      <span
-                        key={`${idx}`}
-                        className="px-3 py-1 rounded-full text-xs sm:text-sm border"
-                        style={{
-                          background: "rgba(201,174,126,0.16)",
-                          borderColor: "rgba(201,174,126,0.32)",
-                          color: ESPRESSO,
-                        }}
-                      >
-                        {typeof b === "string" ? b : pick(b, lang)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {canAdd && (
-                    <span
-                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs sm:text-sm border"
-                      style={{
-                        background: "rgba(255,255,255,0.62)",
-                        borderColor: BORDER_SOFT,
-                        color: ESPRESSO,
-                      }}
-                    >
-                      <span className="font-semibold">{lang === "en" ? "Price:" : "Precio:"}</span>
-                      <span className="font-semibold">{money(service.price)}</span>
-                    </span>
-                  )}
-
-                  {duration && duration !== "—" && (
-                    <span
-                      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs sm:text-sm border"
-                      style={{
-                        background: "rgba(255,255,255,0.62)",
-                        borderColor: BORDER_SOFT,
-                        color: ESPRESSO,
-                      }}
-                    >
-                      <span className="font-semibold">{lang === "en" ? "Duration:" : "Duración:"}</span>
-                      <span className="font-semibold">{duration}</span>
-                    </span>
-                  )}
-                </div>
+                  {lang === "es" ? "Detalles del servicio" : "Service details"}
+                </span>
               </div>
 
-              <button
-                onClick={onClose}
-                className="shrink-0 rounded-full px-3 py-2 text-xs sm:text-sm border hover:opacity-90"
-                style={{
-                  background: "rgba(255,255,255,0.68)",
-                  borderColor: BORDER,
-                  color: ESPRESSO,
-                }}
+              <h3
+                className="mt-2 truncate text-xl font-medium tracking-[-0.01em]"
+                style={{ color: ESPRESSO }}
               >
-                {lang === "en" ? "Close" : "Cerrar"}
-              </button>
-            </div>
-          </div>
-
-          <div className="p-5 sm:p-7 space-y-7">
-            {!!extra && (
-              <p className="leading-relaxed text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
-                {extra}
-              </p>
-            )}
-
-            {!!service.modal?.sections?.length &&
-              service.modal.sections.map((sec, idx) => {
-                const title = pick(sec.title, lang, "");
-                const text = pick(sec.text, lang, "");
-                const bullets = (sec.bullets || []).map((b) => (typeof b === "string" ? b : pick(b, lang)));
-
-                return (
-                  <section key={`${idx}`} className="pt-1">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-px w-10"
-                        style={{
-                          background: `linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))`,
-                        }}
-                      />
-                      <h4 className="text-sm sm:text-base font-semibold" style={{ color: ESPRESSO }}>
-                        {title}
-                      </h4>
-                    </div>
-
-                    {!!text && (
-                      <p className="mt-2 leading-relaxed text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
-                        {text}
-                      </p>
-                    )}
-
-                    {!!bullets?.length && (
-                      <ul className="mt-3 space-y-2.5">
-                        {bullets.map((b, i) => (
-                          <li key={`${i}`} className="flex gap-3">
-                            <span className="mt-2 h-2 w-2 rounded-full" style={{ backgroundColor: "rgba(42,30,26,0.55)" }} />
-                            <span className="text-sm sm:text-base" style={{ color: COCOA, opacity: 0.92 }}>
-                              {b}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </section>
-                );
-              })}
-          </div>
-
-          <div
-            className="border-t p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-            style={{
-              borderColor: "rgba(42,30,26,0.10)",
-              background: "linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.46))",
-            }}
-          >
-            <div>
-              <div className="font-semibold text-sm sm:text-base" style={{ color: ESPRESSO }}>
-                {lang === "en" ? "Ready to book?" : "¿Lista/o para reservar?"}
-              </div>
-              <div className="text-xs sm:text-sm" style={{ color: COCOA, opacity: 0.9 }}>
-                {lang === "en" ? "Add the service to your cart or call us to coordinate." : "Añade el servicio al carrito o llámanos para coordinar."}
-              </div>
+                {name}
+              </h3>
             </div>
 
             <button
-              type="button"
-              onClick={() => onAdd?.(service)}
-              disabled={!canAdd}
-              className="inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold border hover:opacity-90 disabled:opacity-40"
+              onClick={onClose}
+              className="rounded-full border p-2 transition"
               style={{
-                background: "rgba(255,255,255,0.70)",
-                borderColor: BORDER,
-                color: ESPRESSO,
+                borderColor: "rgba(42,30,26,0.14)",
+                backgroundColor: "rgba(255,252,248,0.65)",
               }}
-              title={!canAdd ? (lang === "en" ? "Set a price to enable" : "Edita el precio para habilitar") : (lang === "en" ? "Add to cart" : "Añadir al carrito")}
+              aria-label={lang === "es" ? "Cerrar" : "Close"}
             >
-              {lang === "en" ? "Add to cart" : "Añadir al carrito"}
+              <svg className="h-5 w-5" style={{ color: ESPRESSO }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="relative max-h-[72vh] overflow-y-auto px-6 py-6 md:max-h-[75vh]">
+            {/* Meta */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {duration && duration !== "—" && (
+                <div
+                  className="inline-flex items-center gap-2 rounded-full border px-4 py-2"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(251,248,243,0.75)",
+                  }}
+                >
+                  <span className="text-xs font-medium" style={{ color: ESPRESSO }}>
+                    {duration}
+                  </span>
+                  <span style={{ color: CHAMPAGNE }}>•</span>
+                  <span className="text-xs" style={{ color: TAUPE }}>
+                    {lang === "es" ? "Servicio premium" : "Premium service"}
+                  </span>
+                </div>
+              )}
+
+              {/* Price badge */}
+              {canAdd && (
+                <div
+                  className="inline-flex items-center rounded-full border px-4 py-2"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(255,252,248,0.55)",
+                  }}
+                >
+                  <span className="text-xs" style={{ color: TAUPE }}>
+                    {lang === "es" ? "Desde" : "From"}
+                  </span>
+                  <span className="ml-2 text-xs font-semibold" style={{ color: ESPRESSO }}>
+                    ${service.price}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            {description && (
+              <div className="mt-6">
+                <p className="text-[15px] leading-relaxed" style={{ color: COCOA }}>
+                  {description}
+                </p>
+              </div>
+            )}
+
+            {/* Extra info */}
+            {extra && (
+              <div className="mt-6">
+                <p className="text-[15px] leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                  {extra}
+                </p>
+              </div>
+            )}
+
+            {/* Badges */}
+            {service.badges?.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {service.badges.map((b, idx) => (
+                  <span
+                    key={idx}
+                    className="px-3 py-1 rounded-full text-xs border"
+                    style={{
+                      background: "rgba(201,174,126,0.16)",
+                      borderColor: "rgba(201,174,126,0.32)",
+                      color: ESPRESSO,
+                    }}
+                  >
+                    {typeof b === "string" ? b : pick(b, lang)}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Modal sections */}
+            {service.modal?.sections?.length > 0 && (
+              <div className="mt-8 space-y-7">
+                {service.modal.sections.map((sec, idx) => {
+                  const title = pick(sec.title, lang, "");
+                  const text = pick(sec.text, lang, "");
+                  const bullets = (sec.bullets || []).map((b) => (typeof b === "string" ? b : pick(b, lang)));
+
+                  return (
+                    <div key={idx}>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="h-px w-10"
+                          style={{
+                            background: "linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))",
+                          }}
+                        />
+                        <h4 className="text-sm font-semibold" style={{ color: ESPRESSO }}>
+                          {title}
+                        </h4>
+                      </div>
+
+                      {text && (
+                        <p className="mt-2 text-sm leading-relaxed" style={{ color: COCOA, opacity: 0.92 }}>
+                          {text}
+                        </p>
+                      )}
+
+                      {bullets.length > 0 && (
+                        <div className="mt-4 space-y-2.5">
+                          {bullets.map((b, i) => (
+                            <div key={i} className="flex gap-3">
+                              <span className="mt-2 h-2 w-2 rounded-full" style={{ backgroundColor: "rgba(42,30,26,0.55)" }} />
+                              <span className="text-sm" style={{ color: COCOA, opacity: 0.92 }}>
+                                {b}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="h-6" />
+          </div>
+
+          {/* Footer */}
+          <div
+            className="sticky bottom-0 z-10 border-t px-6 py-4 backdrop-blur"
+            style={{
+              backgroundColor: "rgba(251,248,243,0.82)",
+              borderColor: "rgba(42,30,26,0.10)",
+            }}
+          >
+            <button
+              onClick={() => {
+                onAdd?.(service);
+                onClose();
+              }}
+              disabled={!canAdd}
+              className="w-full rounded-xl py-3 font-medium hover:opacity-90 disabled:opacity-40 transition"
+              style={{
+                backgroundColor: ROSE,
+                color: "#fff",
+                boxShadow: "0 18px 55px rgba(195,154,139,0.28)",
+              }}
+            >
+              {lang === "es" ? "Añadir al carrito" : "Add to cart"}
             </button>
           </div>
         </div>
-
-        <div className="pointer-events-none absolute -top-6 -right-6 h-40 w-40 rounded-full blur-3xl" style={{ background: "rgba(201,174,126,0.22)" }} />
       </div>
-    </div>
+    </>
   );
 }
 
