@@ -15,6 +15,7 @@ export default function ServicePickerModal({
   onClose,
   lang,
   onAddService,
+  cart = [],
 }) {
   if (!isOpen) return null;
 
@@ -87,50 +88,66 @@ export default function ServicePickerModal({
           {/* Services */}
           <div className="relative max-h-[65vh] overflow-y-auto px-6 py-8">
             <div className="mx-auto grid max-w-xl grid-cols-1 gap-4">
-              {services.map((service) => (
-                <div
-                  key={service.id}
-                  className="group flex items-center justify-between rounded-2xl border px-5 py-4 transition-all hover:-translate-y-0.5"
-                  style={{
-                    borderColor: "rgba(42,30,26,0.10)",
-                    backgroundColor: "rgba(251,248,243,0.72)",
-                    boxShadow: "0 14px 40px rgba(42,30,26,0.08)",
-                  }}
-                >
-                  {/* Text */}
-                  <div className="min-w-0">
-                    <h4
-                      className="truncate text-sm font-medium"
-                      style={{ color: ESPRESSO }}
-                    >
-                      {pick(service.name, lang)}
-                    </h4>
-
-                    <p className="mt-1 text-xs" style={{ color: TAUPE }}>
-                      ${service.price}
-                      {service.duration && pick(service.duration, lang) !== "—" && ` · ${pick(service.duration, lang)}`}
-                    </p>
-                  </div>
-
-                  {/* Action */}
-                  <Button
-                    onClick={() => {
-                      onAddService(service);
-                      onClose();
-                    }}
-                    size="sm"
-                    className="h-9 w-9 rounded-full p-0"
+              {services.map((service) => {
+                const isInCart = cart.some(cartItem => cartItem.id === service.id);
+                
+                return (
+                  <div
+                    key={service.id}
+                    className="group flex items-center justify-between rounded-2xl border px-5 py-4 transition-all hover:-translate-y-0.5"
                     style={{
-                      backgroundColor: ROSE,
-                      color: "#FFFFFF",
-                      boxShadow:
-                        "0 14px 40px rgba(195,154,139,0.28)",
+                      borderColor: "rgba(42,30,26,0.10)",
+                      backgroundColor: "rgba(251,248,243,0.72)",
+                      boxShadow: "0 14px 40px rgba(42,30,26,0.08)",
+                      opacity: isInCart ? 0.6 : 1,
                     }}
                   >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                    {/* Text */}
+                    <div className="min-w-0">
+                      <h4
+                        className="truncate text-sm font-medium"
+                        style={{ color: ESPRESSO }}
+                      >
+                        {pick(service.name, lang)}
+                      </h4>
+
+                      <p className="mt-1 text-xs" style={{ color: TAUPE }}>
+                        ${service.price}
+                        {service.duration && pick(service.duration, lang) !== "—" && ` · ${pick(service.duration, lang)}`}
+                      </p>
+                    </div>
+
+                    {/* Action */}
+                    {isInCart ? (
+                      <div
+                        className="flex h-9 items-center rounded-full px-4 text-xs font-medium"
+                        style={{
+                          backgroundColor: "rgba(76,175,80,0.15)",
+                          color: "#4CAF50",
+                        }}
+                      >
+                        {lang === "es" ? "Añadido ✓" : "Added ✓"}
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          onAddService(service);
+                          onClose();
+                        }}
+                        size="sm"
+                        className="h-9 w-9 rounded-full p-0"
+                        style={{
+                          backgroundColor: ROSE,
+                          color: "#FFFFFF",
+                          boxShadow: "0 14px 40px rgba(195,154,139,0.28)",
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

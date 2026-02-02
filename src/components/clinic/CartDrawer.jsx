@@ -112,38 +112,49 @@ export default function CartDrawer({
             </div>
           ) : (
             <div className="space-y-3">
-              {cart.map((service, idx) => (
-                <div
-                  key={`${service.id}-${idx}`}
-                  className="group flex items-start justify-between rounded-2xl border p-4 transition"
-                  style={{
-                    backgroundColor: "rgba(241,232,221,0.60)",
-                    borderColor: "rgba(42,30,26,0.08)",
-                    boxShadow: "0 18px 55px rgba(42,30,26,0.08)",
-                  }}
-                >
-                  <div className="min-w-0">
-                    <h4 className="text-sm font-medium truncate" style={{ color: PALETTE.espresso }}>
-                      {lang === "es" ? service.nameEs : service.nameEn}
-                    </h4>
-                    <p className="mt-1 text-xs" style={{ color: PALETTE.cocoa }}>
-                      {service.duration}
-                    </p>
-                  </div>
+              {cart.map((service, idx) => {
+                const serviceName = typeof service.name === 'string' 
+                  ? service.name 
+                  : (lang === 'es' ? service.name?.es : service.name?.en) || service.name?.es || '';
+                const serviceDuration = typeof service.duration === 'string'
+                  ? service.duration
+                  : (lang === 'es' ? service.duration?.es : service.duration?.en) || service.duration?.es || '';
 
-                  <button
-                    onClick={() => onRemove(idx)}
-                    className="ml-3 inline-flex h-10 w-10 items-center justify-center rounded-full border transition"
+                return (
+                  <div
+                    key={`${service.id}-${idx}`}
+                    className="group flex items-start justify-between rounded-2xl border p-4 transition"
                     style={{
-                      backgroundColor: "rgba(255,252,248,0.70)",
-                      borderColor: "rgba(42,30,26,0.10)",
+                      backgroundColor: "rgba(241,232,221,0.60)",
+                      borderColor: "rgba(42,30,26,0.08)",
+                      boxShadow: "0 18px 55px rgba(42,30,26,0.08)",
                     }}
-                    aria-label={lang === "es" ? "Eliminar" : "Remove"}
                   >
-                    <Trash2 className="h-4 w-4" style={{ color: PALETTE.rose }} />
-                  </button>
-                </div>
-              ))}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-medium" style={{ color: PALETTE.espresso }}>
+                        {serviceName}
+                      </h4>
+                      <div className="mt-1 flex items-center gap-2 text-xs" style={{ color: PALETTE.cocoa }}>
+                        {serviceDuration && serviceDuration !== "—" && <span>{serviceDuration}</span>}
+                        {serviceDuration && serviceDuration !== "—" && service.price && <span>•</span>}
+                        {service.price && <span className="font-medium">${service.price}</span>}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => onRemove(idx)}
+                      className="ml-3 inline-flex h-10 w-10 items-center justify-center rounded-full border transition shrink-0"
+                      style={{
+                        backgroundColor: "rgba(255,252,248,0.70)",
+                        borderColor: "rgba(42,30,26,0.10)",
+                      }}
+                      aria-label={lang === "es" ? "Eliminar" : "Remove"}
+                    >
+                      <Trash2 className="h-4 w-4" style={{ color: PALETTE.rose }} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
