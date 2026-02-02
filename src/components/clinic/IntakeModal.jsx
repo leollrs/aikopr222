@@ -426,24 +426,36 @@ export default function IntakeModal({
                       </span>
                     </label>
                   ))}
-                </div>
+                  </div>
+                  </section>
 
-                <label className="flex items-start gap-3 mt-4 cursor-pointer">
+                  {/* Terms Acceptance - Separated */}
+                  <section
+                  className="rounded-2xl border p-5"
+                  style={{
+                  backgroundColor: "rgba(201,174,126,0.08)",
+                  borderColor: "rgba(201,174,126,0.25)",
+                  }}
+                  >
+                  <h4 className="text-sm font-semibold mb-3" style={{ color: PALETTE.espresso }}>
+                  {isEs ? "Confirmación" : "Confirmation"}
+                  </h4>
+                  <label className="flex items-start gap-3 cursor-pointer">
                   <input
-                    type="checkbox"
-                    checked={formData.understands}
-                    onChange={(e) => setFormData({ ...formData, understands: e.target.checked })}
-                    className="mt-1"
-                    style={{ accentColor: PALETTE.rose }}
-                    required
+                   type="checkbox"
+                   checked={formData.understands}
+                   onChange={(e) => setFormData({ ...formData, understands: e.target.checked })}
+                   className="mt-1 flex-shrink-0"
+                   style={{ accentColor: PALETTE.rose, width: "18px", height: "18px" }}
+                   required
                   />
-                  <span className="text-sm" style={{ color: PALETTE.espresso }}>
-                    {isEs
-                      ? "Entiendo que esta es una evaluación estética y el plan de tratamiento puede ajustarse."
-                      : "I understand this is an esthetic evaluation and the treatment plan may be adjusted."}
+                  <span className="text-sm font-medium" style={{ color: PALETTE.espresso }}>
+                   {isEs
+                     ? "Entiendo que esta es una evaluación estética y el plan de tratamiento puede ajustarse según mi condición."
+                     : "I understand this is an esthetic evaluation and the treatment plan may be adjusted based on my condition."}
                   </span>
-                </label>
-              </section>
+                  </label>
+                  </section>
 
               {/* Additional */}
               <section>
