@@ -84,7 +84,10 @@ const CATEGORIES = [
           es: "Trabaja con microzonas térmicas controladas que estimulan renovación cutánea y colágeno de forma progresiva. El resultado se vuelve más evidente con el paso de las semanas.",
           en: "Uses controlled micro-thermal zones to stimulate skin renewal and collagen progressively. Results become more noticeable over the following weeks.",
         },
-        videoUrl: "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview",
+        videoUrls: [
+          "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview",
+          "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview"
+        ],
         modal: {
           sections: [
             {
@@ -573,8 +576,8 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
               </div>
             )}
 
-          {/* ✅ AUTO-PLAY VIDEO (tap to pause/play) */}
-          {service.videoUrl && (
+          {/* Videos (single or multiple) */}
+          {(service.videoUrl || service.videoUrls) && (
             <div className="mt-8">
               <div className="flex items-center gap-3 mb-4">
                 <div
@@ -589,9 +592,26 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
                 </h4>
               </div>
 
-              <div className="mx-auto w-full max-w-[380px]">
-                <VideoAutoPlayer src={service.videoUrl} />
-              </div>
+              {service.videoUrls && service.videoUrls.length > 1 ? (
+                <div className="relative">
+                  <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {service.videoUrls.map((url, idx) => (
+                      <div key={idx} className="flex-shrink-0 w-full max-w-[380px] mx-auto snap-center">
+                        <VideoAutoPlayer src={url} />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-center gap-2 mt-4">
+                    {service.videoUrls.map((_, idx) => (
+                      <div key={idx} className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "rgba(201,174,126,0.5)" }} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mx-auto w-full max-w-[380px]">
+                  <VideoAutoPlayer src={service.videoUrl || service.videoUrls?.[0]} />
+                </div>
+              )}
             </div>
           )}
 
