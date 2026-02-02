@@ -40,6 +40,10 @@ export default function Home() {
       { es: "Servicios profesionales", en: "Professional service" },
       { es: "Evaluación previa obligatoria (estética)", en: "Pre-evaluation required (aesthetic)" },
     ],
+    videoUrls: [
+      "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview",
+      "https://drive.google.com/file/d/173sF2qWZvhUOyMZMDn96Uk8lFDP2iqL-/preview"
+    ],
     modal: {
       sections: [
         {
