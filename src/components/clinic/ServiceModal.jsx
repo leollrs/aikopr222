@@ -229,6 +229,39 @@ export default function ServiceModal({ service, lang, isOpen, onClose, onAddServ
               </div>
             )}
 
+            {/* Video (if available) */}
+            {service.videoUrl && (
+              <div className="mt-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className="h-px w-10"
+                    style={{
+                      background: "linear-gradient(90deg, rgba(201,174,126,0.0), rgba(201,174,126,0.78))",
+                    }}
+                  />
+                  <h4 className="text-sm font-semibold" style={{ color: ESPRESSO }}>
+                    {lang === "es" ? "Video del tratamiento" : "Treatment video"}
+                  </h4>
+                </div>
+                <div
+                  className="relative overflow-hidden rounded-xl border"
+                  style={{
+                    borderColor: "rgba(42,30,26,0.10)",
+                    backgroundColor: "rgba(251,248,243,0.55)",
+                  }}
+                >
+                  <video
+                    controls
+                    className="w-full"
+                    style={{ maxHeight: "400px" }}
+                  >
+                    <source src={service.videoUrl} type="video/mp4" />
+                    {lang === "es" ? "Tu navegador no soporta video." : "Your browser does not support video."}
+                  </video>
+                </div>
+              </div>
+            )}
+
             {/* Modal sections */}
             {modalSections.length > 0 && (
               <div className="mt-8 space-y-7">
