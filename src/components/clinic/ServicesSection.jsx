@@ -86,7 +86,7 @@ const CATEGORIES = [
         },
         videoUrls: [
           "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview",
-          "https://drive.google.com/file/d/15Fk2QpUU-Kv4-Ok7uhxSi12DghTishwv/preview"
+          "https://drive.google.com/file/d/1dHrCNqXSEh_yP3gZx7f8Pqce-l6c2Vfn/preview"
         ],
         modal: {
           sections: [
@@ -593,19 +593,10 @@ function ServiceModal({ open, service, onClose, onAdd, lang = "es" }) {
               </div>
 
               {service.videoUrls && service.videoUrls.length > 1 ? (
-                <div className="relative">
-                  <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                    {service.videoUrls.map((url, idx) => (
-                      <div key={idx} className="flex-shrink-0 w-full max-w-[380px] mx-auto snap-center">
-                        <VideoAutoPlayer src={url} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-center gap-2 mt-4">
-                    {service.videoUrls.map((_, idx) => (
-                      <div key={idx} className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "rgba(201,174,126,0.5)" }} />
-                    ))}
-                  </div>
+                <div className="mx-auto w-full max-w-[380px] space-y-6">
+                  {service.videoUrls.map((url, idx) => (
+                    <VideoAutoPlayer key={idx} src={url} />
+                  ))}
                 </div>
               ) : (
                 <div className="mx-auto w-full max-w-[380px]">
