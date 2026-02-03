@@ -390,9 +390,11 @@ const CATEGORIES = [
 // VIDEO PLAYER
 // ==========================
 function VideoAutoPlayer({ src }) {
+  const videoUrl = src.replace('/preview', '/view');
+  
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border"
+      className="relative overflow-hidden rounded-2xl border group"
       style={{
         borderColor: "rgba(42,30,26,0.10)",
         backgroundColor: "rgba(251,248,243,0.55)",
@@ -405,6 +407,20 @@ function VideoAutoPlayer({ src }) {
         allow="autoplay"
         allowFullScreen
       />
+      <a
+        href={videoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm"
+        style={{
+          backgroundColor: "rgba(255,252,248,0.95)",
+          borderColor: "rgba(42,30,26,0.12)",
+          color: "#2A1E1A",
+          border: "1px solid",
+        }}
+      >
+        Abrir ↗
+      </a>
     </div>
   );
 }
